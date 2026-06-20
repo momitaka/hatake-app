@@ -625,9 +625,9 @@ function renderGrid(){
     }
     tbl.appendChild(tr);
   }
-  document.addEventListener('mouseup',onUp,{once:true});document.addEventListener('touchend',onUp,{once:true});renderSegList();
+  renderSegList();
 }
-function onDown(r,c,e){e.preventDefault();const k=K(r,c);if(cells[k]&&cells[k].crop)return;dragging=true;dragRow=r;dragStartCol=c;dragEndCol=c;renderGrid();}
+function onDown(r,c,e){e.preventDefault();const k=K(r,c);if(cells[k]&&cells[k].crop)return;dragging=true;dragRow=r;dragStartCol=c;dragEndCol=c;document.addEventListener('mouseup',onUp,{once:true});document.addEventListener('touchend',onUp,{once:true});renderGrid();}
 function onEnter(c){const dir=c>=dragStartCol?1:-1;let end=dragStartCol;for(let ci=dragStartCol;ci!==c+dir;ci+=dir){if(ci<0||ci>=COLS)break;const k=K(dragRow,ci);if(cells[k]&&cells[k].crop)break;end=ci;}dragEndCol=end;renderGrid();}
 function onUp(){if(!dragging){dragging=false;return;}dragging=false;const s=Math.min(dragStartCol,dragEndCol),e2=Math.max(dragStartCol,dragEndCol);if(dragRow>=0&&s<=e2){pendingRow=dragRow;pendingStart=s;pendingEnd=e2;showRegDlg();}renderGrid();}
 
