@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>畑管理アプリ v24</title>
 <!--
   畑管理アプリ
@@ -230,6 +230,7 @@ body{font-family:var(--font-sans);background:#f9f8f4;min-height:100vh;padding:0}
 .archive-detail-back{font-size:12px;color:var(--color-text-secondary);cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin-bottom:14px;padding:4px 0}
 .archive-detail-back:hover{color:var(--color-text-primary)}
 .archive-empty{font-size:12px;color:var(--color-text-tertiary);padding:24px 0;text-align:center}
+input,select,textarea{font-size:16px !important}
 </style>
 </head>
 <body>
@@ -642,7 +643,7 @@ function showRegDlg(){
   document.getElementById('dlg-date-field').style.display=noVeg?'none':'';
   document.getElementById('dlg-save').style.display=noVeg?'none':'';
   document.getElementById('dlg-no-veg').style.display=noVeg?'block':'none';
-  document.getElementById('dlg-register').style.display='flex';
+  document.getElementById('dlg-register').style.display='flex';window.scrollTo(0,0);
 }
 document.getElementById('dlg-crop').addEventListener('change',()=>{
   const cropId=document.getElementById('dlg-crop').value;
