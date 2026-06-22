@@ -231,7 +231,7 @@ body{font-family:var(--font-sans);background:#f9f8f4;min-height:100vh;padding:0}
 .archive-detail-back:hover{color:var(--color-text-primary)}
 .archive-empty{font-size:12px;color:var(--color-text-tertiary);padding:24px 0;text-align:center}
 input,select,textarea{font-size:16px !important}
-body.outdoor-mode{
+body{
   --color-background-primary:#ffffff;
   --color-background-secondary:#f0f0f0;
   --color-background-tertiary:#d8d8d8;
@@ -242,14 +242,12 @@ body.outdoor-mode{
   --color-border-tertiary:#aaaaaa;
   font-size:15px !important;
 }
-body.outdoor-mode .app{font-size:15px}
-body.outdoor-mode .btn{font-size:13px;border-width:1.5px;border-color:#555}
-body.outdoor-mode .seg-item{border-width:1.5px;border-color:#888}
-body.outdoor-mode .cell-label{font-size:12px;font-weight:700}
-body.outdoor-mode .row-num,.outdoor-mode .col-num{font-size:12px;font-weight:700;color:#333}
-body.outdoor-mode .status-pill{font-size:12px;padding:3px 10px;font-weight:700}
-#btn-outdoor{font-size:13px;padding:4px 8px;border-radius:var(--border-radius-md);border:1.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer}
-body.outdoor-mode #btn-outdoor{background:#FFF9C4;border-color:#F0A500;color:#7A5000}
+.app{font-size:15px}
+.btn{font-size:13px;border-width:1.5px;border-color:#555}
+.seg-item{border-width:1.5px;border-color:#888}
+.cell-label{font-size:12px;font-weight:700}
+.row-num,.col-num{font-size:12px;font-weight:700;color:#333}
+.status-pill{font-size:12px;padding:3px 10px;font-weight:700}
 
 .view-mode .admin-only{display:none !important}
 
@@ -259,7 +257,7 @@ body.outdoor-mode #btn-outdoor{background:#FFF9C4;border-color:#F0A500;color:#7A
 <div class="app" id="app">
   <div class="screen active" id="screen-register">
     <div class="toolbar">
-      <button id="btn-outdoor" onclick="toggleOutdoor()" title="屋外モード">☀️</button><div id="farm-name-display" style="font-size:13px;font-weight:600;color:var(--color-text-primary);letter-spacing:0.01em;display:none;overflow:hidden;white-space:nowrap;max-width:160px"></div>
+      <div id="farm-name-display" style="font-size:13px;font-weight:600;color:var(--color-text-primary);letter-spacing:0.01em;display:none;overflow:hidden;white-space:nowrap;max-width:160px"></div>
       <div style="flex:1"></div>
       <button class="btn" id="btn-open-master"><i class="ti ti-book-2"></i>野菜マスタ</button>
       <button class="btn" id="btn-open-archive"><i class="ti ti-database"></i>過去データ</button>
@@ -576,10 +574,6 @@ async function loadFromDB(){
   }catch(e){console.error('DB load error',e);}
   return false;
 }
-function toggleOutdoor(){
-  const on=document.body.classList.toggle('outdoor-mode');
-  localStorage.setItem('outdoor_mode',on?'1':'0');
-}
 function saveLS(){try{const d={cells,COLS,ROWS,segTasks,actionLogs,harvestLogs,segSummaryMemo,vegMaster,archivedSegs,farmName};localStorage.setItem('hatake_v21',JSON.stringify(d));localStorage.setItem('hatake_v21_icons',JSON.stringify(customIcons));saveToDB(d);}catch(e){}}
 function updateFarmNameDisplay(){const el=document.getElementById('farm-name-display');if(farmName){el.textContent=farmName;el.style.display='block';}else{el.style.display='none';}}
 function loadLS(){
@@ -608,7 +602,6 @@ document.getElementById('dlg-settings').addEventListener('mousedown',e=>{if(e.ta
 function updateAdminStatus(){const st=document.getElementById('admin-status');if(isAdmin){st.textContent='管理者モードで操作中';st.style.color='#0F6E56';document.body.classList.remove('view-mode');}else{st.textContent='閲覧モード（閲覧・作業記録のみ）';st.style.color='var(--color-text-tertiary)';document.body.classList.add('view-mode');}}
 document.getElementById('btn-admin-login').addEventListener('click',()=>{const pw=document.getElementById('s-admin-pw').value;if(pw===ADMIN_PASSWORD){isAdmin=true;localStorage.setItem('hatake_admin','1');updateAdminStatus();document.getElementById('s-admin-pw').value='';alert('管理者モードになりました');}else if(pw===''){isAdmin=false;localStorage.removeItem('hatake_admin');updateAdminStatus();}else{alert('パスワードが違います');}});
 if(localStorage.getItem('hatake_admin')==='1'){isAdmin=true;}else{document.body.classList.add('view-mode');}
-if(localStorage.getItem('outdoor_mode')==='1'){document.body.classList.add('outdoor-mode');}
 document.getElementById('btn-save-farm-name').addEventListener('click',()=>{farmName=document.getElementById('s-farm-name').value.trim();saveLS();updateFarmNameDisplay();const btn=document.getElementById('btn-save-farm-name');btn.textContent='保存しました';setTimeout(()=>{btn.textContent='保存';},1200);});
 document.getElementById('btn-open-master').addEventListener('click',()=>{closeSettings();openMaster();});
 
