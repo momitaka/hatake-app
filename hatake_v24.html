@@ -1108,7 +1108,7 @@ function renderManage(){
   const hdr=document.createElement('div');hdr.className='manage-header';
   hdr.innerHTML=`<span style="display:inline-flex;align-items:center;font-size:22px">${veg?vegIconHtml(veg,28):''}</span><div style="flex:1"><div class="manage-title">${veg?veg.name+(veg.variety?' ('+veg.variety+')':''):'不明'}</div><div class="manage-meta">${seg.row+1}行 ${Math.min(...seg.cols)+1}〜${Math.max(...seg.cols)+1}列 ${seg.cols.length}マス${seg.plantDate?' ／ '+seg.plantDate.slice(5).replace('-','/')+'開始':''}</div></div><div class="status-pill" style="background:${majorSt.bg};color:${majorSt.color}">${majorSt.name}</div>`;
   el.appendChild(hdr);
-  const tabs=[{id:'roadmap',icon:'ti-road',label:'ロードマップ'},{id:'basic',icon:'ti-plant',label:'基礎知識'},{id:'harvest',icon:'ti-basket',label:'収量'},{id:'log',icon:'ti-clipboard-list',label:'作業ログ'}];
+  const tabs=[{id:'basic',icon:'ti-plant',label:'基礎知識'},{id:'roadmap',icon:'ti-road',label:'ロードマップ'},{id:'harvest',icon:'ti-basket',label:'収量'},{id:'log',icon:'ti-clipboard-list',label:'作業ログ'}];
   const tabBar=document.createElement('div');tabBar.className='tab-bar';
   tabs.forEach(tab=>{const btn=document.createElement('div');btn.className='tab-btn'+(currentTab===tab.id?' active':'');btn.innerHTML=`<i class="ti ${tab.icon}" style="font-size:12px"></i>${tab.label}`;btn.addEventListener('click',()=>{currentTab=tab.id;renderManage();});tabBar.appendChild(btn);});
   el.appendChild(tabBar);
