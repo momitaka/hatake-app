@@ -378,6 +378,16 @@ body{
   </div>
 </div>
 
+
+<div id="dlg-milestone" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:115;background:rgba(0,0,0,0.4)" onclick="this.style.display='none'">
+  <div style="background:var(--color-background-primary);border-radius:16px;padding:28px 20px;width:88%;max-width:320px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.2)" onclick="event.stopPropagation()">
+    <img id="dlg-milestone-img" src="" style="width:182px;height:182px;object-fit:contain;margin-bottom:12px">
+    <div id="dlg-milestone-title" style="font-size:16px;font-weight:700;color:var(--color-text-primary);margin-bottom:6px"></div>
+    <div id="dlg-milestone-msg" style="font-size:13px;color:var(--color-text-secondary);line-height:1.6;margin-bottom:18px"></div>
+    <button class="btn-primary" onclick="document.getElementById('dlg-milestone').style.display='none'">ありがとう！</button>
+  </div>
+</div>
+
 <div id="dlg-task-date" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:110;background:rgba(0,0,0,0.35)" onclick="this.style.display='none'">
   <div style="background:var(--color-background-primary);border-radius:12px;padding:20px 18px;width:88%;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,0.18)" onclick="event.stopPropagation()">
     <div style="font-size:14px;font-weight:600;color:var(--color-text-primary);margin-bottom:4px" id="dlg-task-date-title">実施日を選択</div>
@@ -604,6 +614,24 @@ function dispToISO(disp){
   const parts=disp.split('/');
   if(parts.length!==2)return null;
   return `${year}-${parts[0].padStart(2,'0')}-${parts[1].padStart(2,'0')}`;
+}
+function showMilestoneDialog(type){
+  const dlg=document.getElementById('dlg-milestone');
+  const img=document.getElementById('dlg-milestone-img');
+  const title=document.getElementById('dlg-milestone-title');
+  const msg=document.getElementById('dlg-milestone-msg');
+  if(type==='germination'){
+    img.src='images/milestone_germination.png';
+    title.textContent='🌱 発芽しました！';
+    msg.textContent='小さな命が土から顔を出しましたね。
+ここからが本番です。大切に育てていきましょう！';
+  }else if(type==='firstHarvest'){
+    img.src='images/milestone_firstharvest.png';
+    title.textContent='🎉 初収穫おめでとうございます！';
+    msg.textContent='ここまで育ててきた努力が実を結びました。
+よく頑張りましたね。お疲れ様でした！';
+  }
+  dlg.style.display='flex';
 }
 function showTaskDateDialog(title, taskName, onConfirm, onCancel){
   const dlg=document.getElementById('dlg-task-date');
@@ -1130,10 +1158,10 @@ function renderRoadmapTab(el,seg,veg){
       const state=getTaskState(currentSeg,task.id);const card=document.createElement('div');card.className='task-card';
       const scheduledDate=seg.plantDate?addDays(seg.plantDate,task.day):null;const dayLabel=`+${task.day}日${scheduledDate?' ('+scheduledDate+')':''}`;
       const main=document.createElement('div');main.className='task-main';const cbWrap=document.createElement('div');cbWrap.className='task-cb-wrap';const cb=document.createElement('input');cb.type='checkbox';cb.className='task-cb';cb.checked=state.done;cbWrap.appendChild(cb);
-      const clickable=document.createElement('div');clickable.className='task-clickable';const body=document.createElement('div');body.className='task-body';const nameEl=document.createElement('div');nameEl.className='task-name'+(state.done?' done-text':'');nameEl.textContent=task.name;const descEl=document.createElement('div');descEl.className='task-desc';descEl.textContent=task.desc;const datesWrap=document.createElement('div');datesWrap.className='task-dates';(state.doneDates||[]).forEach((d,di)=>{const chip=document.createElement('div');chip.className='task-date-chip';chip.style.cursor='pointer';chip.textContent=d;chip.addEventListener('click',e=>{e.stopPropagation();const menu=document.getElementById('task-chip-menu');menu.style.display='flex';document.getElementById('task-chip-menu-label').textContent=d;window._chipEdit=()=>{menu.style.display='none';showTaskDateDialog('日付を変更',task.name,(dateVal)=>{if(!dateVal)return;pushUndo();const dates=[...(state.doneDates||[])];const disp=dateVal.slice(5).replace('-','/');dates[di]=disp;setTaskState(currentSeg,task.id,{done:dates.length>0,skip:false,doneDates:dates});renderManage();renderGrid();});};window._chipDelete=()=>{menu.style.display='none';pushUndo();const dates=[...(state.doneDates||[])];dates.splice(di,1);setTaskState(currentSeg,task.id,{done:dates.length>0,skip:false,doneDates:dates});renderManage();renderGrid();};});datesWrap.appendChild(chip);});const addChip=document.createElement('div');addChip.className='task-date-chip';addChip.style.cursor='pointer';addChip.textContent='＋追加';addChip.addEventListener('click',e=>{e.stopPropagation();showTaskDateDialog('追加の実施日',task.name,(dateVal)=>{if(!dateVal)return;pushUndo();const disp=dateVal.slice(5).replace('-','/');const dates=[...(state.doneDates||[]),disp];setTaskState(currentSeg,task.id,{done:true,skip:false,doneDates:dates});renderManage();renderGrid();});});datesWrap.appendChild(addChip);body.append(nameEl,descEl,datesWrap);const dayBadge=document.createElement('div');dayBadge.className='task-day-badge';dayBadge.textContent=dayLabel;const expandIcon=document.createElement('div');expandIcon.className='task-expand-icon';expandIcon.innerHTML='<i class="ti ti-chevron-down"></i>';clickable.append(body,dayBadge,expandIcon);main.append(cbWrap,clickable);
+      const clickable=document.createElement('div');clickable.className='task-clickable';const body=document.createElement('div');body.className='task-body';const nameEl=document.createElement('div');nameEl.className='task-name'+(state.done?' done-text':'');nameEl.textContent=task.name;const descEl=document.createElement('div');descEl.className='task-desc';descEl.textContent=task.desc;const datesWrap=document.createElement('div');datesWrap.className='task-dates';(state.doneDates||[]).forEach((d,di)=>{const chip=document.createElement('div');chip.className='task-date-chip';chip.style.cursor='pointer';chip.textContent=d;chip.addEventListener('click',e=>{e.stopPropagation();const menu=document.getElementById('task-chip-menu');menu.style.display='flex';document.getElementById('task-chip-menu-label').textContent=d;window._chipEdit=()=>{menu.style.display='none';showTaskDateDialog('日付を変更',task.name,(dateVal)=>{if(!dateVal)return;pushUndo();const dates=[...(state.doneDates||[])];const disp=dateVal.slice(5).replace('-','/');dates[di]=disp;setTaskState(currentSeg,task.id,{done:dates.length>0,skip:false,doneDates:dates});renderManage();renderGrid();});};window._chipDelete=()=>{menu.style.display='none';pushUndo();const dates=[...(state.doneDates||[])];dates.splice(di,1);setTaskState(currentSeg,task.id,{done:dates.length>0,skip:false,doneDates:dates});renderManage();renderGrid();};});datesWrap.appendChild(chip);});const addChip=document.createElement('div');addChip.className='task-date-chip';addChip.style.cursor='pointer';addChip.textContent='＋追加';addChip.addEventListener('click',e=>{e.stopPropagation();showTaskDateDialog('追加の実施日',task.name,(dateVal)=>{if(!dateVal)return;pushUndo();const disp=dateVal.slice(5).replace('-','/');const dates=[...(state.doneDates||[]),disp];setTaskState(currentSeg,task.id,{done:true,skip:false,doneDates:dates});renderManage();renderGrid();if(task.milestone==='germination'||task.milestone==='firstHarvest')setTimeout(()=>showMilestoneDialog(task.milestone),300);});});datesWrap.appendChild(addChip);body.append(nameEl,descEl,datesWrap);const dayBadge=document.createElement('div');dayBadge.className='task-day-badge';dayBadge.textContent=dayLabel;const expandIcon=document.createElement('div');expandIcon.className='task-expand-icon';expandIcon.innerHTML='<i class="ti ti-chevron-down"></i>';clickable.append(body,dayBadge,expandIcon);main.append(cbWrap,clickable);
       const detail=document.createElement('div');detail.className='task-detail';if(task.memo){const m=document.createElement('div');m.className='task-detail-memo';m.textContent=task.memo;detail.appendChild(m);}if(task.url){const a=document.createElement('a');a.className='task-detail-url';a.href=task.url;a.target='_blank';a.innerHTML='<i class="ti ti-brand-youtube" style="font-size:13px"></i>参考動画を見る';detail.appendChild(a);}card.append(main,detail);block.appendChild(card);
       clickable.addEventListener('click',()=>{const isOpen=detail.classList.contains('open');detail.classList.toggle('open',!isOpen);expandIcon.querySelector('i').className=`ti ${isOpen?'ti-chevron-down':'ti-chevron-up'}`;});
-      cb.addEventListener('change',e=>{e.stopPropagation();if(cb.checked){showTaskDateDialog('実施日を選択',task.name,(dateVal)=>{if(!dateVal)return;pushUndo();const disp=dateVal.slice(5).replace('-','/');const dates=[...(state.doneDates||[]),disp];setTaskState(currentSeg,task.id,{done:true,skip:false,doneDates:dates});renderManage();renderGrid();},()=>{cb.checked=false;});}else{pushUndo();const dates=[...(state.doneDates||[])];dates.pop();setTaskState(currentSeg,task.id,{done:dates.length>0,skip:false,doneDates:dates});renderManage();renderGrid();}});
+      cb.addEventListener('change',e=>{e.stopPropagation();if(cb.checked){showTaskDateDialog('実施日を選択',task.name,(dateVal)=>{if(!dateVal)return;pushUndo();const disp=dateVal.slice(5).replace('-','/');const dates=[...(state.doneDates||[]),disp];setTaskState(currentSeg,task.id,{done:true,skip:false,doneDates:dates});renderManage();renderGrid();if(task.milestone==='germination'||task.milestone==='firstHarvest')setTimeout(()=>showMilestoneDialog(task.milestone),300);},()=>{cb.checked=false;});}else{pushUndo();const dates=[...(state.doneDates||[])];dates.pop();setTaskState(currentSeg,task.id,{done:dates.length>0,skip:false,doneDates:dates});renderManage();renderGrid();}});
     });
     el.appendChild(block);
   });
@@ -1382,9 +1410,9 @@ function renderBasicTab(el,veg){
       card.href='https://www.google.com/search?tbm=isch&q='+encodeURIComponent(stage.query);
       card.target='_blank';card.rel='noopener';
       card.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 8px;border:1px solid var(--color-border-secondary);border-radius:8px;background:var(--color-background-secondary);text-decoration:none;gap:6px';
-      const icon=document.createElement('div');icon.style.cssText='font-size:22px';
-      const icons={'発芽':'🌱','本葉出始め':'🌿','開花':'🌸','収穫期（全体像）':'🌾','実（つき始め）':'🟢','実（食べごろ）':'🍅'};
-      icon.textContent=icons[stage.label]||'📷';
+      const iconFiles={'発芽':'stage_germination.png','本葉出始め':'stage_firstleaf.png','開花':'stage_flower.png','収穫期（全体像）':'stage_harvest_plant.png','実（つき始め）':'stage_fruit_early.png','実（食べごろ）':'stage_fruit_ripe.png'};
+      const icon=document.createElement('div');
+      if(iconFiles[stage.label]){const img=document.createElement('img');img.src='images/'+iconFiles[stage.label];img.style.cssText='width:64px;height:64px;object-fit:contain';icon.appendChild(img);}else{icon.style.fontSize='22px';icon.textContent='📷';}
       const lbl=document.createElement('div');lbl.style.cssText='font-size:11px;color:var(--color-text-secondary);text-align:center';lbl.textContent=stage.label;
       const search=document.createElement('div');search.style.cssText='font-size:10px;color:#185FA5';search.textContent='画像を検索 →';
       card.append(icon,lbl,search);grid.appendChild(card);
