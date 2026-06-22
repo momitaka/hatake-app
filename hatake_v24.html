@@ -354,7 +354,7 @@ body{
     <div id="dlg-preview" style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:12px"></div>
     <div id="dlg-no-veg" style="display:none;margin-bottom:14px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);font-size:12px;color:var(--color-text-secondary);line-height:1.6">登録できる野菜がありません。<br>先に野菜マスタで野菜を追加してください。<br><button id="dlg-go-master" class="btn-primary" style="margin-top:8px;font-size:12px;padding:5px 14px">野菜マスタで追加する</button></div>
     <div id="dlg-crop-field" class="dlg-field"><label>作物</label><select id="dlg-crop"><option value="">— 選択してください —</option></select><div style="margin-top:5px"><button id="dlg-add-new-veg" style="font-size:11px;color:var(--color-text-secondary);background:none;border:none;cursor:pointer;padding:0;display:inline-flex;align-items:center;gap:3px"><i class="ti ti-plus" style="font-size:11px"></i>新しい野菜を追加する</button></div></div>
-    <div id="dlg-date-field" class="dlg-field"><label>作業開始日</label><input type="date" id="dlg-date" style="width:100%;font-size:13px;padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)"></div>
+    <div id="dlg-date-field" class="dlg-field"><label>作業開始日</label><input type="date" id="dlg-date" style="width:100%;font-size:13px;padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)" oninput="const v=this.value;document.getElementById('dlg-date-disp').textContent=v?v.replace('-','年').replace('-','月')+'日':'';"><div id="dlg-date-disp" style="font-size:11px;color:var(--color-text-secondary);text-align:right;margin-top:2px"></div></div>
     <div id="dlg-rotation-warn" style="display:none;margin-bottom:12px;padding:9px 11px;border-radius:var(--border-radius-md);background:#FAEEDA;border:1px solid #EF9F27;font-size:11px;color:#92600B;line-height:1.6"></div>
     <div class="dlg-btns">
       <button class="btn" id="btn-dlg-cancel">キャンセル</button>
@@ -404,7 +404,7 @@ body{
   <div style="background:var(--color-background-primary);border-radius:12px;padding:20px 18px;width:88%;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,0.18)" onclick="event.stopPropagation()">
     <div style="font-size:14px;font-weight:600;color:var(--color-text-primary);margin-bottom:4px" id="dlg-task-date-title">実施日を選択</div>
     <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:14px" id="dlg-task-date-name"></div>
-    <input type="date" id="dlg-task-date-input" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid var(--color-border-secondary);border-radius:8px;font-size:16px;background:var(--color-background-primary);color:var(--color-text-primary);margin-bottom:14px">
+    <input type="date" id="dlg-task-date-input" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid var(--color-border-secondary);border-radius:8px;font-size:16px;background:var(--color-background-primary);color:var(--color-text-primary);margin-bottom:4px" oninput="const v=this.value;document.getElementById('task-date-disp').textContent=v?v.replace('-','年').replace('-','月')+'日':'';"><div id="task-date-disp" style="font-size:11px;color:var(--color-text-secondary);text-align:right;margin-bottom:10px"></div>
     <div style="display:flex;gap:8px">
       <button class="btn" style="flex:1" onclick="document.getElementById('dlg-task-date').style.display='none';if(window._taskDateCancel)window._taskDateCancel();">キャンセル</button>
       <button class="btn-primary" style="flex:1" onclick="document.getElementById('dlg-task-date').style.display='none';if(window._taskDateConfirm)window._taskDateConfirm(document.getElementById('dlg-task-date-input').value);">記録する</button>
@@ -648,7 +648,7 @@ function showTaskDateDialog(title, taskName, onConfirm, onCancel){
   document.getElementById('dlg-task-date-title').textContent=title;
   document.getElementById('dlg-task-date-name').textContent=taskName;
   const inp=document.getElementById('dlg-task-date-input');
-  inp.value=new Date().toISOString().slice(0,10);
+  inp.value=new Date().toISOString().slice(0,10);const v=inp.value;const disp=document.getElementById('task-date-disp');if(disp)disp.textContent=v?v.replace('-','年').replace('-','月')+'日':'';
   window._taskDateConfirm=onConfirm;
   window._taskDateCancel=onCancel||null;
   dlg.style.display='flex';
@@ -777,7 +777,7 @@ function onDown(r,c,e){e.preventDefault();if(!isAdmin)return;const k=K(r,c);if(c
   // DOM再構築せず直接ハイライト（iOS touchend対策）
   const tds=document.querySelectorAll('#grid-table td');tds.forEach(td=>{if(td.dataset.r==r&&td.dataset.c==c)td.style.background='var(--color-background-tertiary)';});
 }
-function onEnter(c){const dir=c>=dragStartCol?1:-1;let end=dragStartCol;for(let ci=dragStartCol;ci!==c+dir;ci+=dir){if(ci<0||ci>=COLS)break;const k=K(dragRow,ci);if(cells[k]&&cells[k].crop)break;end=ci;}if(end===dragEndCol)return;dragEndCol=end;renderGrid();}
+function onEnter(c){const dir=c>=dragStartCol?1:-1;let end=dragStartCol;for(let ci=dragStartCol;ci!==c+dir;ci+=dir){if(ci<0||ci>=COLS)break;const k=K(dragRow,ci);if(cells[k]&&cells[k].crop)break;end=ci;}if(end===dragEndCol)return;dragEndCol=end;const s=Math.min(dragStartCol,dragEndCol),e2=Math.max(dragStartCol,dragEndCol);document.querySelectorAll('#grid-table td[data-r]').forEach(td=>{const r2=+td.dataset.r,c2=+td.dataset.c;if(r2===dragRow&&c2>=s&&c2<=e2){td.style.outline='2px solid #4A90E2';td.style.background='rgba(74,144,226,0.12)';}else if(!cells[K(r2,c2)]?.crop){td.style.outline='';td.style.background='';}});} 
 function onUp(){if(!dragging){dragging=false;return;}dragging=false;const s=Math.min(dragStartCol,dragEndCol),e2=Math.max(dragStartCol,dragEndCol);if(dragRow>=0&&s<=e2){pendingRow=dragRow;pendingStart=s;pendingEnd=e2;showRegDlg();}renderGrid();}
 
 function showRegDlg(){
