@@ -366,6 +366,19 @@ body{
   </div>
 </div>
 
+
+<div id="dlg-task-date" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:110;background:rgba(0,0,0,0.35)" onclick="this.style.display='none'">
+  <div style="background:var(--color-background-primary);border-radius:12px;padding:20px 18px;width:88%;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,0.18)" onclick="event.stopPropagation()">
+    <div style="font-size:14px;font-weight:600;color:var(--color-text-primary);margin-bottom:4px" id="dlg-task-date-title">実施日を選択</div>
+    <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:14px" id="dlg-task-date-name"></div>
+    <input type="date" id="dlg-task-date-input" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid var(--color-border-secondary);border-radius:8px;font-size:16px;background:var(--color-background-primary);color:var(--color-text-primary);margin-bottom:14px">
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1" onclick="document.getElementById('dlg-task-date').style.display='none';if(window._taskDateCancel)window._taskDateCancel();">キャンセル</button>
+      <button class="btn-primary" style="flex:1" onclick="document.getElementById('dlg-task-date').style.display='none';if(window._taskDateConfirm)window._taskDateConfirm(document.getElementById('dlg-task-date-input').value);">記録する</button>
+    </div>
+  </div>
+</div>
+
 <div id="dlg-archive-done" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:110;background:rgba(0,0,0,0.35)" onclick="this.style.display='none'">
   <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.5rem 1.25rem;min-width:260px;max-width:320px;width:88%;text-align:center" onclick="event.stopPropagation()">
     <div style="font-size:32px;margin-bottom:10px">🌱</div>
@@ -573,6 +586,16 @@ async function loadFromDB(){
     }
   }catch(e){console.error('DB load error',e);}
   return false;
+}
+function showTaskDateDialog(title, taskName, onConfirm, onCancel){
+  const dlg=document.getElementById('dlg-task-date');
+  document.getElementById('dlg-task-date-title').textContent=title;
+  document.getElementById('dlg-task-date-name').textContent=taskName;
+  const inp=document.getElementById('dlg-task-date-input');
+  inp.value=new Date().toISOString().slice(0,10);
+  window._taskDateConfirm=onConfirm;
+  window._taskDateCancel=onCancel||null;
+  dlg.style.display='flex';
 }
 function saveLS(){try{const d={cells,COLS,ROWS,segTasks,actionLogs,harvestLogs,segSummaryMemo,vegMaster,archivedSegs,farmName};localStorage.setItem('hatake_v21',JSON.stringify(d));localStorage.setItem('hatake_v21_icons',JSON.stringify(customIcons));saveToDB(d);}catch(e){}}
 function updateFarmNameDisplay(){const el=document.getElementById('farm-name-display');if(farmName){el.textContent=farmName;el.style.display='block';}else{el.style.display='none';}}
@@ -1080,10 +1103,10 @@ function renderRoadmapTab(el,seg,veg){
       const state=getTaskState(currentSeg,task.id);const card=document.createElement('div');card.className='task-card';
       const scheduledDate=seg.plantDate?addDays(seg.plantDate,task.day):null;const dayLabel=`+${task.day}日${scheduledDate?' ('+scheduledDate+')':''}`;
       const main=document.createElement('div');main.className='task-main';const cbWrap=document.createElement('div');cbWrap.className='task-cb-wrap';const cb=document.createElement('input');cb.type='checkbox';cb.className='task-cb';cb.checked=state.done;cbWrap.appendChild(cb);
-      const clickable=document.createElement('div');clickable.className='task-clickable';const body=document.createElement('div');body.className='task-body';const nameEl=document.createElement('div');nameEl.className='task-name'+(state.done?' done-text':'');nameEl.textContent=task.name;const descEl=document.createElement('div');descEl.className='task-desc';descEl.textContent=task.desc;const datesWrap=document.createElement('div');datesWrap.className='task-dates';(state.doneDates||[]).forEach(d=>{const chip=document.createElement('div');chip.className='task-date-chip';chip.textContent=d;datesWrap.appendChild(chip);});body.append(nameEl,descEl,datesWrap);const dayBadge=document.createElement('div');dayBadge.className='task-day-badge';dayBadge.textContent=dayLabel;const expandIcon=document.createElement('div');expandIcon.className='task-expand-icon';expandIcon.innerHTML='<i class="ti ti-chevron-down"></i>';clickable.append(body,dayBadge,expandIcon);main.append(cbWrap,clickable);
+      const clickable=document.createElement('div');clickable.className='task-clickable';const body=document.createElement('div');body.className='task-body';const nameEl=document.createElement('div');nameEl.className='task-name'+(state.done?' done-text':'');nameEl.textContent=task.name;const descEl=document.createElement('div');descEl.className='task-desc';descEl.textContent=task.desc;const datesWrap=document.createElement('div');datesWrap.className='task-dates';(state.doneDates||[]).forEach(d=>{const chip=document.createElement('div');chip.className='task-date-chip';chip.textContent=d;datesWrap.appendChild(chip);});const addChip=document.createElement('div');addChip.className='task-date-chip';addChip.style.cssText='background:var(--color-background-tertiary);color:var(--color-text-secondary);cursor:pointer';addChip.textContent='＋追加';addChip.addEventListener('click',e=>{e.stopPropagation();showTaskDateDialog('追加の実施日',task.name,(dateVal)=>{if(!dateVal)return;pushUndo();const disp=dateVal.slice(5).replace('-','/');const dates=[...(state.doneDates||[]),disp];setTaskState(currentSeg,task.id,{done:true,skip:false,doneDates:dates});addLog(currentSeg,seg.crop,task.name);renderManage();renderGrid();});});datesWrap.appendChild(addChip);body.append(nameEl,descEl,datesWrap);const dayBadge=document.createElement('div');dayBadge.className='task-day-badge';dayBadge.textContent=dayLabel;const expandIcon=document.createElement('div');expandIcon.className='task-expand-icon';expandIcon.innerHTML='<i class="ti ti-chevron-down"></i>';clickable.append(body,dayBadge,expandIcon);main.append(cbWrap,clickable);
       const detail=document.createElement('div');detail.className='task-detail';if(task.memo){const m=document.createElement('div');m.className='task-detail-memo';m.textContent=task.memo;detail.appendChild(m);}if(task.url){const a=document.createElement('a');a.className='task-detail-url';a.href=task.url;a.target='_blank';a.innerHTML='<i class="ti ti-brand-youtube" style="font-size:13px"></i>参考動画を見る';detail.appendChild(a);}const skipRow=document.createElement('div');skipRow.className='skip-row';const skipCb=document.createElement('input');skipCb.type='checkbox';skipCb.className='skip-cb';skipCb.checked=state.skip;const skipLbl=document.createElement('span');skipLbl.className='skip-label';skipLbl.textContent='未実行（スキップ）';if(state.skip)nameEl.style.color='#9c9a93';skipRow.append(skipCb,skipLbl);detail.appendChild(skipRow);card.append(main,detail);block.appendChild(card);
       clickable.addEventListener('click',()=>{const isOpen=detail.classList.contains('open');detail.classList.toggle('open',!isOpen);expandIcon.querySelector('i').className=`ti ${isOpen?'ti-chevron-down':'ti-chevron-up'}`;});
-      cb.addEventListener('change',e=>{e.stopPropagation();pushUndo();if(cb.checked){skipCb.checked=false;const dates=[...(state.doneDates||[]),todayDisp()];setTaskState(currentSeg,task.id,{done:true,skip:false,doneDates:dates});addLog(currentSeg,seg.crop,task.name);}else{const dates=[...(state.doneDates||[])];dates.pop();setTaskState(currentSeg,task.id,{done:dates.length>0,skip:false,doneDates:dates});}renderManage();renderGrid();});
+      cb.addEventListener('change',e=>{e.stopPropagation();if(cb.checked){showTaskDateDialog('実施日を選択',task.name,(dateVal)=>{if(!dateVal)return;pushUndo();skipCb.checked=false;const disp=dateVal.slice(5).replace('-','/');const dates=[...(state.doneDates||[]),disp];setTaskState(currentSeg,task.id,{done:true,skip:false,doneDates:dates});addLog(currentSeg,seg.crop,task.name);renderManage();renderGrid();},()=>{cb.checked=false;});}else{pushUndo();const dates=[...(state.doneDates||[])];dates.pop();setTaskState(currentSeg,task.id,{done:dates.length>0,skip:false,doneDates:dates});renderManage();renderGrid();}});
       skipCb.addEventListener('change',e=>{e.stopPropagation();pushUndo();if(skipCb.checked){cb.checked=false;setTaskState(currentSeg,task.id,{done:false,skip:true});}else setTaskState(currentSeg,task.id,{skip:false});renderManage();renderGrid();});
     });
     el.appendChild(block);
