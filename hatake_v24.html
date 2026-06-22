@@ -739,7 +739,7 @@ function renderGrid(){
       const span=registered&&seg?seg.cols.length:1;
       const selecting=dragging&&r===dragRow&&c>=Math.min(dragStartCol,dragEndCol)&&c<=Math.max(dragStartCol,dragEndCol);
       const fs=famStyle(vegFamily(seg?seg.crop:null));const majorSt=registered?calcMajorStatus(sid,seg.crop):null;
-      const td=document.createElement('td');
+      const td=document.createElement('td');td.dataset.r=r;td.dataset.c=c;
       if(span>1)td.setAttribute('colspan',span);
       const isActive=selecting||(registered&&fs);
       td.style.cssText=`width:${cellW*span}px;height:${cellH}px;min-width:0;border:0.5px solid ${isActive?'#e8e6df':'#ede9e1'};padding:${isActive?'2':'0'}px;box-sizing:border-box`;
@@ -772,7 +772,10 @@ function renderGrid(){
   }
   renderSegList();
 }
-function onDown(r,c,e){e.preventDefault();if(!isAdmin)return;const k=K(r,c);if(cells[k]&&cells[k].crop)return;dragging=true;dragRow=r;dragStartCol=c;dragEndCol=c;document.addEventListener('mouseup',onUp,{once:true});document.addEventListener('touchend',onUp,{once:true});renderGrid();}
+function onDown(r,c,e){e.preventDefault();if(!isAdmin)return;const k=K(r,c);if(cells[k]&&cells[k].crop)return;dragging=true;dragRow=r;dragStartCol=c;dragEndCol=c;document.addEventListener('mouseup',onUp,{once:true});document.addEventListener('touchend',onUp,{once:true});
+  // DOM再構築せず直接ハイライト（iOS touchend対策）
+  const tds=document.querySelectorAll('#grid-table td');tds.forEach(td=>{if(td.dataset.r==r&&td.dataset.c==c)td.style.background='var(--color-background-tertiary)';});
+}
 function onEnter(c){const dir=c>=dragStartCol?1:-1;let end=dragStartCol;for(let ci=dragStartCol;ci!==c+dir;ci+=dir){if(ci<0||ci>=COLS)break;const k=K(dragRow,ci);if(cells[k]&&cells[k].crop)break;end=ci;}dragEndCol=end;renderGrid();}
 function onUp(){if(!dragging){dragging=false;return;}dragging=false;const s=Math.min(dragStartCol,dragEndCol),e2=Math.max(dragStartCol,dragEndCol);if(dragRow>=0&&s<=e2){pendingRow=dragRow;pendingStart=s;pendingEnd=e2;showRegDlg();}renderGrid();}
 
