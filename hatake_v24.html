@@ -254,6 +254,18 @@ body{
 </style>
 </head>
 <body>
+
+<div id="splash-screen" style="position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--color-background-secondary);transition:opacity 0.6s ease">
+  <div id="splash-img-wrap" style="width:240px;height:240px;border-radius:20px;overflow:hidden;margin-bottom:24px;display:flex;align-items:center;justify-content:center">
+    <img id="splash-img" src="" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;display:none">
+    <div id="splash-placeholder" style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px">
+      <div id="splash-month-emoji" style="font-size:72px"></div>
+      <div id="splash-month-label" style="font-size:14px;color:var(--color-text-secondary);font-weight:500"></div>
+    </div>
+  </div>
+  <div id="splash-farm-name" style="font-size:20px;font-weight:700;color:var(--color-text-primary);margin-bottom:12px"></div>
+  <div id="splash-quote" style="font-size:13px;color:var(--color-text-secondary);text-align:center;max-width:280px;line-height:1.7;padding:0 20px"></div>
+</div>
 <div class="app" id="app">
   <div class="screen active" id="screen-register">
     <div class="toolbar">
@@ -1523,6 +1535,78 @@ loadFromDB().then(loaded=>{
     buildSegs();renderGrid();renderSegList();
   }
 });
+
+// ===== スプラッシュ画面 =====
+(function(){
+  const QUOTES = {
+    spring: [
+      '「種を蒔く者は、必ず刈り取る。」',
+      '「春の土は、夢を育てる。丁寧に耕せば、必ず答えてくれる。」',
+      '「一粒の種に、百の可能性が宿っている。」',
+      '「急いで育てようとするな。植物は人間より時間の使い方を知っている。」',
+    ],
+    summer: [
+      '「夏の汗は、秋の実りの肥やしになる。」',
+      '「草に負けるな。雑草も必死に生きている。だが、畑は渡さない。」',
+      '「水やりを怠れば、植物は問いかけてくる。声なき声を聞け。」',
+      '「太陽と土と、そして農家の愛情。それが野菜を育てる三つの力。」',
+    ],
+    autumn: [
+      '「収穫は結果ではなく、始まりである。」',
+      '「秋に学べ。実るほど頭を垂れる稲穂のように。」',
+      '「土に感謝を。今年も恵みをありがとう。」',
+      '「豊作の年も不作の年も、土は正直に教えてくれる。」',
+    ],
+    winter: [
+      '「冬の畑は眠っているのではない。次の春を準備している。」',
+      '「休む勇気が、翌年の豊作をつくる。」',
+      '「土を休ませることは、土地への投資である。」',
+      '「冬こそ、農家が賢くなる季節。」',
+    ],
+  };
+  const MONTH_INFO = [
+    {emoji:'❄️',label:'睦月（1月）',season:'winter'},
+    {emoji:'🌸',label:'如月（2月）',season:'winter'},
+    {emoji:'🌱',label:'弥生（3月）',season:'spring'},
+    {emoji:'🌷',label:'卯月（4月）',season:'spring'},
+    {emoji:'🍀',label:'皐月（5月）',season:'spring'},
+    {emoji:'☔',label:'水無月（6月）',season:'summer'},
+    {emoji:'🌻',label:'文月（7月）',season:'summer'},
+    {emoji:'🌞',label:'葉月（8月）',season:'summer'},
+    {emoji:'🍂',label:'長月（9月）',season:'autumn'},
+    {emoji:'🍁',label:'神無月（10月）',season:'autumn'},
+    {emoji:'🌾',label:'霜月（11月）',season:'autumn'},
+    {emoji:'⛄',label:'師走（12月）',season:'winter'},
+  ];
+  const month = new Date().getMonth();
+  const info = MONTH_INFO[month];
+  const quotes = QUOTES[info.season];
+  const quote = quotes[Math.floor(Math.random()*quotes.length)];
+
+  document.getElementById('splash-month-emoji').textContent = info.emoji;
+  document.getElementById('splash-month-label').textContent = info.label;
+  document.getElementById('splash-quote').textContent = quote;
+
+  // 月別画像を試みる（なければプレースホルダー表示）
+  const img = document.getElementById('splash-img');
+  const ph = document.getElementById('splash-placeholder');
+  const monthStr = String(month+1).padStart(2,'0');
+  img.src = 'images/splash_'+monthStr+'.png';
+  img.onload = ()=>{ img.style.display='block'; ph.style.display='none'; };
+  img.onerror = ()=>{ img.style.display='none'; ph.style.display='flex'; };
+
+  // 農園名
+  const nameEl = document.getElementById('splash-farm-name');
+  nameEl.textContent = farmName || '私の畑';
+
+  // 3秒後にフェードアウト
+  setTimeout(()=>{
+    const s = document.getElementById('splash-screen');
+    s.style.opacity='0';
+    setTimeout(()=>s.style.display='none', 600);
+  }, 3000);
+})();
+
 </script>
 </body>
 </html>
