@@ -354,7 +354,7 @@ body{
     <div id="dlg-preview" style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:12px"></div>
     <div id="dlg-no-veg" style="display:none;margin-bottom:14px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);font-size:12px;color:var(--color-text-secondary);line-height:1.6">登録できる野菜がありません。<br>先に野菜マスタで野菜を追加してください。<br><button id="dlg-go-master" class="btn-primary" style="margin-top:8px;font-size:12px;padding:5px 14px">野菜マスタで追加する</button></div>
     <div id="dlg-crop-field" class="dlg-field"><label>作物</label><select id="dlg-crop"><option value="">— 選択してください —</option></select><div style="margin-top:5px"><button id="dlg-add-new-veg" style="font-size:11px;color:var(--color-text-secondary);background:none;border:none;cursor:pointer;padding:0;display:inline-flex;align-items:center;gap:3px"><i class="ti ti-plus" style="font-size:11px"></i>新しい野菜を追加する</button></div></div>
-    <div id="dlg-date-field" class="dlg-field"><label>作業開始日</label><input type="date" id="dlg-date" style="width:100%;font-size:13px;padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)" oninput="const v=this.value;document.getElementById('dlg-date-disp').textContent=v?v.replace('-','年').replace('-','月')+'日':'';"><div id="dlg-date-disp" style="font-size:11px;color:var(--color-text-secondary);text-align:right;margin-top:2px"></div></div>
+    <div id="dlg-date-field" class="dlg-field"><label>作業開始日</label><input type="date" id="dlg-date" style="width:100%;box-sizing:border-box;font-size:13px;padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)" oninput="const v=this.value;document.getElementById('dlg-date-disp').textContent=v?v.replace('-','年').replace('-','月')+'日':'';"><div id="dlg-date-disp" style="font-size:11px;color:var(--color-text-secondary);text-align:right;margin-top:2px"></div></div>
     <div id="dlg-rotation-warn" style="display:none;margin-bottom:12px;padding:9px 11px;border-radius:var(--border-radius-md);background:#FAEEDA;border:1px solid #EF9F27;font-size:11px;color:#92600B;line-height:1.6"></div>
     <div class="dlg-btns">
       <button class="btn" id="btn-dlg-cancel">キャンセル</button>
@@ -364,7 +364,7 @@ body{
 </div>
 
 <div id="dlg-add-veg" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:99;background:rgba(0,0,0,0.4)">
-  <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.25rem;min-width:260px;max-width:340px;width:90%;max-height:90vh;overflow-y:auto">
+  <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.25rem;min-width:260px;max-width:340px;width:90%;max-height:90vh;overflow-y:auto;overflow-x:hidden">
     <div style="font-size:14px;font-weight:500;margin-bottom:14px;display:flex;align-items:center;gap:6px"><i class="ti ti-plant" style="color:#1D9E75"></i>野菜を追加</div>
     <div class="dlg-field"><label>プリセットから選ぶ</label><select id="av-preset"><option value="">— プリセット野菜 —</option></select></div>
     <div style="font-size:11px;color:var(--color-text-tertiary);text-align:center;margin:2px 0 6px">または</div>
@@ -421,7 +421,7 @@ body{
   </div>
 </div>
 <div id="dlg-complete-confirm" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:100;background:rgba(0,0,0,0.4)">
-  <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.25rem;min-width:260px;max-width:340px;width:90%;max-height:90vh;overflow-y:auto">
+  <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.25rem;min-width:260px;max-width:340px;width:90%;max-height:90vh;overflow-y:auto;overflow-x:hidden">
     <div style="font-size:14px;font-weight:500;margin-bottom:12px;display:flex;align-items:center;gap:6px;color:var(--color-text-danger)"><i class="ti ti-alert-triangle"></i>この野菜の管理を完了しますか？</div>
     <div id="dlg-complete-target" style="font-size:13px;font-weight:500;margin-bottom:10px"></div>
     <ul style="font-size:12px;color:var(--color-text-secondary);line-height:1.7;margin:0 0 4px 18px;padding:0">
