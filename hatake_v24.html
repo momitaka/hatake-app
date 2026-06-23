@@ -400,14 +400,18 @@ body{
   </div>
 </div>
 
-<div id="dlg-task-date" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:110;background:rgba(0,0,0,0.35)" onclick="this.style.display='none'">
-  <div style="background:var(--color-background-primary);border-radius:12px;padding:20px 18px;width:88%;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,0.18)" onclick="event.stopPropagation()">
-    <div style="font-size:14px;font-weight:600;color:var(--color-text-primary);margin-bottom:4px" id="dlg-task-date-title">実施日を選択</div>
-    <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:14px" id="dlg-task-date-name"></div>
-    <div style="margin-bottom:14px"><input type="date" id="dlg-task-date-input" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:16px;box-sizing:border-box"></div>
-    <div style="display:flex;gap:8px">
-      <button class="btn" style="flex:1" onclick="document.getElementById('dlg-task-date').style.display='none';if(window._taskDateCancel)window._taskDateCancel();">キャンセル</button>
-      <button class="btn-primary" style="flex:1" onclick="document.getElementById('dlg-task-date').style.display='none';if(window._taskDateConfirm)window._taskDateConfirm(document.getElementById('dlg-task-date-input').value);">記録する</button>
+<div id="dlg-task-date" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:110;background:rgba(0,0,0,0.35)" onclick="this.style.display='none';if(window._taskDateCancel)window._taskDateCancel();">
+  <div style="background:var(--color-background-primary);border-radius:12px;padding:16px 16px 18px;width:88%;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,0.18)" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2px">
+      <div>
+        <div style="font-size:14px;font-weight:600;color:var(--color-text-primary)" id="dlg-task-date-title">実施日を選択</div>
+        <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px" id="dlg-task-date-name"></div>
+      </div>
+      <button onclick="document.getElementById('dlg-task-date').style.display='none';if(window._taskDateCancel)window._taskDateCancel();" style="background:none;border:none;padding:2px 4px;cursor:pointer;color:var(--color-text-tertiary);font-size:18px;line-height:1;flex-shrink:0">✕</button>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:14px">
+      <input type="date" id="dlg-task-date-input" style="flex:1;min-width:0;padding:10px 8px;border-radius:8px;border:1px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:16px;box-sizing:border-box">
+      <button class="btn-primary" style="flex-shrink:0;white-space:nowrap" onclick="document.getElementById('dlg-task-date').style.display='none';if(window._taskDateConfirm)window._taskDateConfirm(document.getElementById('dlg-task-date-input').value);">記録する</button>
     </div>
   </div>
 </div>
