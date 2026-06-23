@@ -1607,6 +1607,8 @@ loadFromDB().then(loaded=>{
     document.getElementById('s-farm-name').value=farmName;
     updateFarmNameDisplay();
     buildSegs();renderGrid();renderSegList();
+    const splashNameEl=document.getElementById('splash-farm-name');
+    if(splashNameEl)splashNameEl.textContent=farmName||'私の畑';
   }
 });
 
