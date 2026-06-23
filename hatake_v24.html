@@ -1638,12 +1638,11 @@ loadFromDB().then(loaded=>{
   const nameEl = document.getElementById('splash-farm-name');
   nameEl.textContent = farmName || '私の畑';
 
-  // 3秒後にフェードアウト
-  setTimeout(()=>{
-    const s = document.getElementById('splash-screen');
-    s.style.opacity='0';
-    setTimeout(()=>s.style.display='none', 600);
-  }, 6000);
+  // タップでフェードアウト
+  const _splash=document.getElementById('splash-screen');
+  function _closeSplash(){_splash.style.opacity='0';setTimeout(()=>_splash.style.display='none',600);}
+  _splash.addEventListener('touchend',e=>{e.preventDefault();_closeSplash();},{once:true,passive:false});
+  _splash.addEventListener('click',_closeSplash,{once:true});
 })();
 
 </script>
