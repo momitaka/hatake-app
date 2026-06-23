@@ -404,10 +404,10 @@ body{
   <div style="background:var(--color-background-primary);border-radius:12px;padding:20px 18px;width:88%;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,0.18)" onclick="event.stopPropagation()">
     <div style="font-size:14px;font-weight:600;color:var(--color-text-primary);margin-bottom:4px" id="dlg-task-date-title">実施日を選択</div>
     <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:14px" id="dlg-task-date-name"></div>
-    <div style="display:flex;gap:4px;align-items:center;margin-bottom:14px"><select id="dlg-task-date-y" style="flex:3;min-width:0;padding:8px 2px;border-radius:8px;border:1px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:16px;box-sizing:border-box"></select><select id="dlg-task-date-m" style="flex:2;min-width:0;padding:8px 2px;border-radius:8px;border:1px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:16px;box-sizing:border-box"></select><select id="dlg-task-date-d" style="flex:2;min-width:0;padding:8px 2px;border-radius:8px;border:1px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:16px;box-sizing:border-box"></select></div>
+    <div style="margin-bottom:14px"><input type="date" id="dlg-task-date-input" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:16px;box-sizing:border-box"></div>
     <div style="display:flex;gap:8px">
       <button class="btn" style="flex:1" onclick="document.getElementById('dlg-task-date').style.display='none';if(window._taskDateCancel)window._taskDateCancel();">キャンセル</button>
-      <button class="btn-primary" style="flex:1" onclick="document.getElementById('dlg-task-date').style.display='none';if(window._taskDateConfirm)window._taskDateConfirm(getDateFromSelects('dlg-task-date-y','dlg-task-date-m','dlg-task-date-d'));">記録する</button>
+      <button class="btn-primary" style="flex:1" onclick="document.getElementById('dlg-task-date').style.display='none';if(window._taskDateConfirm)window._taskDateConfirm(document.getElementById('dlg-task-date-input').value);">記録する</button>
     </div>
   </div>
 </div>
@@ -664,7 +664,7 @@ function showTaskDateDialog(title, taskName, onConfirm, onCancel){
   const dlg=document.getElementById('dlg-task-date');
   document.getElementById('dlg-task-date-title').textContent=title;
   document.getElementById('dlg-task-date-name').textContent=taskName;
-  initDateSelects('dlg-task-date-y','dlg-task-date-m','dlg-task-date-d',todayISO());
+  document.getElementById('dlg-task-date-input').value=todayISO();
   window._taskDateConfirm=onConfirm;
   window._taskDateCancel=onCancel||null;
   dlg.style.display='flex';
