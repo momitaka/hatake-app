@@ -254,6 +254,8 @@ body{
 .status-pill{font-size:12px;padding:3px 10px;font-weight:700}
 
 .view-mode .admin-only{display:none !important}
+@keyframes pulse-fade{0%,100%{opacity:1}50%{opacity:0.25}}
+.tap-to-start{animation:pulse-fade 2.4s ease-in-out infinite}
 
 </style>
 </head>
@@ -267,9 +269,9 @@ body{
       <div id="splash-month-label" style="font-size:14px;color:var(--color-text-secondary);font-weight:500"></div>
     </div>
   </div>
-  <div id="splash-farm-name" style="font-size:20px;font-weight:700;color:var(--color-text-primary);margin-bottom:12px"></div>
+  <div id="splash-farm-name" style="font-size:22px;font-weight:600;color:var(--color-text-primary);margin-bottom:12px;font-family:'Noto Serif JP',serif"></div>
   <div id="splash-quote" style="font-size:13px;color:var(--color-text-secondary);text-align:center;max-width:280px;line-height:1.7;padding:0 20px"></div>
-  <div style="margin-top:32px;font-size:13px;color:var(--color-text-tertiary);text-align:center;line-height:1.8">今日も楽しく頑張ろう 😊<br>タップして開始</div>
+  <div style="margin-top:32px;font-size:13px;color:var(--color-text-tertiary);text-align:center;line-height:1.8">今日も楽しく頑張ろう 😊<br><span class="tap-to-start">タップして開始</span></div>
 </div>
 <div class="app" id="app">
   <div class="screen active" id="screen-register">
