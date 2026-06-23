@@ -33,6 +33,9 @@
 -->
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -270,14 +273,16 @@ body{
 </div>
 <div class="app" id="app">
   <div class="screen active" id="screen-register">
-    <div class="toolbar">
-      <div id="farm-name-display" style="font-size:13px;font-weight:600;color:var(--color-text-primary);letter-spacing:0.01em;display:none;overflow:hidden;white-space:nowrap;max-width:160px"></div>
-      <div style="flex:1"></div>
-      <button class="btn" id="btn-open-master"><i class="ti ti-book-2"></i>野菜マスタ</button>
-      <button class="btn" id="btn-open-archive"><i class="ti ti-database"></i>過去データ</button>
-      <button class="btn" id="btn-settings"><i class="ti ti-settings"></i>設定</button>
-      <button class="btn-undo" id="undo-btn" disabled><i class="ti ti-arrow-back-up"></i>取り消し</button>
-      <span class="undo-count" id="undo-count"></span>
+    <div class="toolbar" style="flex-direction:column;align-items:stretch;gap:4px">
+      <div id="farm-name-display" style="font-size:16px;font-weight:600;color:var(--color-text-primary);letter-spacing:0.02em;display:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Noto Serif JP',serif;line-height:1.3"></div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button class="btn-undo" id="undo-btn" disabled><i class="ti ti-arrow-back-up"></i>取り消し</button>
+        <span class="undo-count" id="undo-count"></span>
+        <div style="flex:1"></div>
+        <button class="btn" id="btn-open-master"><i class="ti ti-book-2"></i>野菜マスタ</button>
+        <button class="btn" id="btn-open-archive"><i class="ti ti-database"></i>過去データ</button>
+        <button class="btn" id="btn-settings"><i class="ti ti-settings"></i>設定</button>
+      </div>
     </div>
     <div id="dlg-undo-confirm" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:300;align-items:center;justify-content:center">
       <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);padding:20px 24px;width:min(320px,90vw);box-shadow:0 8px 32px rgba(0,0,0,0.18)">
