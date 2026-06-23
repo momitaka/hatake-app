@@ -4,33 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>畑管理アプリ v24</title>
-<!--
-  畑管理アプリ
-  Version: 24
-  Date: 2026-06-20
-  Changes:
-    - 完了機能を実装:
-      - 管理画面ヘッダー行（グリッドへ戻る、と同じ行）の右端に「管理の完了」ボタンを追加
-      - 押下すると作業ログタブが開き、画面冒頭に完了操作の案内文を表示
-      - 作業ログタブ最下部に「この野菜の管理を完了」ボタンを設置
-      - 押下で確認ダイアログを表示（取り消し不可／グリッドから消える／アーカイブに保存される旨を明記）、「実行」「キャンセル」の2択
-      - 「実行」で archivedSegs にスナップショットを保存し、該当区画のセルを cells から削除してグリッドへ解放
-      - 未完了タスクが残っていてもブロックせず、警告なしでそのまま完了扱いとする（育成失敗・撤収等の実態に合わせる仕様）
-      - actionLogs / harvestLogs / segSummaryMemo は削除せず100%保持（segIdキーのまま参照可能、完了済み一覧実装時にarchivedSegs経由で利用予定）
-      - データ構造に archivedSegs を追加（localStorage保存・読込対象に追加）
-    - 写真タブをスコープアウト：タブ一覧から「写真」タブを削除（プレースホルダーUIのみのため実害なし、写真共有はグループLINE運用に確定）
-  Previous Changes (v23):
-    - revert: AIで生成ボタンをモックに戻す（Claude.ai Artifact環境でのAPI呼び出しはJSON切断等が不安定なため、Claude Code移行後に本実装予定）
-    - モックでも育成方法（種/苗）を反映：種選択時は種まき・発芽確認タスクを自動生成
-    - FB1: 「植え付け日」→「作業開始日」に変更
-    - FB2: 野菜追加ダイアログに育成方法（3択）・参考URL入力を追加
-    - FB2: マスタ詳細に栽培設定UI（育成方法・参考URL）を追加
-    - FB2: 「AIで生成」をClaude API実装に変更（育成方法・URL参照）
-  Current Status: プロトタイプ動作中。区画の「完了」操作（アーカイブ化）まで実装済み。
-  Next Steps:
-    - 「完了済み一覧」画面の実装（設定ボタン右横にボタン配置、archivedSegsのリスト表示、作物順/作業開始日順ソート、タップで読み取り専用の作業ログ表示）
-    - Claude Codeで本番化（AI生成API実装・DB移行）
--->
+<!-- 畑管理アプリ v24 / Crafted with care by momitaka -->
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -746,7 +720,6 @@ function checkRotation(row,cols){
 function segIsRegistered(sid){return !!(segs[sid]&&segs[sid].crop)}
 function getTaskState(sid,tid){return Object.assign({done:false,skip:false,doneDates:[]},(segTasks[sid]||{})[tid]||{})}
 function setTaskState(sid,tid,patch){if(!segTasks[sid])segTasks[sid]={};segTasks[sid][tid]=Object.assign(getTaskState(sid,tid),patch);saveLS()}
-function addLog(sid,cropId,taskName){if(!actionLogs[sid])actionLogs[sid]=[];actionLogs[sid].push({id:`log_${Date.now()}`,date:todayISO(),type:'task',task:taskName,cropId});saveLS()}
 function getMilestoneDate(sid,cropId,ms){const v=getVeg(cropId);if(!v)return null;const tasks=v.phases.flatMap(p=>p.tasks).filter(t=>t.milestone===ms);for(const t of tasks){const state=getTaskState(sid,t.id);if(state.doneDates&&state.doneDates.length){const iso=dispToISO(state.doneDates[0]);if(iso)return iso;}}return null}
 function getHarvestSummary(sid){const logs=harvestLogs[sid]||[];const tot={};logs.forEach(h=>{if(!tot[h.unit])tot[h.unit]=0;tot[h.unit]+=Number(h.amount);});return tot}
 function harvestTotalStr(sid){const t=getHarvestSummary(sid);const e=Object.entries(t);if(!e.length)return null;return e.map(([u,a])=>`${a}${u}`).join(' / ')}
