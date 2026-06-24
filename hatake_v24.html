@@ -263,9 +263,12 @@ body{
     <div class="toolbar toolbar-grid">
       <div class="header-card">
         <div class="header-card-top">
-          <div>
-            <div id="farm-name-display" style="font-size:17px;font-weight:600;color:#1a1915;letter-spacing:0.02em;display:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Noto Serif JP',serif;line-height:1.2"></div>
-            <div id="farm-seg-count" style="font-size:9px;color:#9c9a93;margin-top:2px;display:none"></div>
+          <div style="display:flex;align-items:center;gap:8px;min-width:0">
+            <span id="farm-icon-display" style="font-size:26px;line-height:1;display:none;flex-shrink:0"></span>
+            <div style="min-width:0">
+              <div id="farm-name-display" style="font-size:17px;font-weight:600;color:#1a1915;letter-spacing:0.02em;display:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Noto Serif JP',serif;line-height:1.2"></div>
+              <div id="farm-seg-count" style="font-size:9px;color:#9c9a93;margin-top:2px;display:none"></div>
+            </div>
           </div>
           <div style="display:flex;gap:4px">
             <button class="btn-grid-icon" id="btn-open-archive" title="過去データ"><i class="ti ti-archive"></i></button>
@@ -310,6 +313,11 @@ body{
               <span style="font-family:'Yuji Syuku',serif;font-size:15px;flex:1">Yuji Syuku — 筆書き風</span>
             </label>
           </div>
+        </div>
+        <div class="settings-row admin-only" style="flex-direction:column;align-items:stretch;gap:6px;margin-top:8px">
+          <span class="settings-label">農園アイコン</span>
+          <div id="farm-icon-picker" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+          <div style="font-size:10px;color:var(--color-text-tertiary)">野菜マスタに登録されているアイコンから選択。もう一度タップで解除。</div>
         </div>
         <hr class="divider admin-only" style="margin:10px 0">
         <div class="settings-section-label admin-only">グリッドサイズ</div>
@@ -620,6 +628,7 @@ const MAX_UNDO=30;
 let COLS=8,ROWS=6,cells={},segs={},segTasks={},actionLogs={},harvestLogs={},segSummaryMemo={},vegMaster={},archivedSegs={},customIcons={},undoStack=[];
 let aisleRows=[],aisleCols=[];
 let farmNameFont='Kaisei Opti';
+let farmIcon='';
 let dragging=false,dragRow=-1,dragStartCol=-1,dragEndCol=-1,pendingRow=-1,pendingStart=-1,pendingEnd=-1;
 let currentSeg=null,currentTab='roadmap',selectedMasterVeg=null,addVegEmoji='🌱',addVegIconFile=null,fromRegDlg=false,farmName='';
 let settingsOpen=false;
@@ -668,7 +677,7 @@ async function loadFromDB(){
       cells=d.cells;COLS=d.COLS||8;ROWS=d.ROWS||6;
       segTasks=d.segTasks||{};actionLogs=d.actionLogs||{};harvestLogs=d.harvestLogs||{};
       segSummaryMemo=d.segSummaryMemo||{};vegMaster=d.vegMaster||{};
-      archivedSegs=d.archivedSegs||{};farmName=d.farmName||'';aisleRows=d.aisleRows||[];aisleCols=d.aisleCols||[];
+      archivedSegs=d.archivedSegs||{};farmName=d.farmName||'';aisleRows=d.aisleRows||[];aisleCols=d.aisleCols||[];farmIcon=d.farmIcon||'';
       return true;
     }
   }catch(e){console.error('DB load error',e);}
@@ -706,15 +715,16 @@ function showTaskDateDialog(title, taskName, onConfirm, onCancel){
   window._taskDateCancel=onCancel||null;
   dlg.style.display='flex';
 }
-function saveLS(){try{const d={cells,COLS,ROWS,segTasks,actionLogs,harvestLogs,segSummaryMemo,vegMaster,archivedSegs,farmName,aisleRows,aisleCols,farmNameFont};localStorage.setItem('hatake_v21',JSON.stringify(d));localStorage.setItem('hatake_v21_icons',JSON.stringify(customIcons));saveToDB(d);}catch(e){}}
-function updateFarmNameDisplay(){const el=document.getElementById('farm-name-display');const sc=document.getElementById('farm-seg-count');const splashEl=document.getElementById('splash-farm-name');const fontFamily=`'${farmNameFont}',serif`;if(el)el.style.fontFamily=fontFamily;if(splashEl)splashEl.style.fontFamily=fontFamily;if(farmName){el.textContent=farmName;el.style.display='block';}else{el.style.display='none';}if(sc){buildSegs();const cnt=Object.keys(segs).length;sc.textContent=cnt+'区画 管理中';sc.style.display='block';}}
+function saveLS(){try{const d={cells,COLS,ROWS,segTasks,actionLogs,harvestLogs,segSummaryMemo,vegMaster,archivedSegs,farmName,aisleRows,aisleCols,farmNameFont,farmIcon};localStorage.setItem('hatake_v21',JSON.stringify(d));localStorage.setItem('hatake_v21_icons',JSON.stringify(customIcons));saveToDB(d);}catch(e){}}
+function updateFarmNameDisplay(){const el=document.getElementById('farm-name-display');const sc=document.getElementById('farm-seg-count');const splashEl=document.getElementById('splash-farm-name');const iconEl=document.getElementById('farm-icon-display');const fontFamily=`'${farmNameFont}',serif`;if(el)el.style.fontFamily=fontFamily;if(splashEl)splashEl.style.fontFamily=fontFamily;if(iconEl){if(farmIcon){iconEl.textContent=farmIcon;iconEl.style.display='inline';}else{iconEl.style.display='none';}}if(farmName){el.textContent=farmName;el.style.display='block';}else{el.style.display='none';}if(sc){buildSegs();const cnt=Object.keys(segs).length;sc.textContent=cnt+'区画 管理中';sc.style.display='block';}}
 function loadLS(){
-  try{const d=JSON.parse(localStorage.getItem('hatake_v21')||'null');if(d&&d.cells){cells=d.cells;COLS=d.COLS||8;ROWS=d.ROWS||6;segTasks=d.segTasks||{};actionLogs=d.actionLogs||{};harvestLogs=d.harvestLogs||{};segSummaryMemo=d.segSummaryMemo||{};vegMaster=d.vegMaster||{};archivedSegs=d.archivedSegs||{};farmName=d.farmName||'';aisleRows=d.aisleRows||[];aisleCols=d.aisleCols||[];farmNameFont=d.farmNameFont||'Kaisei Opti';}}catch(e){}
+  try{const d=JSON.parse(localStorage.getItem('hatake_v21')||'null');if(d&&d.cells){cells=d.cells;COLS=d.COLS||8;ROWS=d.ROWS||6;segTasks=d.segTasks||{};actionLogs=d.actionLogs||{};harvestLogs=d.harvestLogs||{};segSummaryMemo=d.segSummaryMemo||{};vegMaster=d.vegMaster||{};archivedSegs=d.archivedSegs||{};farmName=d.farmName||'';aisleRows=d.aisleRows||[];aisleCols=d.aisleCols||[];farmNameFont=d.farmNameFont||'Kaisei Opti';farmIcon=d.farmIcon||'';}}catch(e){}
   try{const ic=JSON.parse(localStorage.getItem('hatake_v21_icons')||'null');if(ic)customIcons=ic;}catch(e){}
   if(!vegMaster['tomato'])vegMaster['tomato']=JSON.parse(JSON.stringify(TOMATO_SAMPLE));
   document.getElementById('s-cols').value=COLS;document.getElementById('s-rows').value=ROWS;
   document.getElementById('s-farm-name').value=farmName;
   document.querySelectorAll('input[name="farm-font"]').forEach(r=>{r.checked=(r.value===farmNameFont);});
+  renderFarmIconPicker();
   updateFarmNameDisplay();
 }
 function pushUndo(){undoStack.push(JSON.stringify({cells,COLS,ROWS,segTasks,actionLogs,harvestLogs,segSummaryMemo,vegMaster,archivedSegs,aisleRows,aisleCols}));if(undoStack.length>MAX_UNDO)undoStack.shift();updUndoBtn()}
@@ -1349,6 +1359,20 @@ function applyAisles(){
   aisleRows=parseAisleInput(document.getElementById('s-aisle-rows').value,ROWS);
   aisleCols=parseAisleInput(document.getElementById('s-aisle-cols').value,COLS);
   renderGrid();saveLS();
+}
+function renderFarmIconPicker(){
+  const picker=document.getElementById('farm-icon-picker');
+  if(!picker)return;
+  const icons=[...new Set(Object.values(vegMaster).map(v=>v.emoji).filter(e=>e&&e.trim()))];
+  picker.innerHTML='';
+  icons.forEach(emoji=>{
+    const btn=document.createElement('button');
+    const selected=(farmIcon===emoji);
+    btn.textContent=emoji;
+    btn.style.cssText=`font-size:22px;width:40px;height:40px;border-radius:10px;border:2px solid ${selected?'#0F6E56':'transparent'};background:${selected?'#E1F5EE':'var(--color-background-secondary)'};cursor:pointer;display:flex;align-items:center;justify-content:center;`;
+    btn.onclick=()=>{farmIcon=(farmIcon===emoji)?'':emoji;saveLS();updateFarmNameDisplay();renderFarmIconPicker();};
+    picker.appendChild(btn);
+  });
 }
 function syncAisleInputs(){
   document.getElementById('s-aisle-rows').value=aisleRows.map(r=>r+1).join(', ');
