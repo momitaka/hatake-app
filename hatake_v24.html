@@ -44,8 +44,8 @@ body{font-family:var(--font-sans);background:#f9f8f4;min-height:100vh;padding:0}
 .cell-inner{width:100%;height:100%;position:relative;display:flex;flex-direction:column;justify-content:space-between;align-items:stretch;padding:3px;overflow:hidden;box-sizing:border-box}
 .cell-label{font-size:10px;line-height:1.2;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100%;color:var(--color-text-primary);display:flex;align-items:center;gap:2px}
 .status-bar{position:absolute;bottom:0;left:0;right:0;height:4px}
-.row-num{font-size:7px;color:#c8c6be;vertical-align:middle;text-align:center;font-weight:400;cursor:default;white-space:nowrap;width:1%}
-.col-num{font-size:7px;color:#c8c6be;text-align:center;font-weight:400;cursor:default;padding:2px 0 3px;line-height:1}
+.row-num{font-size:7px;color:#9FE1CB;vertical-align:middle;text-align:center;font-weight:400;cursor:default;white-space:nowrap;width:1%}
+.col-num{font-size:7px;color:#9FE1CB;text-align:center;font-weight:400;cursor:default;padding:2px 0 3px;line-height:1}
 .col-num-corner{}
 .seg-list-wrap{margin-top:0}
 .seg-list-wrap h3{font-size:11px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:5px;letter-spacing:0.04em;color:#0F6E56}
@@ -231,7 +231,7 @@ body{
 .btn{font-size:13px;border-width:1.5px;border-color:#555}
 .seg-item{border-width:1.5px;border-color:#888}
 .cell-label{font-size:12px;font-weight:700}
-.row-num,.col-num{font-size:7px;font-weight:400;color:#c8c6be}
+.row-num,.col-num{font-size:7px;font-weight:400;color:#9FE1CB}
 .status-pill{font-size:12px;padding:3px 10px;font-weight:700}
 
 .view-mode .admin-only{display:none !important}
@@ -697,8 +697,8 @@ function loadLS(){
   document.getElementById('s-farm-name').value=farmName;
   updateFarmNameDisplay();
 }
-function pushUndo(){undoStack.push(JSON.stringify({cells,COLS,ROWS,segTasks,actionLogs,harvestLogs,segSummaryMemo,vegMaster,archivedSegs}));if(undoStack.length>MAX_UNDO)undoStack.shift();updUndoBtn()}
-function doUndo(){if(!undoStack.length)return;const s=JSON.parse(undoStack.pop());cells=s.cells;COLS=s.COLS;ROWS=s.ROWS;segTasks=s.segTasks||{};actionLogs=s.actionLogs||{};harvestLogs=s.harvestLogs||{};segSummaryMemo=s.segSummaryMemo||{};vegMaster=s.vegMaster||{};archivedSegs=s.archivedSegs||{};buildSegs();renderGrid();if(currentSeg&&document.getElementById('screen-manage').classList.contains('active'))renderManage();saveLS();updUndoBtn()}
+function pushUndo(){undoStack.push(JSON.stringify({cells,COLS,ROWS,segTasks,actionLogs,harvestLogs,segSummaryMemo,vegMaster,archivedSegs,aisleRows,aisleCols}));if(undoStack.length>MAX_UNDO)undoStack.shift();updUndoBtn()}
+function doUndo(){if(!undoStack.length)return;const s=JSON.parse(undoStack.pop());cells=s.cells;COLS=s.COLS;ROWS=s.ROWS;segTasks=s.segTasks||{};actionLogs=s.actionLogs||{};harvestLogs=s.harvestLogs||{};segSummaryMemo=s.segSummaryMemo||{};vegMaster=s.vegMaster||{};archivedSegs=s.archivedSegs||{};aisleRows=s.aisleRows||[];aisleCols=s.aisleCols||[];buildSegs();renderGrid();if(currentSeg&&document.getElementById('screen-manage').classList.contains('active'))renderManage();saveLS();updUndoBtn()}
 function updUndoBtn(){const b=document.getElementById('undo-btn'),c=document.getElementById('undo-count');b.disabled=!undoStack.length;c.textContent=undoStack.length?`(${undoStack.length})`:''}
 document.getElementById('undo-btn').addEventListener('click',()=>{if(!undoStack.length)return;document.getElementById('dlg-undo-confirm').style.display='flex';});
 document.getElementById('btn-undo-cancel').addEventListener('click',()=>{document.getElementById('dlg-undo-confirm').style.display='none';});
@@ -1324,6 +1324,7 @@ function renderLegend(){const el=document.getElementById('family-legend');el.inn
 function applyGrid(){const nc=Math.min(20,Math.max(2,parseInt(document.getElementById('s-cols').value)||8));const nr=Math.min(20,Math.max(2,parseInt(document.getElementById('s-rows').value)||6));COLS=nc;ROWS=nr;const nc2={};for(const k in cells){const[ri,ci]=k.split(',').map(Number);if(ri<ROWS&&ci<COLS)nc2[k]=cells[k];}cells=nc2;renderGrid();saveLS();}
 function parseAisleInput(str,max){return str.split(',').map(s=>parseInt(s.trim())-1).filter(n=>!isNaN(n)&&n>=0&&n<max);}
 function applyAisles(){
+  pushUndo();
   aisleRows=parseAisleInput(document.getElementById('s-aisle-rows').value,ROWS);
   aisleCols=parseAisleInput(document.getElementById('s-aisle-cols').value,COLS);
   renderGrid();saveLS();
