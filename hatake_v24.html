@@ -26,6 +26,13 @@ body{font-family:var(--font-sans);background:#f9f8f4;min-height:100vh;padding:0}
 .app{padding:0 0.5rem 0.5rem;user-select:none;font-size:13px;max-width:680px;margin:0 auto}
 .screen{display:none}.screen.active{display:block}
 .toolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--color-background-primary);border-bottom:2px solid #1D9E75;padding:8px 0.5rem;margin:0 -0.5rem 12px;position:sticky;top:0;z-index:20}
+.toolbar-grid{background:#1D9E75;border-bottom:none;flex-direction:column;align-items:stretch;gap:0;padding:14px 0.75rem 12px;margin-bottom:0}
+.btn-grid-icon{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.btn-grid-icon:hover{background:rgba(255,255,255,0.25)}
+.btn-grid-chip{background:rgba(255,255,255,0.18);color:#fff;border:0.5px solid rgba(255,255,255,0.3);border-radius:99px;padding:4px 11px;font-size:10px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.btn-grid-chip:hover{background:rgba(255,255,255,0.28)}
+.btn-grid-chip.btn-undo{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2)}
+.btn-grid-chip:disabled{opacity:0.4;cursor:default}
 .btn{font-size:12px;padding:4px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px}
 .btn:hover{background:var(--color-background-secondary)}
 .btn-undo{font-size:12px;padding:4px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
@@ -250,15 +257,21 @@ body{
 </div>
 <div class="app" id="app">
   <div class="screen active" id="screen-register">
-    <div class="toolbar" style="flex-direction:column;align-items:stretch;gap:4px">
-      <div id="farm-name-display" style="font-size:16px;font-weight:600;color:var(--color-text-primary);letter-spacing:0.02em;display:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Noto Serif JP',serif;line-height:1.3;text-align:center"></div>
-      <div style="display:flex;align-items:center;gap:6px">
-        <button class="btn-undo" id="undo-btn" disabled><i class="ti ti-arrow-back-up"></i>取り消し</button>
+    <div class="toolbar toolbar-grid">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;width:100%;margin-bottom:6px">
+        <div>
+          <div id="farm-name-display" style="font-size:17px;font-weight:600;color:#fff;letter-spacing:0.02em;display:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Noto Serif JP',serif;line-height:1.2"></div>
+          <div id="farm-seg-count" style="font-size:9px;color:rgba(255,255,255,0.65);margin-top:2px;display:none"></div>
+        </div>
+        <div style="display:flex;gap:3px">
+          <button class="btn-grid-icon" id="btn-open-archive" title="過去データ"><i class="ti ti-archive"></i></button>
+          <button class="btn-grid-icon" id="btn-settings" title="設定"><i class="ti ti-settings"></i></button>
+        </div>
+      </div>
+      <div style="display:flex;gap:5px">
+        <button class="btn-grid-chip btn-undo" id="undo-btn" disabled><i class="ti ti-arrow-back-up" style="font-size:10px"></i>取り消し</button>
         <span class="undo-count" id="undo-count"></span>
-        <div style="flex:1"></div>
-        <button class="btn" id="btn-open-master"><i class="ti ti-book-2"></i>野菜マスタ</button>
-        <button class="btn" id="btn-open-archive"><i class="ti ti-database"></i>過去データ</button>
-        <button class="btn" id="btn-settings"><i class="ti ti-settings"></i>設定</button>
+        <button class="btn-grid-chip" id="btn-open-master"><i class="ti ti-plant-2" style="font-size:10px"></i>野菜マスタ</button>
       </div>
     </div>
     <div id="dlg-undo-confirm" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:300;align-items:center;justify-content:center">
@@ -661,7 +674,7 @@ function showTaskDateDialog(title, taskName, onConfirm, onCancel){
   dlg.style.display='flex';
 }
 function saveLS(){try{const d={cells,COLS,ROWS,segTasks,actionLogs,harvestLogs,segSummaryMemo,vegMaster,archivedSegs,farmName};localStorage.setItem('hatake_v21',JSON.stringify(d));localStorage.setItem('hatake_v21_icons',JSON.stringify(customIcons));saveToDB(d);}catch(e){}}
-function updateFarmNameDisplay(){const el=document.getElementById('farm-name-display');if(farmName){el.textContent=farmName;el.style.display='block';}else{el.style.display='none';}}
+function updateFarmNameDisplay(){const el=document.getElementById('farm-name-display');const sc=document.getElementById('farm-seg-count');if(farmName){el.textContent=farmName;el.style.display='block';}else{el.style.display='none';}if(sc){buildSegs();const cnt=Object.keys(segs).length;sc.textContent=cnt+'区画 管理中';sc.style.display='block';}}
 function loadLS(){
   try{const d=JSON.parse(localStorage.getItem('hatake_v21')||'null');if(d&&d.cells){cells=d.cells;COLS=d.COLS||8;ROWS=d.ROWS||6;segTasks=d.segTasks||{};actionLogs=d.actionLogs||{};harvestLogs=d.harvestLogs||{};segSummaryMemo=d.segSummaryMemo||{};vegMaster=d.vegMaster||{};archivedSegs=d.archivedSegs||{};farmName=d.farmName||'';}}catch(e){}
   try{const ic=JSON.parse(localStorage.getItem('hatake_v21_icons')||'null');if(ic)customIcons=ic;}catch(e){}
@@ -794,6 +807,7 @@ function renderGrid(){
     tbl.appendChild(tr);
   }
   renderSegList();
+  updateFarmNameDisplay();
 }
 let _touchStartX=0,_touchStartY=0;
 function onDown(r,c,e){e.preventDefault();if(!requireAdmin())return;const k=K(r,c);if(cells[k]&&cells[k].crop)return;dragging=true;dragRow=r;dragStartCol=c;dragEndCol=c;if(e.touches&&e.touches[0]){_touchStartX=e.touches[0].clientX;_touchStartY=e.touches[0].clientY;}document.addEventListener('mouseup',onUp,{once:true});document.addEventListener('touchend',onUp,{once:true});window.addEventListener('touchend',onUp,{once:true});
