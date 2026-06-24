@@ -300,6 +300,19 @@ body{
           <span class="settings-label">行</span><input type="number" id="s-rows" value="6" min="2" max="20">
           <button class="btn" onclick="applyGrid()"><i class="ti ti-refresh"></i>適用</button>
         </div>
+        <div class="settings-section-label admin-only">通路の設定</div>
+        <div class="settings-row admin-only" style="flex-direction:column;align-items:stretch;gap:6px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="settings-label" style="min-width:60px">通路の行</span>
+            <input type="text" id="s-aisle-rows" placeholder="例: 4, 6" style="flex:1;font-size:13px;padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)">
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="settings-label" style="min-width:60px">通路の列</span>
+            <input type="text" id="s-aisle-cols" placeholder="例: 3, 5" style="flex:1;font-size:13px;padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)">
+          </div>
+          <div style="font-size:10px;color:var(--color-text-tertiary)">行はA=1、B=2…として番号で入力。列は左から1, 2…。カンマ区切りで複数指定可。</div>
+          <button class="btn admin-only" onclick="applyAisles()" style="align-self:flex-start"><i class="ti ti-refresh"></i>適用</button>
+        </div>
         <hr class="divider" style="margin:10px 0">
         <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:8px" class="admin-only">全区画データを削除します。元に戻せません。</div>
         <button class="btn-danger-outline admin-only" onclick="resetAll()"><i class="ti ti-trash"></i>全データをリセット</button>
@@ -587,6 +600,7 @@ const ADMIN_PASSWORD='hatake2026';
 let isAdmin=false;
 const MAX_UNDO=30;
 let COLS=8,ROWS=6,cells={},segs={},segTasks={},actionLogs={},harvestLogs={},segSummaryMemo={},vegMaster={},archivedSegs={},customIcons={},undoStack=[];
+let aisleRows=[],aisleCols=[];
 let dragging=false,dragRow=-1,dragStartCol=-1,dragEndCol=-1,pendingRow=-1,pendingStart=-1,pendingEnd=-1;
 let currentSeg=null,currentTab='roadmap',selectedMasterVeg=null,addVegEmoji='🌱',addVegIconFile=null,fromRegDlg=false,farmName='';
 let settingsOpen=false;
@@ -635,7 +649,7 @@ async function loadFromDB(){
       cells=d.cells;COLS=d.COLS||8;ROWS=d.ROWS||6;
       segTasks=d.segTasks||{};actionLogs=d.actionLogs||{};harvestLogs=d.harvestLogs||{};
       segSummaryMemo=d.segSummaryMemo||{};vegMaster=d.vegMaster||{};
-      archivedSegs=d.archivedSegs||{};farmName=d.farmName||'';
+      archivedSegs=d.archivedSegs||{};farmName=d.farmName||'';aisleRows=d.aisleRows||[];aisleCols=d.aisleCols||[];
       return true;
     }
   }catch(e){console.error('DB load error',e);}
@@ -673,10 +687,10 @@ function showTaskDateDialog(title, taskName, onConfirm, onCancel){
   window._taskDateCancel=onCancel||null;
   dlg.style.display='flex';
 }
-function saveLS(){try{const d={cells,COLS,ROWS,segTasks,actionLogs,harvestLogs,segSummaryMemo,vegMaster,archivedSegs,farmName};localStorage.setItem('hatake_v21',JSON.stringify(d));localStorage.setItem('hatake_v21_icons',JSON.stringify(customIcons));saveToDB(d);}catch(e){}}
+function saveLS(){try{const d={cells,COLS,ROWS,segTasks,actionLogs,harvestLogs,segSummaryMemo,vegMaster,archivedSegs,farmName,aisleRows,aisleCols};localStorage.setItem('hatake_v21',JSON.stringify(d));localStorage.setItem('hatake_v21_icons',JSON.stringify(customIcons));saveToDB(d);}catch(e){}}
 function updateFarmNameDisplay(){const el=document.getElementById('farm-name-display');const sc=document.getElementById('farm-seg-count');if(farmName){el.textContent=farmName;el.style.display='block';}else{el.style.display='none';}if(sc){buildSegs();const cnt=Object.keys(segs).length;sc.textContent=cnt+'区画 管理中';sc.style.display='block';}}
 function loadLS(){
-  try{const d=JSON.parse(localStorage.getItem('hatake_v21')||'null');if(d&&d.cells){cells=d.cells;COLS=d.COLS||8;ROWS=d.ROWS||6;segTasks=d.segTasks||{};actionLogs=d.actionLogs||{};harvestLogs=d.harvestLogs||{};segSummaryMemo=d.segSummaryMemo||{};vegMaster=d.vegMaster||{};archivedSegs=d.archivedSegs||{};farmName=d.farmName||'';}}catch(e){}
+  try{const d=JSON.parse(localStorage.getItem('hatake_v21')||'null');if(d&&d.cells){cells=d.cells;COLS=d.COLS||8;ROWS=d.ROWS||6;segTasks=d.segTasks||{};actionLogs=d.actionLogs||{};harvestLogs=d.harvestLogs||{};segSummaryMemo=d.segSummaryMemo||{};vegMaster=d.vegMaster||{};archivedSegs=d.archivedSegs||{};farmName=d.farmName||'';aisleRows=d.aisleRows||[];aisleCols=d.aisleCols||[];}}catch(e){}
   try{const ic=JSON.parse(localStorage.getItem('hatake_v21_icons')||'null');if(ic)customIcons=ic;}catch(e){}
   if(!vegMaster['tomato'])vegMaster['tomato']=JSON.parse(JSON.stringify(TOMATO_SAMPLE));
   document.getElementById('s-cols').value=COLS;document.getElementById('s-rows').value=ROWS;
@@ -693,7 +707,7 @@ document.getElementById('dlg-undo-confirm').addEventListener('mousedown',e=>{if(
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();if(!undoStack.length)return;document.getElementById('dlg-undo-confirm').style.display='flex';}});
 
 document.getElementById('btn-open-archive').addEventListener('click',()=>{openArchive();});
-function openSettings(){document.getElementById('dlg-settings').style.display='flex';}
+function openSettings(){document.getElementById('dlg-settings').style.display='flex';syncAisleInputs();}
 function closeSettings(){document.getElementById('dlg-settings').style.display='none';}
 document.getElementById('btn-settings').addEventListener('click',openSettings);
 document.getElementById('btn-close-settings').addEventListener('click',closeSettings);
@@ -751,7 +765,8 @@ function getNextTask(sid,cropId){const v=getVeg(cropId);if(!v||!v.phases.length)
 function calcProgress(sid,cropId){const v=getVeg(cropId);if(!v)return{pct:0,phaseIdx:0};const all=v.phases.flatMap(p=>p.tasks);let lastCheckedIdx=-1;all.forEach((t,i)=>{if(getTaskState(sid,t.id).done)lastCheckedIdx=i;});const pct=all.length?Math.round((lastCheckedIdx+1)/all.length*100):0;let phaseIdx=0;if(lastCheckedIdx>=0){let count=0;for(let i=0;i<v.phases.length;i++){count+=v.phases[i].tasks.length;if(lastCheckedIdx<count){phaseIdx=i;break;}phaseIdx=i;}}return{pct,phaseIdx}}
 function calcMajorStatus(sid,cropId){const v=getVeg(cropId);if(!v||!v.phases.length)return MAJOR_STATUS[0];const{phaseIdx}=calcProgress(sid,cropId);return MAJOR_STATUS.find(m=>m.id===v.phases[phaseIdx].majorStatus)||MAJOR_STATUS[0]}
 function addDays(dateStr,days){if(!dateStr)return null;const d=new Date(dateStr);d.setDate(d.getDate()+days);return `${d.getMonth()+1}/${d.getDate()}`}
-function calcCellSize(){const wrap=document.getElementById('grid-wrap');const W=wrap.offsetWidth||600;const cellW=Math.floor((W-12-3*(COLS+1))/COLS);const cellH=Math.max(36,Math.min(58,Math.floor(cellW*0.94)));return{cellW,cellH}}
+const AISLE_W=10,AISLE_H=10;
+function calcCellSize(){const wrap=document.getElementById('grid-wrap');const W=wrap.offsetWidth||600;const normalCols=COLS-aisleCols.length;const normalRows=ROWS-aisleRows.length;const usedW=12+3*(COLS+1)+aisleCols.length*AISLE_W;const cellW=Math.floor((W-usedW)/Math.max(1,normalCols));const cellH=Math.max(36,Math.min(58,Math.floor(cellW*0.94)));return{cellW,cellH,normalCols,normalRows}}
 
 function populateCropSelect(){
   const sel=document.getElementById('dlg-crop');sel.innerHTML='<option value="">— 選択してください —</option>';
@@ -763,16 +778,38 @@ function renderGrid(){
   // 列番号ヘッダ行
   const htr=document.createElement('tr');
   const corner=document.createElement('td');corner.className='col-num col-num-corner';corner.style.cssText=`width:10px;`;htr.appendChild(corner);
-  for(let c=0;c<COLS;c++){const ch=document.createElement('td');ch.className='col-num';ch.textContent=c+1;ch.style.cssText=`width:${cellW}px;`;htr.appendChild(ch);}
+  for(let c=0;c<COLS;c++){
+    const isAisleC=aisleCols.includes(c);
+    const ch=document.createElement('td');ch.className='col-num';
+    ch.textContent=isAisleC?'':c+1;
+    ch.style.cssText=`width:${isAisleC?AISLE_W:cellW}px;`;
+    htr.appendChild(ch);
+  }
   tbl.appendChild(htr);
   for(let r=0;r<ROWS;r++){
-    const tr=document.createElement('tr');const rn=document.createElement('td');rn.className='row-num';rn.textContent=String.fromCharCode(65+r);rn.style.cssText=`width:10px;height:${cellH}px;vertical-align:middle`;tr.appendChild(rn);
+    const isAisleR=aisleRows.includes(r);
+    const rowH=isAisleR?AISLE_H:cellH;
+    const tr=document.createElement('tr');
+    const rn=document.createElement('td');rn.className='row-num';
+    rn.textContent=isAisleR?'':String.fromCharCode(65+r);
+    rn.style.cssText=`width:10px;height:${rowH}px;vertical-align:middle`;
+    tr.appendChild(rn);
     for(let c=0;c<COLS;c++){
+      const isAisleC=aisleCols.includes(c);
+      // 通路セル
+      if(isAisleR||isAisleC){
+        const td=document.createElement('td');td.dataset.r=r;td.dataset.c=c;
+        td.style.cssText=`width:${isAisleC?AISLE_W:cellW}px;height:${rowH}px;min-width:0;padding:0;box-sizing:border-box;`;
+        const inner=document.createElement('div');
+        inner.style.cssText=`width:100%;height:100%;background:#f0efe9;border-radius:3px;`;
+        td.appendChild(inner);tr.appendChild(td);continue;
+      }
       const k=K(r,c),cell=cells[k];const sid=cell?cell.segId:null,seg=sid?segs[sid]:null;
       const registered=seg?segIsRegistered(sid):false;
-      // セグメントの最左以外はcolspanで結合済みのためスキップ
       if(registered&&seg&&c>Math.min(...seg.cols))continue;
-      const span=registered&&seg?seg.cols.length:1;
+      // colspanはアイル列を跨がない範囲に制限
+      let span=registered&&seg?seg.cols.length:1;
+      if(span>1){const cols=seg.cols.slice().sort((a,b)=>a-b);span=0;for(const sc of cols){if(aisleCols.includes(sc))break;span++;}if(span===0)span=1;}
       const selecting=dragging&&r===dragRow&&c>=Math.min(dragStartCol,dragEndCol)&&c<=Math.max(dragStartCol,dragEndCol);
       const fs=famStyle(vegFamily(seg?seg.crop:null));const majorSt=registered?calcMajorStatus(sid,seg.crop):null;
       const td=document.createElement('td');td.dataset.r=r;td.dataset.c=c;
@@ -780,7 +817,6 @@ function renderGrid(){
       const isActive=selecting||(registered&&fs);
       td.style.cssText=`width:${cellW*span}px;height:${cellH}px;min-width:0;border:0.5px solid ${isActive?'#e8e6df':'#ede9e1'};padding:${isActive?'2':'0'}px;box-sizing:border-box`;
       const inner=document.createElement('div');inner.className='cell-inner';
-      // CSSクラスを活かしつつ動的プロパティのみ上書き
       inner.style.height='100%';inner.style.boxSizing='border-box';inner.style.borderRadius='5px';
       if(selecting){
         inner.style.background='#E6F1FB';inner.style.border='2px solid #378ADD';
@@ -796,7 +832,6 @@ function renderGrid(){
         const lbl=document.createElement('div');lbl.className='cell-label';
         lbl.innerHTML=veg?(vegIconHtml(veg,14)+'<span style="margin-left:2px">'+veg.name+'</span>'):'';
         inner.appendChild(lbl);
-        
         if(majorSt){const stLbl=document.createElement('div');stLbl.style.cssText=`font-size:8px;font-weight:500;color:${majorSt.color};line-height:1.2`;stLbl.textContent=majorSt.name;inner.appendChild(stLbl);}
       }
       td.appendChild(inner);
@@ -810,7 +845,7 @@ function renderGrid(){
   updateFarmNameDisplay();
 }
 let _touchStartX=0,_touchStartY=0;
-function onDown(r,c,e){e.preventDefault();if(!requireAdmin())return;const k=K(r,c);if(cells[k]&&cells[k].crop)return;dragging=true;dragRow=r;dragStartCol=c;dragEndCol=c;if(e.touches&&e.touches[0]){_touchStartX=e.touches[0].clientX;_touchStartY=e.touches[0].clientY;}document.addEventListener('mouseup',onUp,{once:true});document.addEventListener('touchend',onUp,{once:true});window.addEventListener('touchend',onUp,{once:true});
+function onDown(r,c,e){e.preventDefault();if(!requireAdmin())return;if(aisleRows.includes(r)||aisleCols.includes(c))return;const k=K(r,c);if(cells[k]&&cells[k].crop)return;dragging=true;dragRow=r;dragStartCol=c;dragEndCol=c;if(e.touches&&e.touches[0]){_touchStartX=e.touches[0].clientX;_touchStartY=e.touches[0].clientY;}document.addEventListener('mouseup',onUp,{once:true});document.addEventListener('touchend',onUp,{once:true});window.addEventListener('touchend',onUp,{once:true});
   // DOM再構築せず直接ハイライト（iOS touchend対策）
   const tds=document.querySelectorAll('#grid-table td');tds.forEach(td=>{if(td.dataset.r==r&&td.dataset.c==c)td.style.background='var(--color-background-tertiary)';});
 }
@@ -1287,6 +1322,16 @@ function renderSegList(){
 function renderLegend(){const el=document.getElementById('family-legend');el.innerHTML='';Object.entries(FAMILIES).forEach(([name,style])=>{const item=document.createElement('div');item.className='legend-item';item.innerHTML=`<div class="legend-dot" style="background:${style.bg};border-color:${style.border}"></div>${name}`;el.appendChild(item);});}
 
 function applyGrid(){const nc=Math.min(20,Math.max(2,parseInt(document.getElementById('s-cols').value)||8));const nr=Math.min(20,Math.max(2,parseInt(document.getElementById('s-rows').value)||6));COLS=nc;ROWS=nr;const nc2={};for(const k in cells){const[ri,ci]=k.split(',').map(Number);if(ri<ROWS&&ci<COLS)nc2[k]=cells[k];}cells=nc2;renderGrid();saveLS();}
+function parseAisleInput(str,max){return str.split(',').map(s=>parseInt(s.trim())-1).filter(n=>!isNaN(n)&&n>=0&&n<max);}
+function applyAisles(){
+  aisleRows=parseAisleInput(document.getElementById('s-aisle-rows').value,ROWS);
+  aisleCols=parseAisleInput(document.getElementById('s-aisle-cols').value,COLS);
+  renderGrid();saveLS();
+}
+function syncAisleInputs(){
+  document.getElementById('s-aisle-rows').value=aisleRows.map(r=>r+1).join(', ');
+  document.getElementById('s-aisle-cols').value=aisleCols.map(c=>c+1).join(', ');
+}
 function resetAll(){if(!requireAdmin())return;if(!confirm('全データをリセットしますか？'))return;cells={};segs={};segTasks={};actionLogs={};harvestLogs={};segSummaryMemo={};archivedSegs={};undoStack=[];renderGrid();updUndoBtn();saveLS();}
 
 function openMaster(){document.getElementById('screen-register').classList.remove('active');document.getElementById('screen-master').classList.add('active');renderMasterList();if(selectedMasterVeg)renderMasterDetail();}
