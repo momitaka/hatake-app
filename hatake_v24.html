@@ -716,7 +716,7 @@ function showTaskDateDialog(title, taskName, onConfirm, onCancel){
   dlg.style.display='flex';
 }
 function saveLS(){try{const d={cells,COLS,ROWS,segTasks,actionLogs,harvestLogs,segSummaryMemo,vegMaster,archivedSegs,farmName,aisleRows,aisleCols,farmNameFont,farmIcon};localStorage.setItem('hatake_v21',JSON.stringify(d));localStorage.setItem('hatake_v21_icons',JSON.stringify(customIcons));saveToDB(d);}catch(e){}}
-function updateFarmNameDisplay(){const el=document.getElementById('farm-name-display');const sc=document.getElementById('farm-seg-count');const splashEl=document.getElementById('splash-farm-name');const iconEl=document.getElementById('farm-icon-display');const fontFamily=`'${farmNameFont}',serif`;if(el)el.style.fontFamily=fontFamily;if(splashEl)splashEl.style.fontFamily=fontFamily;if(iconEl){if(farmIcon){iconEl.textContent=farmIcon;iconEl.style.display='inline';}else{iconEl.style.display='none';}}if(farmName){el.textContent=farmName;el.style.display='block';}else{el.style.display='none';}if(sc){buildSegs();const cnt=Object.keys(segs).length;sc.textContent=cnt+'区画 管理中';sc.style.display='block';}}
+function updateFarmNameDisplay(){const el=document.getElementById('farm-name-display');const sc=document.getElementById('farm-seg-count');const splashEl=document.getElementById('splash-farm-name');const iconEl=document.getElementById('farm-icon-display');const fontFamily=`'${farmNameFont}',serif`;if(el)el.style.fontFamily=fontFamily;if(splashEl)splashEl.style.fontFamily=fontFamily;if(iconEl){if(farmIcon&&vegMaster[farmIcon]){iconEl.innerHTML=vegIconHtml(vegMaster[farmIcon],28);iconEl.style.display='inline-flex';}else{iconEl.innerHTML='';iconEl.style.display='none';}}if(farmName){el.textContent=farmName;el.style.display='block';}else{el.style.display='none';}if(sc){buildSegs();const cnt=Object.keys(segs).length;sc.textContent=cnt+'区画 管理中';sc.style.display='block';}}
 function loadLS(){
   try{const d=JSON.parse(localStorage.getItem('hatake_v21')||'null');if(d&&d.cells){cells=d.cells;COLS=d.COLS||8;ROWS=d.ROWS||6;segTasks=d.segTasks||{};actionLogs=d.actionLogs||{};harvestLogs=d.harvestLogs||{};segSummaryMemo=d.segSummaryMemo||{};vegMaster=d.vegMaster||{};archivedSegs=d.archivedSegs||{};farmName=d.farmName||'';aisleRows=d.aisleRows||[];aisleCols=d.aisleCols||[];farmNameFont=d.farmNameFont||'Kaisei Opti';farmIcon=d.farmIcon||'';}}catch(e){}
   try{const ic=JSON.parse(localStorage.getItem('hatake_v21_icons')||'null');if(ic)customIcons=ic;}catch(e){}
@@ -1363,14 +1363,14 @@ function applyAisles(){
 function renderFarmIconPicker(){
   const picker=document.getElementById('farm-icon-picker');
   if(!picker)return;
-  const icons=[...new Set(Object.values(vegMaster).map(v=>v.emoji).filter(e=>e&&e.trim()))];
   picker.innerHTML='';
-  icons.forEach(emoji=>{
+  const vegs=Object.values(vegMaster).filter(v=>v&&v.id);
+  vegs.forEach(veg=>{
+    const selected=(farmIcon===veg.id);
     const btn=document.createElement('button');
-    const selected=(farmIcon===emoji);
-    btn.textContent=emoji;
-    btn.style.cssText=`font-size:22px;width:40px;height:40px;border-radius:10px;border:2px solid ${selected?'#0F6E56':'transparent'};background:${selected?'#E1F5EE':'var(--color-background-secondary)'};cursor:pointer;display:flex;align-items:center;justify-content:center;`;
-    btn.onclick=()=>{farmIcon=(farmIcon===emoji)?'':emoji;saveLS();updateFarmNameDisplay();renderFarmIconPicker();};
+    btn.style.cssText=`width:44px;height:44px;border-radius:10px;border:2px solid ${selected?'#0F6E56':'transparent'};background:${selected?'#E1F5EE':'var(--color-background-secondary)'};cursor:pointer;display:flex;align-items:center;justify-content:center;padding:4px;`;
+    btn.innerHTML=vegIconHtml(veg,28);
+    btn.onclick=()=>{farmIcon=(farmIcon===veg.id)?'':veg.id;saveLS();updateFarmNameDisplay();renderFarmIconPicker();};
     picker.appendChild(btn);
   });
 }
