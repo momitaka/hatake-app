@@ -26,12 +26,15 @@ body{font-family:var(--font-sans);background:#f9f8f4;min-height:100vh;padding:0}
 .app{padding:0 0.5rem 0.5rem;user-select:none;font-size:13px;max-width:680px;margin:0 auto}
 .screen{display:none}.screen.active{display:block}
 .toolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--color-background-primary);border-bottom:2px solid #1D9E75;padding:8px 0.5rem;margin:0 -0.5rem 12px;position:sticky;top:0;z-index:20}
-.toolbar-grid{background:#1D9E75;border-bottom:none;flex-direction:column;align-items:stretch;gap:0;padding:14px 0.75rem 12px;margin-bottom:0}
-.btn-grid-icon{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.btn-grid-icon:hover{background:rgba(255,255,255,0.25)}
-.btn-grid-chip{background:rgba(255,255,255,0.18);color:#fff;border:0.5px solid rgba(255,255,255,0.3);border-radius:99px;padding:4px 11px;font-size:10px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
-.btn-grid-chip:hover{background:rgba(255,255,255,0.28)}
-.btn-grid-chip.btn-undo{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2)}
+.toolbar-grid{background:#f9f8f4;border-bottom:none;flex-direction:column;align-items:stretch;gap:0;padding:10px 0 0;margin-bottom:10px}
+.header-card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,0.13)}
+.header-card-top{padding:12px 13px 10px;display:flex;justify-content:space-between;align-items:flex-start}
+.header-card-bottom{background:#1D9E75;padding:7px 13px 10px;display:flex;gap:6px;align-items:center}
+.btn-grid-icon{width:28px;height:28px;border-radius:50%;background:#E1F5EE;border:none;color:#0F6E56;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.btn-grid-icon:hover{background:#9FE1CB}
+.btn-grid-chip{background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:99px;padding:4px 11px;font-size:10px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.btn-grid-chip:hover{background:rgba(255,255,255,0.3)}
+.btn-grid-chip.btn-undo{background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.2)}
 .btn-grid-chip:disabled{opacity:0.4;cursor:default}
 .btn{font-size:12px;padding:4px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px}
 .btn:hover{background:var(--color-background-secondary)}
@@ -258,20 +261,22 @@ body{
 <div class="app" id="app">
   <div class="screen active" id="screen-register">
     <div class="toolbar toolbar-grid">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;width:100%;margin-bottom:6px">
-        <div>
-          <div id="farm-name-display" style="font-size:17px;font-weight:600;color:#fff;letter-spacing:0.02em;display:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Noto Serif JP',serif;line-height:1.2"></div>
-          <div id="farm-seg-count" style="font-size:9px;color:rgba(255,255,255,0.65);margin-top:2px;display:none"></div>
+      <div class="header-card">
+        <div class="header-card-top">
+          <div>
+            <div id="farm-name-display" style="font-size:17px;font-weight:600;color:#1a1915;letter-spacing:0.02em;display:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Noto Serif JP',serif;line-height:1.2"></div>
+            <div id="farm-seg-count" style="font-size:9px;color:#9c9a93;margin-top:2px;display:none"></div>
+          </div>
+          <div style="display:flex;gap:4px">
+            <button class="btn-grid-icon" id="btn-open-archive" title="過去データ"><i class="ti ti-archive"></i></button>
+            <button class="btn-grid-icon" id="btn-settings" title="設定"><i class="ti ti-settings"></i></button>
+          </div>
         </div>
-        <div style="display:flex;gap:3px">
-          <button class="btn-grid-icon" id="btn-open-archive" title="過去データ"><i class="ti ti-archive"></i></button>
-          <button class="btn-grid-icon" id="btn-settings" title="設定"><i class="ti ti-settings"></i></button>
+        <div class="header-card-bottom">
+          <button class="btn-grid-chip btn-undo" id="undo-btn" disabled><i class="ti ti-arrow-back-up" style="font-size:10px"></i>取り消し</button>
+          <span class="undo-count" id="undo-count" style="color:rgba(255,255,255,0.7)"></span>
+          <button class="btn-grid-chip" id="btn-open-master"><i class="ti ti-plant-2" style="font-size:10px"></i>野菜マスタ</button>
         </div>
-      </div>
-      <div style="display:flex;gap:5px">
-        <button class="btn-grid-chip btn-undo" id="undo-btn" disabled><i class="ti ti-arrow-back-up" style="font-size:10px"></i>取り消し</button>
-        <span class="undo-count" id="undo-count"></span>
-        <button class="btn-grid-chip" id="btn-open-master"><i class="ti ti-plant-2" style="font-size:10px"></i>野菜マスタ</button>
       </div>
     </div>
     <div id="dlg-undo-confirm" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:300;align-items:center;justify-content:center">
