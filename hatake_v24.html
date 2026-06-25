@@ -59,7 +59,7 @@ body{font-family:var(--font-sans);background:#f9f8f4;min-height:100vh;padding:0}
 .col-num{font-size:7px;color:#2e7a28;text-align:center;font-weight:400;cursor:default;padding:2px 0 3px;line-height:1}
 .col-num-corner{}
 .seg-list-wrap{margin-top:0}
-.seg-list-wrap h3{font-size:11px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:5px;letter-spacing:0.04em;color:#2e7a28}
+.seg-list-wrap h3{font-size:11px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:5px;letter-spacing:0.04em;color:#1a5c16}
 .hint{font-size:11px;color:var(--color-text-tertiary);margin-bottom:8px}
 .seg-list{display:grid;grid-template-columns:1fr 1fr;gap:5px}
 .seg-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;border-radius:10px;background:var(--color-background-primary);cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.07)}
@@ -356,8 +356,8 @@ body{
     <div style="background:#fff;padding:8px 0.5rem 10px;margin:0 -0.5rem">
       <div class="grid-wrap" id="grid-wrap"><table class="grid-table" id="grid-table"></table></div>
     </div>
-    <div class="seg-list-wrap" style="background:#f9f8f4;margin:0 -0.5rem;padding:8px 0.5rem 12px">
-      <h3><i class="ti ti-leaf" style="color:#2e7a28;font-size:14px"></i>管理中の作物<span id="seg-count" style="font-size:11px;color:#a0d870;font-weight:400;margin-left:4px"></span></h3>
+    <div class="seg-list-wrap" style="background:#edf3e3;margin:0 -0.5rem;padding:8px 0.5rem 12px">
+      <h3><i class="ti ti-leaf" style="color:#1a5c16;font-size:14px"></i>管理中の作物<span id="seg-count" style="font-size:11px;color:#2e7a28;font-weight:400;margin-left:4px"></span></h3>
       <div class="seg-list" id="seg-list"></div>
     </div>
     <div class="legend"><div class="legend-title">野菜の科 — 枠線の色</div><div class="legend-grid" id="family-legend"></div></div>
@@ -1313,7 +1313,7 @@ function renderSegList(){
     let recentTaskName='',recentDate='';
     allTasks.forEach(t=>{const st=getTaskState(seg.id,t.id);if(st.doneDates&&st.doneDates.length){const last=st.doneDates[st.doneDates.length-1];if(!recentDate||last>recentDate){recentDate=last;recentTaskName=t.name;}}});
     const item=document.createElement('div');item.className='seg-item';item.style.cssText='flex-direction:column;align-items:stretch;gap:0';
-    item.innerHTML=`<div style="display:flex;align-items:center;gap:7px;margin-bottom:4px"><span style="font-size:17px;line-height:1;flex-shrink:0">${veg?(vegIconHtml(veg,18)):'🌱'}</span><span style="font-size:13px;font-weight:600;color:#1a1915;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${veg?veg.name:'—'}</span><span class="status-pill" style="background:${majorSt.bg};color:${majorSt.color};font-size:9px;padding:2px 7px;border-radius:99px;font-weight:500">${majorSt.name}</span></div><div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><div style="flex:1;height:3px;background:#f0efe9;border-radius:2px"><div style="height:3px;border-radius:2px;background:${majorSt.color};width:${pct}%"></div></div><span style="font-size:10px;font-weight:600;color:${majorSt.color};min-width:26px;text-align:right">${pct}%</span></div><div style="display:flex;align-items:center;gap:4px"><i class="ti ti-check" style="font-size:9px;color:#b4b2a9"></i><span style="font-size:10px;color:#9c9a93;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${recentTaskName||'—'}</span><span style="font-size:10px;color:#b4b2a9;flex-shrink:0">${recentDate}</span></div>`;
+    item.innerHTML=`<div style="display:flex;align-items:center;gap:7px;margin-bottom:4px"><span style="font-size:17px;line-height:1;flex-shrink:0">${veg?(vegIconHtml(veg,18)):'🌱'}</span><span style="font-size:13px;font-weight:600;color:#1a1915;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${veg?veg.name:'—'}</span><span class="status-pill" style="background:${majorSt.bg};color:${majorSt.color};font-size:9px;padding:2px 7px;border-radius:99px;font-weight:500">${majorSt.name}</span></div><div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><div style="flex:1;height:3px;background:#d4edb8;border-radius:2px"><div style="height:3px;border-radius:2px;background:${majorSt.color};width:${pct}%"></div></div><span style="font-size:10px;font-weight:600;color:${majorSt.color};min-width:26px;text-align:right">${pct}%</span></div><div style="display:flex;align-items:center;gap:4px"><i class="ti ti-check" style="font-size:9px;color:#b4b2a9"></i><span style="font-size:10px;color:#9c9a93;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${recentTaskName||'—'}</span><span style="font-size:10px;color:#b4b2a9;flex-shrink:0">${recentDate}</span></div>`;
     item.addEventListener('click',()=>openManage(seg.id));list.appendChild(item);});
 }
 
