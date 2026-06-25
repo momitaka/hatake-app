@@ -788,7 +788,7 @@ function renderGrid(){
       } else if(registered&&fs){
         inner.style.background=fs.bg;inner.style.borderTop=`3px solid ${fs.border}`;inner.style.boxShadow='0 1px 4px rgba(0,0,0,0.08)';
       } else {
-        inner.style.backgroundColor='transparent';inner.style.borderRadius='3px';inner.classList.add('cell-empty-bg');
+        inner.style.backgroundColor='transparent';inner.style.borderRadius='3px';inner.classList.add('cell-empty-bg');inner.dataset.row=r;
       }
       if(selecting)inner.style.backgroundImage='repeating-linear-gradient(45deg,transparent,transparent 5px,rgba(55,138,221,0.2) 5px,rgba(55,138,221,0.2) 7px)';
       else if(cell&&!registered)inner.style.backgroundImage='repeating-linear-gradient(45deg,transparent,transparent 5px,rgba(0,0,0,0.10) 5px,rgba(0,0,0,0.10) 7px)';
@@ -1287,7 +1287,7 @@ function applyGridBg(){
   const cx=(dw-wr.width)/2;
   const els=document.querySelectorAll('.cell-empty-bg');
   let maxBottom=0,rowBTop=Infinity;
-  els.forEach((el,i)=>{const r=el.getBoundingClientRect();maxBottom=Math.max(maxBottom,r.bottom-wr.top);if(i===COLS)rowBTop=r.top-wr.top;});
+  els.forEach(el=>{const r=el.getBoundingClientRect();maxBottom=Math.max(maxBottom,r.bottom-wr.top);if(parseInt(el.dataset.row)===1&&r.top-wr.top<rowBTop)rowBTop=r.top-wr.top;});
   const imgTop=Math.max(rowBTop,maxBottom-dh+40);
   els.forEach(el=>{
     const r=el.getBoundingClientRect();
