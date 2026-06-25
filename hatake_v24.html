@@ -25,6 +25,10 @@
 body{font-family:var(--font-sans);background:#f9f8f4;min-height:100vh;padding:0}
 .app{padding:0 0.5rem 0.5rem;user-select:none;font-size:13px;max-width:680px;margin:0 auto}
 .screen{display:none}.screen.active{display:block}
+#screen-manage.active{display:flex;flex-direction:column;height:100dvh}
+#screen-manage .toolbar{position:relative;top:auto;flex-shrink:0;margin:0 -0.5rem;background:#5aad4e;border-bottom:none;padding:7px 13px 10px;border-bottom-right-radius:14px}
+#manage-static{flex-shrink:0;padding:10px 0 0}
+#manage-content{flex:1;overflow-y:auto;padding:10px 0 24px}
 .toolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--color-background-primary);border-bottom:2px solid #5aad4e;padding:0 0.5rem;margin:0 -0.5rem 12px;position:sticky;top:0;z-index:20}
 .toolbar-grid{background:#f9f8f4;border-bottom:none;flex-direction:column;align-items:stretch;gap:0;padding:0;margin-bottom:10px}
 .header-card{background:#fff;border-radius:0 0 14px 14px;overflow:visible;box-shadow:0 4px 14px rgba(0,0,0,0.13)}
@@ -360,7 +364,8 @@ body{
   </div>
 
   <div class="screen" id="screen-manage">
-    <div class="toolbar"><button class="btn" onclick="goBack()"><i class="ti ti-arrow-left"></i>グリッドへ戻る</button><div style="flex:1"></div><button class="btn admin-only" id="btn-complete-manage" onclick="currentTab='log';renderManage();setTimeout(()=>{const n=document.getElementById('complete-notice');if(n){n.classList.add('highlight');setTimeout(()=>n.classList.remove('highlight'),2500);}},50);"  style="color:var(--color-text-danger);border-color:var(--color-border-danger)"><i class="ti ti-flag-check"></i>管理の完了</button></div>
+    <div class="toolbar"><button class="btn-grid-chip btn-master" onclick="goBack()"><i class="ti ti-arrow-left" style="font-size:10px"></i>グリッドへ戻る</button><div style="flex:1"></div><button class="btn-grid-chip admin-only" id="btn-complete-manage" onclick="currentTab='log';renderManage();setTimeout(()=>{const n=document.getElementById('complete-notice');if(n){n.classList.add('highlight');setTimeout(()=>n.classList.remove('highlight'),2500);}},50);" style="background:#fff;border-color:#fff;color:#c62828;font-weight:600"><i class="ti ti-flag-check" style="font-size:10px"></i>管理の完了</button></div>
+    <div id="manage-static"></div>
     <div id="manage-content"></div>
   </div>
 
@@ -550,7 +555,7 @@ if(IS_DEV)document.addEventListener('DOMContentLoaded',()=>{
   const b=document.getElementById('dev-banner');
   b.style.display='block';
   const h=b.offsetHeight;
-  document.querySelectorAll('.toolbar').forEach(t=>t.style.top=h+'px');
+  document.querySelectorAll('.toolbar').forEach(t=>{if(getComputedStyle(t).position==='sticky')t.style.top=h+'px';});
 });
 let isAdmin=false;
 const MAX_UNDO=30;
@@ -1180,16 +1185,17 @@ function goBack(){document.getElementById('screen-manage').classList.remove('act
 
 function renderManage(){
   buildSegs();const seg=segs[currentSeg];if(!seg)return;const veg=getVeg(seg.crop);const majorSt=calcMajorStatus(currentSeg,seg.crop);
+  const st=document.getElementById('manage-static');
   const el=document.getElementById('manage-content');
   const existingIframe=el.querySelector('iframe');if(existingIframe)existingIframe.src='';
-  el.innerHTML='';
+  st.innerHTML='';el.innerHTML='';
   const hdr=document.createElement('div');hdr.className='manage-header';
   hdr.innerHTML=`<span style="display:inline-flex;align-items:center;font-size:22px">${veg?vegIconHtml(veg,28):''}</span><div style="flex:1"><div class="manage-title">${veg?veg.name+(veg.variety?' ('+veg.variety+')':''):'不明'}</div><div class="manage-meta">${seg.row+1}行 ${Math.min(...seg.cols)+1}〜${Math.max(...seg.cols)+1}列 ${seg.cols.length}マス${seg.plantDate?' ／ '+seg.plantDate.slice(5).replace('-','/')+'開始':''}</div></div><div class="status-pill" style="background:${majorSt.bg};color:${majorSt.color}">${majorSt.name}</div>`;
-  el.appendChild(hdr);
+  st.appendChild(hdr);
   const tabs=[{id:'basic',icon:'ti-plant',label:'基礎知識'},{id:'roadmap',icon:'ti-road',label:'ロードマップ'},{id:'harvest',icon:'ti-basket',label:'収量'},{id:'log',icon:'ti-clipboard-list',label:'作業ログ'}];
-  const tabBar=document.createElement('div');tabBar.className='tab-bar';
+  const tabBar=document.createElement('div');tabBar.className='tab-bar';tabBar.style.margin='0 0 0';
   tabs.forEach(tab=>{const btn=document.createElement('div');btn.className='tab-btn'+(currentTab===tab.id?' active':'');btn.innerHTML=`<i class="ti ${tab.icon}" style="font-size:12px"></i>${tab.label}`;btn.addEventListener('click',()=>{currentTab=tab.id;renderManage();});tabBar.appendChild(btn);});
-  el.appendChild(tabBar);
+  st.appendChild(tabBar);
   if(currentTab==='roadmap')renderRoadmapTab(el,seg,veg);
   else if(currentTab==='log')renderLogTab(el,seg);
   else if(currentTab==='harvest')renderHarvestTab(el,seg);
