@@ -18,25 +18,25 @@
   --color-background-primary:#ffffff;--color-background-secondary:#f5f5f0;--color-background-tertiary:#e8e6df;
   --color-text-primary:#1a1915;--color-text-secondary:#5f5e5a;--color-text-tertiary:#9c9a93;
   --color-border-primary:#1a1915;--color-border-secondary:#d0cfc8;--color-border-tertiary:#e8e6df;
-  --color-border-success:#1D9E75;--color-border-danger:#D85A30;--color-border-info:#378ADD;
-  --color-background-success:#E1F5EE;--color-background-danger:#FAECE7;
-  --color-text-success:#0F6E56;--color-text-danger:#993C1D;--color-text-info:#185FA5;
+  --color-border-success:#5aad4e;--color-border-danger:#D85A30;--color-border-info:#378ADD;
+  --color-background-success:#d4f0b8;--color-background-danger:#FAECE7;
+  --color-text-success:#2e7a28;--color-text-danger:#993C1D;--color-text-info:#185FA5;
 }
 body{font-family:var(--font-sans);background:#f9f8f4;min-height:100vh;padding:0}
 .app{padding:0 0.5rem 0.5rem;user-select:none;font-size:13px;max-width:680px;margin:0 auto}
 .screen{display:none}.screen.active{display:block}
-.toolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--color-background-primary);border-bottom:2px solid #1D9E75;padding:8px 0.5rem;margin:0 -0.5rem 12px;position:sticky;top:0;z-index:20}
+.toolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--color-background-primary);border-bottom:2px solid #5aad4e;padding:8px 0.5rem;margin:0 -0.5rem 12px;position:sticky;top:0;z-index:20}
 .toolbar-grid{background:#f9f8f4;border-bottom:none;flex-direction:column;align-items:stretch;gap:0;padding:10px 0 0;margin-bottom:10px}
 .header-card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,0.13)}
 .header-card-top{padding:12px 13px 10px;display:flex;justify-content:space-between;align-items:flex-start;position:relative;overflow:hidden}
-.header-card-bottom{background:#1D9E75;padding:7px 13px 10px;display:flex;gap:6px;align-items:center}
-.btn-grid-icon{width:28px;height:28px;border-radius:50%;background:#fff;border:1px solid #fff;color:#0F6E56;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.btn-grid-icon:hover{background:#E1F5EE}
+.header-card-bottom{background:#5aad4e;padding:7px 13px 10px;display:flex;gap:6px;align-items:center}
+.btn-grid-icon{width:28px;height:28px;border-radius:50%;background:#fff;border:1px solid #fff;color:#2e7a28;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.btn-grid-icon:hover{background:#d4f0b8}
 .btn-grid-chip{background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:99px;padding:4px 11px;font-size:10px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
 .btn-grid-chip:hover{background:rgba(255,255,255,0.3)}
 .btn-grid-chip.btn-undo{background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.2)}
-.btn-grid-chip.btn-master{background:#fff;color:#0F6E56;border-color:#fff;font-weight:600}
-.btn-grid-chip.btn-master:hover{background:#E1F5EE}
+.btn-grid-chip.btn-master{background:#fff;color:#2e7a28;border-color:#fff;font-weight:600}
+.btn-grid-chip.btn-master:hover{background:#d4f0b8}
 .btn-grid-chip:disabled{opacity:0.4;cursor:default}
 .btn{font-size:12px;padding:4px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px}
 .btn:hover{background:var(--color-background-secondary)}
@@ -49,11 +49,11 @@ body{font-family:var(--font-sans);background:#f9f8f4;min-height:100vh;padding:0}
 .cell-inner{width:100%;height:100%;position:relative;display:flex;flex-direction:column;justify-content:space-between;align-items:stretch;padding:3px;overflow:hidden;box-sizing:border-box}
 .cell-label{font-size:10px;line-height:1.2;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100%;color:var(--color-text-primary);display:flex;align-items:center;gap:2px}
 .status-bar{position:absolute;bottom:0;left:0;right:0;height:4px}
-.row-num{font-size:7px;color:#0F6E56;vertical-align:middle;text-align:center;font-weight:400;cursor:default;white-space:nowrap;width:1%}
-.col-num{font-size:7px;color:#0F6E56;text-align:center;font-weight:400;cursor:default;padding:2px 0 3px;line-height:1}
+.row-num{font-size:7px;color:#2e7a28;vertical-align:middle;text-align:center;font-weight:400;cursor:default;white-space:nowrap;width:1%}
+.col-num{font-size:7px;color:#2e7a28;text-align:center;font-weight:400;cursor:default;padding:2px 0 3px;line-height:1}
 .col-num-corner{}
 .seg-list-wrap{margin-top:0}
-.seg-list-wrap h3{font-size:11px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:5px;letter-spacing:0.04em;color:#0F6E56}
+.seg-list-wrap h3{font-size:11px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:5px;letter-spacing:0.04em;color:#2e7a28}
 .hint{font-size:11px;color:var(--color-text-tertiary);margin-bottom:8px}
 .seg-list{display:flex;flex-direction:column;gap:5px}
 .seg-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;border-radius:10px;background:var(--color-background-primary);cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.07)}
@@ -70,25 +70,25 @@ body{font-family:var(--font-sans);background:#f9f8f4;min-height:100vh;padding:0}
 .tab-bar{display:flex;margin-bottom:16px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);overflow:hidden}
 .tab-btn{flex:1;padding:7px 2px;font-size:10px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-secondary);border-right:0.5px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center;gap:3px;white-space:nowrap}
 .tab-btn:last-child{border-right:none}
-.tab-btn.active{background:#E1F5EE;color:#1D9E75;font-weight:500}
+.tab-btn.active{background:#d4f0b8;color:#5aad4e;font-weight:500}
 .tab-btn:hover:not(.active){background:var(--color-background-secondary)}
 .progress-wrap{margin-bottom:16px}
 .progress-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
 .progress-title{font-size:13px;font-weight:500;color:var(--color-text-primary);display:flex;align-items:center;gap:6px}
 .progress-pct{font-size:13px;color:var(--color-text-secondary)}
 .progress-bar-outer{height:8px;background:var(--color-background-tertiary);border-radius:4px;overflow:hidden}
-.progress-bar-inner{height:100%;border-radius:4px;background:#1D9E75}
+.progress-bar-inner{height:100%;border-radius:4px;background:#5aad4e}
 .phase-block{margin-bottom:12px}
 .phase-heading{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .phase-radio{width:14px;height:14px;border-radius:50%;border:2px solid #B4B2A9;background:var(--color-background-primary);flex-shrink:0}
-.phase-radio.active{border-color:#1D9E75;background:#1D9E75}
+.phase-radio.active{border-color:#5aad4e;background:#5aad4e}
 .phase-radio.done{border-color:#B4B2A9;background:#B4B2A9}
 .phase-name{font-size:12px;font-weight:500}
 .phase-period{font-size:11px;color:var(--color-text-tertiary)}
 .task-card{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);margin-bottom:6px;overflow:hidden;background:var(--color-background-primary)}
 .task-main{display:flex;align-items:flex-start}
 .task-cb-wrap{padding:10px 8px 10px 12px;flex-shrink:0}
-.task-cb{width:16px;height:16px;cursor:pointer;accent-color:#1D9E75;margin-top:1px}
+.task-cb{width:16px;height:16px;cursor:pointer;accent-color:#5aad4e;margin-top:1px}
 .task-clickable{flex:1;display:flex;align-items:center;gap:8px;padding:10px 12px 10px 0;cursor:pointer;min-width:0}
 .task-clickable:hover{background:var(--color-background-secondary)}
 .task-body{flex:1;min-width:0}
@@ -96,7 +96,7 @@ body{font-family:var(--font-sans);background:#f9f8f4;min-height:100vh;padding:0}
 .task-name.done-text{text-decoration:line-through;color:var(--color-text-tertiary)}
 .task-desc{font-size:11px;color:var(--color-text-tertiary);margin-top:2px}
 .task-dates{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
-.task-date-chip{font-size:10px;padding:1px 6px;border-radius:3px;background:#E1F5EE;color:#0F6E56;border:0.5px solid #9FE1CB}
+.task-date-chip{font-size:10px;padding:1px 6px;border-radius:3px;background:#d4f0b8;color:#2e7a28;border:0.5px solid #a0d870}
 .task-day-badge{font-size:11px;color:var(--color-text-secondary);background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:2px 7px;white-space:nowrap;flex-shrink:0}
 .task-expand-icon{color:var(--color-text-tertiary);flex-shrink:0;font-size:14px;padding:0 4px}
 .task-detail{display:none;padding:8px 12px 10px 38px;border-top:0.5px solid var(--color-border-tertiary)}
@@ -134,9 +134,9 @@ body{font-family:var(--font-sans);background:#f9f8f4;min-height:100vh;padding:0}
 .log-entry{display:flex;align-items:center;gap:10px;padding:8px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);margin-bottom:5px}
 .log-entry-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px}
 .log-entry-icon.task{background:var(--color-background-secondary);color:var(--color-text-secondary)}
-.log-entry-icon.harvest{background:#E1F5EE;color:#0F6E56}
+.log-entry-icon.harvest{background:#d4f0b8;color:#2e7a28}
 .log-entry-title{font-size:12px;color:var(--color-text-primary);flex:1}
-.log-entry-badge{font-size:11px;font-weight:500;color:#0F6E56;white-space:nowrap}
+.log-entry-badge{font-size:11px;font-weight:500;color:#2e7a28;white-space:nowrap}
 .harvest-input-row{display:flex;gap:8px;align-items:flex-end;margin-bottom:16px;flex-wrap:wrap}
 .harvest-input-group{display:flex;flex-direction:column;gap:4px}
 .harvest-input-group label{font-size:11px;color:var(--color-text-secondary)}
@@ -150,9 +150,9 @@ body{font-family:var(--font-sans);background:#f9f8f4;min-height:100vh;padding:0}
 .harvest-row-amount{font-size:13px;font-weight:500;color:var(--color-text-primary);flex:1}
 .harvest-del-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-tertiary);cursor:pointer;flex-shrink:0}
 .harvest-del-btn:hover{color:var(--color-text-danger)}
-.harvest-total{padding:12px 14px;border-radius:var(--border-radius-md);background:#E1F5EE;border:0.5px solid #9FE1CB;display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-.harvest-total-label{font-size:12px;color:#0F6E56;font-weight:500}
-.harvest-total-val{font-size:16px;font-weight:500;color:#0F6E56}
+.harvest-total{padding:12px 14px;border-radius:var(--border-radius-md);background:#d4f0b8;border:0.5px solid #a0d870;display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.harvest-total-label{font-size:12px;color:#2e7a28;font-weight:500}
+.harvest-total-val{font-size:16px;font-weight:500;color:#2e7a28}
 .harvest-empty{font-size:11px;color:var(--color-text-tertiary);padding:8px 0}
 .btn-primary{font-size:12px;padding:5px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-success);background:var(--color-background-success);color:var(--color-text-success);cursor:pointer;font-weight:500}
 .btn-primary:disabled{opacity:0.4;cursor:default}
@@ -169,7 +169,7 @@ body{font-family:var(--font-sans);background:#f9f8f4;min-height:100vh;padding:0}
 .master-list-item{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:var(--border-radius-md);cursor:pointer;font-size:12px;color:var(--color-text-primary);border:0.5px solid transparent}
 .master-list-item:hover{background:var(--color-background-secondary)}
 .master-list-item.active{background:var(--color-background-secondary);border-color:var(--color-border-secondary);font-weight:500}
-.master-list-item-badge{font-size:9px;padding:1px 5px;border-radius:3px;background:#E1F5EE;color:#0F6E56;margin-left:auto;white-space:nowrap;flex-shrink:0}
+.master-list-item-badge{font-size:9px;padding:1px 5px;border-radius:3px;background:#d4f0b8;color:#2e7a28;margin-left:auto;white-space:nowrap;flex-shrink:0}
 .master-list-item-badge.empty{background:var(--color-background-tertiary);color:var(--color-text-tertiary)}
 .master-add-btn{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:var(--border-radius-md);cursor:pointer;font-size:12px;color:var(--color-text-tertiary);border:0.5px dashed var(--color-border-secondary);margin-top:4px;background:transparent}
 .master-add-btn:hover{color:var(--color-text-primary)}
@@ -201,7 +201,7 @@ body{font-family:var(--font-sans);background:#f9f8f4;min-height:100vh;padding:0}
 .emoji-grid{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
 .emoji-opt{width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:17px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);cursor:pointer;background:var(--color-background-primary)}
 .emoji-opt:hover{border-color:var(--color-border-primary)}
-.emoji-opt.selected{border:2px solid #1D9E75;background:#E1F5EE}
+.emoji-opt.selected{border:2px solid #5aad4e;background:#d4f0b8}
 .dlg-field{margin-bottom:11px}
 .dlg-field label{font-size:11px;color:var(--color-text-secondary);display:block;margin-bottom:4px}
 .dlg-field select,.dlg-field input[type=text],.dlg-field input[type=url]{width:100%;font-size:13px;padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
@@ -236,7 +236,7 @@ body{
 .btn{font-size:13px;border-width:1.5px;border-color:#555}
 .seg-item{border-width:1.5px;border-color:#888}
 .cell-label{font-size:12px;font-weight:700}
-.row-num,.col-num{font-size:7px;font-weight:400;color:#0F6E56}
+.row-num,.col-num{font-size:7px;font-weight:400;color:#2e7a28}
 .status-pill{font-size:12px;padding:3px 10px;font-weight:700}
 
 .view-mode .admin-only{display:none !important}
@@ -307,11 +307,11 @@ body{
           <span class="settings-label">フォント</span>
           <div style="display:flex;flex-direction:column;gap:5px" id="font-options">
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:7px 10px;border-radius:8px;border:1px solid var(--color-border-secondary);background:var(--color-background-primary)">
-              <input type="radio" name="farm-font" value="Kaisei Opti" style="accent-color:#0F6E56">
+              <input type="radio" name="farm-font" value="Kaisei Opti" style="accent-color:#2e7a28">
               <span style="font-family:'Kaisei Opti',serif;font-size:15px;font-weight:700;flex:1">Kaisei Opti — モダン×伝統</span>
             </label>
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:7px 10px;border-radius:8px;border:1px solid var(--color-border-secondary);background:var(--color-background-primary)">
-              <input type="radio" name="farm-font" value="Yuji Syuku" style="accent-color:#0F6E56">
+              <input type="radio" name="farm-font" value="Yuji Syuku" style="accent-color:#2e7a28">
               <span style="font-family:'Yuji Syuku',serif;font-size:15px;flex:1">Yuji Syuku — 筆書き風</span>
             </label>
           </div>
@@ -350,7 +350,7 @@ body{
       <div class="grid-wrap" id="grid-wrap"><table class="grid-table" id="grid-table"></table></div>
     </div>
     <div class="seg-list-wrap" style="background:#f9f8f4;margin:0 -0.5rem;padding:8px 0.5rem 12px">
-      <h3><i class="ti ti-leaf" style="color:#0F6E56;font-size:14px"></i>管理中の作物<span id="seg-count" style="font-size:11px;color:#9FE1CB;font-weight:400;margin-left:4px"></span></h3>
+      <h3><i class="ti ti-leaf" style="color:#2e7a28;font-size:14px"></i>管理中の作物<span id="seg-count" style="font-size:11px;color:#a0d870;font-weight:400;margin-left:4px"></span></h3>
       <div class="seg-list" id="seg-list"></div>
     </div>
     <div class="legend"><div class="legend-title">野菜の科 — 枠線の色</div><div class="legend-grid" id="family-legend"></div></div>
@@ -393,7 +393,7 @@ body{
 <div id="dlg-register" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:99;background:rgba(0,0,0,0.4)">
   <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.25rem;min-width:260px;max-width:320px;width:90%">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <div style="font-size:14px;font-weight:500;display:flex;align-items:center;gap:6px"><i class="ti ti-plant-2" style="color:#1D9E75"></i>区画を登録</div>
+      <div style="font-size:14px;font-weight:500;display:flex;align-items:center;gap:6px"><i class="ti ti-plant-2" style="color:#5aad4e"></i>区画を登録</div>
       <button id="btn-dlg-cancel" style="background:none;border:none;padding:2px 4px;cursor:pointer;color:var(--color-text-tertiary);font-size:18px;line-height:1;flex-shrink:0">✕</button>
     </div>
     <div id="dlg-preview" style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:12px"></div>
@@ -406,7 +406,7 @@ body{
 
 <div id="dlg-add-veg" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:99;background:rgba(0,0,0,0.4)">
   <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.25rem;min-width:260px;max-width:340px;width:90%;max-height:90vh;overflow-y:auto">
-    <div style="font-size:14px;font-weight:500;margin-bottom:14px;display:flex;align-items:center;gap:6px"><i class="ti ti-plant" style="color:#1D9E75"></i>野菜を追加</div>
+    <div style="font-size:14px;font-weight:500;margin-bottom:14px;display:flex;align-items:center;gap:6px"><i class="ti ti-plant" style="color:#5aad4e"></i>野菜を追加</div>
     <div class="dlg-field"><label>プリセットから選ぶ</label><select id="av-preset"><option value="">— プリセット野菜 —</option></select></div>
     <div style="font-size:11px;color:var(--color-text-tertiary);text-align:center;margin:2px 0 6px">または</div>
     <div class="dlg-field"><label>野菜名（自由入力）</label><input type="text" id="av-name" placeholder="例：パプリカ"></div>
@@ -543,7 +543,7 @@ function vegIconHtml(veg, size) {
 }
 
 const FAMILIES={'ナス科':{border:'#D85A30',bg:'#FAECE7'},'ウリ科':{border:'#639922',bg:'#EAF3DE'},'マメ科':{border:'#378ADD',bg:'#E6F1FB'},'アブラナ科':{border:'#EF9F27',bg:'#FAEEDA'},'ヒガンバナ科':{border:'#7F77DD',bg:'#EEEDFE'},'セリ科':{border:'#BA7517',bg:'#F5EAD8'},'キク科':{border:'#D4537E',bg:'#FBEAF0'},'シソ科':{border:'#1A9988',bg:'#E3F4F2'},'アオイ科':{border:'#C0873F',bg:'#F8EFDF'},'その他':{border:'#9C9A93',bg:'#F1EFE8'}};
-const MAJOR_STATUS=[{id:'ready',name:'準備中',color:'#EF9F27',bg:'#FAEEDA'},{id:'growing',name:'生育中',color:'#1D9E75',bg:'#E1F5EE'},{id:'harvesting',name:'収穫中',color:'#D85A30',bg:'#FAECE7'},{id:'done',name:'完了',color:'#888780',bg:'#F1EFE8'}];
+const MAJOR_STATUS=[{id:'ready',name:'準備中',color:'#EF9F27',bg:'#FAEEDA'},{id:'growing',name:'生育中',color:'#5aad4e',bg:'#d4f0b8'},{id:'harvesting',name:'収穫中',color:'#c8a800',bg:'#fdf5b0'},{id:'done',name:'完了',color:'#888780',bg:'#F1EFE8'}];
 const UNITS=['個','g','kg','袋','束','本'];
 
 const PRESET_VEGS=[
@@ -754,7 +754,7 @@ function applyPermissions(){
   const st=document.getElementById('admin-status');
   if(isAdmin){
     document.body.classList.remove('view-mode');
-    if(st){st.textContent='管理者モードで操作中';st.style.color='#0F6E56';}
+    if(st){st.textContent='管理者モードで操作中';st.style.color='#2e7a28';}
   }else{
     document.body.classList.add('view-mode');
     if(st){st.textContent='閲覧モード（閲覧・作業記録のみ）';st.style.color='var(--color-text-tertiary)';}
@@ -1076,11 +1076,11 @@ function openSnapshotCalendar(snaps){
       const hasSnap=availDates.has(dateStr);
       const isSelected=snaps[currentSnapshotIdx].completedDate===dateStr;
       const cell=document.createElement('div');
-      cell.style.cssText=`text-align:center;padding:6px 2px;border-radius:6px;font-size:13px;cursor:${hasSnap?'pointer':'default'};color:${hasSnap?(isSelected?'#fff':'var(--color-text-primary)'):'var(--color-border-secondary)'};background:${isSelected?'#1D9E75':hasSnap?'var(--color-background-secondary)':'transparent'};font-weight:${hasSnap?'500':'400'}`;
+      cell.style.cssText=`text-align:center;padding:6px 2px;border-radius:6px;font-size:13px;cursor:${hasSnap?'pointer':'default'};color:${hasSnap?(isSelected?'#fff':'var(--color-text-primary)'):'var(--color-border-secondary)'};background:${isSelected?'#5aad4e':hasSnap?'var(--color-background-secondary)':'transparent'};font-weight:${hasSnap?'500':'400'}`;
       cell.textContent=d;
       if(hasSnap){
         if(!isSelected){
-          const dot=document.createElement('div');dot.style.cssText='width:4px;height:4px;border-radius:50%;background:#1D9E75;margin:1px auto 0';cell.appendChild(dot);
+          const dot=document.createElement('div');dot.style.cssText='width:4px;height:4px;border-radius:50%;background:#5aad4e;margin:1px auto 0';cell.appendChild(dot);
         }
         cell.addEventListener('click',()=>{
           const idx=snaps.findIndex(s=>s.completedDate===dateStr);
@@ -1138,7 +1138,7 @@ function renderArchive(){
     const midLabel=isSeedArch?'種まき':'定植';
     const midVal=isSeedArch?(arch.sowingDate?isoShort(arch.sowingDate):'—'):(arch.plantingDate?isoShort(arch.plantingDate):'—');
     const areaLabel=`${arch.row+1}行 ${Math.min(...arch.cols)+1}〜${Math.max(...arch.cols)+1}列`;
-    meta.innerHTML=`<span class="archive-card-stat"><i class="ti ti-calendar" style="font-size:11px"></i>開始：${startVal}</span><span class="archive-card-stat"><i class="ti ti-plant-2" style="font-size:11px"></i>${midLabel}：${midVal}</span><span class="archive-card-stat"><i class="ti ti-layout-grid" style="font-size:11px"></i>${areaLabel}</span><span class="archive-card-stat"><i class="ti ti-basket" style="font-size:11px;color:#0F6E56"></i><span style="color:#0F6E56">${harvestVal}</span></span>`;
+    meta.innerHTML=`<span class="archive-card-stat"><i class="ti ti-calendar" style="font-size:11px"></i>開始：${startVal}</span><span class="archive-card-stat"><i class="ti ti-plant-2" style="font-size:11px"></i>${midLabel}：${midVal}</span><span class="archive-card-stat"><i class="ti ti-layout-grid" style="font-size:11px"></i>${areaLabel}</span><span class="archive-card-stat"><i class="ti ti-basket" style="font-size:11px;color:#2e7a28"></i><span style="color:#2e7a28">${harvestVal}</span></span>`;
     card.append(hdr,meta);
     card.addEventListener('click',()=>{archiveDetailSeg=arch.segId;renderArchive();});
     el.appendChild(card);
@@ -1172,7 +1172,7 @@ function renderArchiveDetail(el,segId){
   if(!isSeedArch2){archSeedHtml=`<div class="summary-stat"><div class="summary-stat-label">種まき情報</div><div class="summary-stat-val" style="color:var(--color-text-tertiary)">なし（苗から）</div></div>`;}
   else{const sv2=arch.sowingDate?isoShort(arch.sowingDate):'—';const gv2=arch.germinationDate?isoShort(arch.germinationDate):'—';const gd2=(arch.sowingDate&&arch.germinationDate)?`発芽まで${daysBetween(arch.sowingDate,arch.germinationDate)}日`:'';archSeedHtml=`<div class="summary-stat"><div class="summary-stat-label">種まき情報</div><div class="summary-stat-val">種まき：${sv2}</div><div class="summary-stat-sub">発芽確認：${gv2}${gd2?' ／ '+gd2:''}</div></div>`;}
   const archTransplantHtml=`<div class="summary-stat"><div class="summary-stat-label">定植 ／ 収穫開始</div><div class="summary-stat-val">${arch.plantingDate?isoShort(arch.plantingDate):'—'}</div><div class="summary-stat-sub">収穫開始：${arch.harvestStartDate?isoShort(arch.harvestStartDate):'—'}</div></div>`;
-  stats.innerHTML=`<div class="summary-stat"><div class="summary-stat-label">作業期間</div><div class="summary-stat-val">${workPeriodVal}</div>${workPeriodSub?`<div class="summary-stat-sub">${workPeriodSub}</div>`:''}</div>${archSeedHtml}${archTransplantHtml}<div class="summary-stat"><div class="summary-stat-label">合計収量</div><div class="summary-stat-val" style="color:#0F6E56">${arch.harvestTotal||'未記録'}</div></div><div class="summary-stat"><div class="summary-stat-label">完了日</div><div class="summary-stat-val">${isoShort(arch.completedDate)}</div></div>`;
+  stats.innerHTML=`<div class="summary-stat"><div class="summary-stat-label">作業期間</div><div class="summary-stat-val">${workPeriodVal}</div>${workPeriodSub?`<div class="summary-stat-sub">${workPeriodSub}</div>`:''}</div>${archSeedHtml}${archTransplantHtml}<div class="summary-stat"><div class="summary-stat-label">合計収量</div><div class="summary-stat-val" style="color:#2e7a28">${arch.harvestTotal||'未記録'}</div></div><div class="summary-stat"><div class="summary-stat-label">完了日</div><div class="summary-stat-val">${isoShort(arch.completedDate)}</div></div>`;
   summary.appendChild(stats);
 
   // 栽培エリア ミニグリッド
@@ -1197,7 +1197,7 @@ function renderArchiveDetail(el,segId){
       if(info){
         if(info.isSelf){
           cell.style.background=selfFs?selfFs.bg:'#B2DDD2';
-          cell.style.border=`2px solid ${selfFs?selfFs.border:'#1D9E75'}`;
+          cell.style.border=`2px solid ${selfFs?selfFs.border:'#5aad4e'}`;
           cell.title=arch.cropName;
         } else {
           const ofs=famStyle(info.family);
@@ -1306,7 +1306,7 @@ function renderLogTab(el,seg){
   if(!isSeed){seedHtml=`<div class="summary-stat"><div class="summary-stat-label">種まき情報</div><div class="summary-stat-val" style="color:var(--color-text-tertiary)">なし（苗から）</div></div>`;}
   else{const sv=sowingDate?isoShort(sowingDate):'—';const gv=germinationDate?isoShort(germinationDate):'—';const gdays=(sowingDate&&germinationDate)?`発芽まで${daysBetween(sowingDate,germinationDate)}日`:'';seedHtml=`<div class="summary-stat"><div class="summary-stat-label">種まき情報</div><div class="summary-stat-val">種まき：${sv}</div><div class="summary-stat-sub">発芽確認：${gv}${gdays?' ／ '+gdays:''}</div></div>`;}
   const transplantHtml=`<div class="summary-stat"><div class="summary-stat-label">定植 ／ 収穫開始</div><div class="summary-stat-val">${plantingDate?isoShort(plantingDate):'—'}</div><div class="summary-stat-sub">収穫開始：${harvestStartDate?isoShort(harvestStartDate):'—'}</div></div>`;
-  const stats=document.createElement('div');stats.className='summary-stats';stats.innerHTML=`<div class="summary-stat"><div class="summary-stat-label">作業期間</div><div class="summary-stat-val">${workPeriodVal}</div>${workPeriodSub?`<div class="summary-stat-sub">${workPeriodSub}</div>`:''}</div>${seedHtml}${transplantHtml}<div class="summary-stat"><div class="summary-stat-label">合計収量</div><div class="summary-stat-val" style="color:#0F6E56">${harvestTotalStr(currentSeg)||'未記録'}</div></div>`;
+  const stats=document.createElement('div');stats.className='summary-stats';stats.innerHTML=`<div class="summary-stat"><div class="summary-stat-label">作業期間</div><div class="summary-stat-val">${workPeriodVal}</div>${workPeriodSub?`<div class="summary-stat-sub">${workPeriodSub}</div>`:''}</div>${seedHtml}${transplantHtml}<div class="summary-stat"><div class="summary-stat-label">合計収量</div><div class="summary-stat-val" style="color:#2e7a28">${harvestTotalStr(currentSeg)||'未記録'}</div></div>`;
   summary.appendChild(stats);
   const memoBox=document.createElement('div');memoBox.className='summary-memo-box';memoBox.innerHTML='<div class="summary-memo-header"><i class="ti ti-notes" style="color:#9c9a93"></i>全体メモ</div>';const memoBody=document.createElement('div');memoBody.className='summary-memo-body';const memoTa=document.createElement('textarea');memoTa.className='summary-memo-ta';memoTa.placeholder='この区画の栽培を振り返って...';memoTa.value=segSummaryMemo[currentSeg]||'';const memoSave=document.createElement('button');memoSave.className='summary-save-btn';memoSave.innerHTML='<i class="ti ti-device-floppy" style="font-size:11px"></i>保存';memoSave.addEventListener('click',()=>{segSummaryMemo[currentSeg]=memoTa.value;saveLS();memoSave.textContent='保存しました';setTimeout(()=>{memoSave.innerHTML='<i class="ti ti-device-floppy" style="font-size:11px"></i>保存';},1200);});memoBody.append(memoTa,memoSave);memoBox.appendChild(memoBody);summary.appendChild(memoBox);el.appendChild(summary);
   const logTitle=document.createElement('div');logTitle.className='log-section-title';logTitle.innerHTML='<i class="ti ti-clock" style="font-size:13px"></i>作業履歴';el.appendChild(logTitle);
@@ -1370,7 +1370,7 @@ function renderFarmIconPicker(){
   vegs.forEach(veg=>{
     const selected=(farmIcon===veg.id);
     const btn=document.createElement('button');
-    btn.style.cssText=`width:44px;height:44px;border-radius:10px;border:2px solid ${selected?'#0F6E56':'transparent'};background:${selected?'#E1F5EE':'var(--color-background-secondary)'};cursor:pointer;display:flex;align-items:center;justify-content:center;padding:4px;`;
+    btn.style.cssText=`width:44px;height:44px;border-radius:10px;border:2px solid ${selected?'#2e7a28':'transparent'};background:${selected?'#d4f0b8':'var(--color-background-secondary)'};cursor:pointer;display:flex;align-items:center;justify-content:center;padding:4px;`;
     btn.innerHTML=vegIconHtml(veg,28);
     btn.onclick=()=>{farmIcon=(farmIcon===veg.id)?'':veg.id;saveLS();updateFarmNameDisplay();renderFarmIconPicker();};
     picker.appendChild(btn);
@@ -1568,7 +1568,7 @@ function renderBasicTab(el,veg){
       const name=document.createElement('div');name.style.cssText='font-size:13px;font-weight:600;color:var(--color-text-primary)';name.textContent=item.name;
       top.append(badge,name);
       const sym=document.createElement('div');sym.style.cssText='font-size:11px;color:var(--color-text-secondary);margin-bottom:3px';sym.textContent='症状：'+item.symptoms;
-      const treat=document.createElement('div');treat.style.cssText='font-size:11px;color:#0F6E56';treat.textContent='対策：'+item.treatment;
+      const treat=document.createElement('div');treat.style.cssText='font-size:11px;color:#2e7a28';treat.textContent='対策：'+item.treatment;
       card.append(top,sym,treat);s6.appendChild(card);
     }
     (bi.diseases||[]).forEach(d=>diseaseCard(d,'病気'));
