@@ -44,7 +44,7 @@ body{font-family:var(--font-sans);background:#f9f8f4;min-height:100vh;padding:0}
 .btn-undo:disabled{opacity:0.4;cursor:default}
 .undo-count{font-size:10px;color:var(--color-text-tertiary)}
 .grid-wrap{margin-bottom:12px;width:100%;position:relative}
-.grid-bg-farmer{position:absolute;right:10px;bottom:calc(-15% + 20px);height:85%;width:auto;opacity:0.15;pointer-events:none;z-index:0}
+.grid-bg-farmer{position:absolute;left:0;bottom:0;width:100%;height:auto;opacity:0.15;pointer-events:none;z-index:0}
 .grid-table{position:relative;z-index:1}
 .grid-table{border-collapse:separate;border-spacing:3px;width:100%;table-layout:fixed}
 .grid-table td{position:relative;vertical-align:top;padding:0}
@@ -267,7 +267,7 @@ body{
     <div class="toolbar toolbar-grid">
       <div class="header-card">
         <div class="header-card-top">
-          <img style="position:absolute;right:20px;bottom:0;height:80px;width:auto;pointer-events:none;" src="images/header_illust.png" />
+          <img style="position:absolute;right:20px;bottom:-5px;height:80px;width:auto;pointer-events:none;" src="images/header_illust.png" />
           <div style="display:flex;align-items:center;gap:8px;min-width:0">
             <span id="farm-icon-display" style="font-size:26px;line-height:1;display:none;flex-shrink:0"></span>
             <div style="min-width:0">
@@ -349,7 +349,7 @@ body{
       </div>
     </div>
     <div style="background:#fff;padding:8px 0.5rem 10px;margin:0 -0.5rem">
-      <div class="grid-wrap" id="grid-wrap"><img class="grid-bg-farmer" src="images/grid_bg_farmer.png" aria-hidden="true"><table class="grid-table" id="grid-table"></table></div>
+      <div class="grid-wrap" id="grid-wrap"><table class="grid-table" id="grid-table"></table></div>
     </div>
     <div class="seg-list-wrap" style="background:#f9f8f4;margin:0 -0.5rem;padding:8px 0.5rem 12px">
       <h3><i class="ti ti-leaf" style="color:#2e7a28;font-size:14px"></i>管理中の作物<span id="seg-count" style="font-size:11px;color:#a0d870;font-weight:400;margin-left:4px"></span></h3>
@@ -858,7 +858,7 @@ function renderGrid(){
       } else if(registered&&fs){
         inner.style.background=fs.bg;inner.style.borderTop=`3px solid ${fs.border}`;inner.style.boxShadow='0 1px 4px rgba(0,0,0,0.08)';
       } else {
-        inner.style.background='transparent';inner.style.borderRadius='3px';
+        inner.style.background='transparent';inner.style.borderRadius='3px';inner.classList.add('cell-empty-bg');
       }
       if(selecting)inner.style.backgroundImage='repeating-linear-gradient(45deg,transparent,transparent 5px,rgba(55,138,221,0.2) 5px,rgba(55,138,221,0.2) 7px)';
       else if(cell&&!registered)inner.style.backgroundImage='repeating-linear-gradient(45deg,transparent,transparent 5px,rgba(0,0,0,0.10) 5px,rgba(0,0,0,0.10) 7px)';
@@ -878,6 +878,7 @@ function renderGrid(){
   }
   renderSegList();
   updateFarmNameDisplay();
+  requestAnimationFrame(applyGridBg);
 }
 let _touchStartX=0,_touchStartY=0;
 function onDown(r,c,e){e.preventDefault();if(!requireAdmin())return;if(aisleRows.includes(r)||aisleCols.includes(c))return;const k=K(r,c);if(cells[k]&&cells[k].crop)return;dragging=true;dragRow=r;dragStartCol=c;dragEndCol=c;if(e.touches&&e.touches[0]){_touchStartX=e.touches[0].clientX;_touchStartY=e.touches[0].clientY;}document.addEventListener('mouseup',onUp,{once:true});document.addEventListener('touchend',onUp,{once:true});window.addEventListener('touchend',onUp,{once:true});
@@ -1339,6 +1340,21 @@ function renderHarvestTab(el,seg){
   Object.entries(getHarvestSummary(currentSeg)).forEach(([unit,amt])=>{const totalEl=document.createElement('div');totalEl.className='harvest-total';totalEl.innerHTML=`<span class="harvest-total-label"><i class="ti ti-calculator" style="font-size:12px;margin-right:4px"></i>合計（${unit}）</span><span class="harvest-total-val">${amt} ${unit}</span>`;el.appendChild(totalEl);});
 }
 
+function applyGridBg(){
+  const wrap=document.getElementById('grid-wrap');
+  if(!wrap)return;
+  const wr=wrap.getBoundingClientRect();
+  document.querySelectorAll('.cell-empty-bg').forEach(el=>{
+    const r=el.getBoundingClientRect();
+    const ox=r.left-wr.left;
+    const oy=r.top-wr.top;
+    el.style.backgroundImage="url('images/grid_bg_farmer.png')";
+    el.style.backgroundSize=`${wr.width}px ${wr.height}px`;
+    el.style.backgroundPosition=`-${ox}px -${oy}px`;
+    el.style.backgroundRepeat='no-repeat';
+    el.style.opacity='0.22';
+  });
+}
 function renderSegList(){
   buildSegs();const list=document.getElementById('seg-list');list.innerHTML='';
   const arr=Object.values(segs).filter(s=>s.crop).sort((a,b)=>a.row-b.row||(Math.min(...a.cols)-Math.min(...b.cols)));
