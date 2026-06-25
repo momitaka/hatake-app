@@ -14,6 +14,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
   --font-sans:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --fs-xs:10px;--fs-sm:12px;--fs-base:14px;--fs-md:16px;--fs-lg:20px;
   --border-radius-md:6px;--border-radius-lg:10px;
   --color-background-primary:#ffffff;--color-background-secondary:#f5f5f0;--color-background-tertiary:#e8e6df;
   --color-text-primary:#1a1915;--color-text-secondary:#5f5e5a;--color-text-tertiary:#9c9a93;
@@ -23,65 +24,72 @@
   --color-text-success:#2e7a28;--color-text-danger:#993C1D;--color-text-info:#185FA5;
 }
 body{font-family:var(--font-sans);background:#f9f8f4;min-height:100vh;padding:0}
-.app{padding:0 0.5rem 0.5rem;user-select:none;font-size:13px;max-width:680px;margin:0 auto}
+.app{padding:0 0.5rem 0.5rem;user-select:none;font-size:var(--fs-base);max-width:680px;margin:0 auto}
 .screen{display:none}.screen.active{display:block}
-#screen-manage.active{display:flex;flex-direction:column;height:100dvh}
-#screen-manage .toolbar{position:relative;top:auto;flex-shrink:0;margin:0 -0.5rem;background:#5aad4e;border-bottom:none;padding:7px 13px 10px;border-bottom-right-radius:14px}
-#manage-static{flex-shrink:0;padding:10px 0 0}
+#screen-manage.active,#screen-master.active{background:#f5faed;margin:0 -0.5rem;padding:0 0.5rem}
+#screen-master.active{padding:0}
+#screen-master .toolbar{margin:0}
+#screen-master .master-list-col{margin:0;border-right:0.5px solid var(--color-border-tertiary)}
+#screen-master .master-detail-col{padding:10px 0.5rem 0}
+#screen-manage.active,#screen-master.active{display:flex;flex-direction:column;height:100dvh}
+#master-content{flex:1;overflow-y:auto;padding:0 0 24px}
+#screen-manage .toolbar,#screen-master .toolbar{position:relative;top:auto;flex-shrink:0;margin:0 -0.5rem;background:#5aad4e;border-bottom:none;padding:10px 13px;border-bottom-right-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,0.13);z-index:1}
+#manage-static{flex-shrink:0;padding:10px 0.5rem 10px;background:#fff;margin:0 -0.5rem;box-shadow:0 4px 14px rgba(0,0,0,0.13);position:relative;z-index:1}
 #manage-content{flex:1;overflow-y:auto;padding:10px 0 24px}
 .toolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--color-background-primary);border-bottom:2px solid #5aad4e;padding:0 0.5rem;margin:0 -0.5rem 12px;position:sticky;top:0;z-index:20}
 .toolbar-grid{background:#f9f8f4;border-bottom:none;flex-direction:column;align-items:stretch;gap:0;padding:0;margin-bottom:10px}
 .header-card{background:#fff;border-radius:0 0 14px 14px;overflow:visible;box-shadow:0 4px 14px rgba(0,0,0,0.13)}
 .header-card-top{padding:12px 13px 10px;display:flex;justify-content:space-between;align-items:flex-start;position:relative;overflow:visible;min-height:54px}
-.header-card-bottom{background:#5aad4e;padding:7px 13px 10px;display:flex;gap:6px;align-items:center;position:relative;z-index:1;border-bottom-right-radius:14px}
-.btn-grid-icon{width:28px;height:28px;border-radius:50%;background:#fff;border:1px solid #fff;color:#2e7a28;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.header-card-bottom{background:#5aad4e;padding:10px 13px;display:flex;gap:6px;align-items:center;position:relative;z-index:1;border-bottom-right-radius:14px;border-top-left-radius:14px}
+.btn-grid-icon{width:28px;height:28px;border-radius:50%;background:#fff;border:1px solid #fff;color:#2e7a28;font-size:var(--fs-sm);display:flex;align-items:center;justify-content:center;cursor:pointer}
 .btn-grid-icon:hover{background:#d4f0b8}
-.btn-grid-chip{background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:99px;padding:4px 11px;font-size:10px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.btn-grid-chip{background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:99px;padding:4px 11px;font-size:var(--fs-xs);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
 .btn-grid-chip:hover{background:rgba(255,255,255,0.3)}
 .btn-grid-chip.btn-undo{background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.2)}
+.btn-grid-chip.btn-undo:not(:disabled){background:#fff;border-color:#fff;color:#2e7a28;font-weight:600}
 .btn-grid-chip.btn-master{background:#fff;color:#2e7a28;border-color:#fff;font-weight:600}
 .btn-grid-chip.btn-master:hover{background:#d4f0b8}
 .btn-grid-chip:disabled{opacity:0.4;cursor:default}
-.btn{font-size:12px;padding:4px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px}
+.btn{font-size:var(--fs-sm);padding:4px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px}
 .btn:hover{background:var(--color-background-secondary)}
-.btn-undo{font-size:12px;padding:4px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.btn-undo{font-size:var(--fs-sm);padding:4px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
 .btn-undo:disabled{opacity:0.4;cursor:default}
-.undo-count{font-size:10px;color:var(--color-text-tertiary)}
+.undo-count{font-size:var(--fs-xs);color:var(--color-text-tertiary)}
 .grid-wrap{margin-bottom:12px;width:100%;position:relative}
 .cell-empty-bg{background-repeat:no-repeat}
 .grid-table{position:relative;z-index:1}
 .grid-table{border-collapse:separate;border-spacing:3px;width:100%;table-layout:fixed}
 .grid-table td{position:relative;vertical-align:top;padding:0}
 .cell-inner{width:100%;height:100%;position:relative;display:flex;flex-direction:column;justify-content:space-between;align-items:stretch;padding:3px;overflow:hidden;box-sizing:border-box}
-.cell-label{font-size:10px;line-height:1.2;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100%;color:var(--color-text-primary);display:flex;align-items:center;gap:2px}
+.cell-label{font-size:var(--fs-xs);line-height:1.2;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100%;color:var(--color-text-primary);display:flex;align-items:center;gap:2px}
 .status-bar{position:absolute;bottom:0;left:0;right:0;height:4px}
 .row-num{font-size:7px;color:#2e7a28;vertical-align:middle;text-align:center;font-weight:400;cursor:default;white-space:nowrap;width:1%}
 .col-num{font-size:7px;color:#2e7a28;text-align:center;font-weight:400;cursor:default;padding:2px 0 3px;line-height:1}
 .col-num-corner{}
 .seg-list-wrap{margin-top:0}
-.seg-list-wrap h3{font-size:11px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:5px;letter-spacing:0.04em;color:#1a5c16}
-.hint{font-size:11px;color:var(--color-text-tertiary);margin-bottom:8px}
+.seg-list-wrap h3{font-size:var(--fs-xs);font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:5px;letter-spacing:0.04em;color:#1a5c16}
+.hint{font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-bottom:8px}
 .seg-list{display:grid;grid-template-columns:1fr 1fr;gap:5px}
 .seg-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;border-radius:10px;background:var(--color-background-primary);cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.07)}
 .seg-item:hover{box-shadow:0 2px 6px rgba(0,0,0,0.1)}
 .legend{margin-top:10px;padding:8px 10px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary)}
-.legend-title{font-size:11px;color:var(--color-text-secondary);margin-bottom:5px;font-weight:500}
+.legend-title{font-size:var(--fs-xs);color:var(--color-text-secondary);margin-bottom:5px;font-weight:500}
 .legend-grid{display:flex;flex-wrap:wrap;gap:5px 14px}
-.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--color-text-secondary)}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:var(--fs-xs);color:var(--color-text-secondary)}
 .legend-dot{width:12px;height:10px;border-radius:2px;border-width:2px;border-style:solid;flex-shrink:0}
-.status-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:500}
+.status-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:99px;font-size:var(--fs-xs);font-weight:500}
 .manage-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:0.5px solid var(--color-border-tertiary)}
-.manage-title{font-size:16px;font-weight:500;color:var(--color-text-primary);flex:1}
-.manage-meta{font-size:11px;color:var(--color-text-tertiary);margin-top:2px}
+.manage-title{font-size:var(--fs-md);font-weight:500;color:var(--color-text-primary);flex:1}
+.manage-meta{font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-top:2px}
 .tab-bar{display:flex;margin-bottom:16px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);overflow:hidden}
-.tab-btn{flex:1;padding:7px 2px;font-size:10px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-secondary);border-right:0.5px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center;gap:3px;white-space:nowrap}
+.tab-btn{flex:1;padding:11px 2px;font-size:var(--fs-sm);cursor:pointer;background:var(--color-background-primary);color:var(--color-text-secondary);border-right:0.5px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center;gap:3px;white-space:nowrap}
 .tab-btn:last-child{border-right:none}
 .tab-btn.active{background:#d4f0b8;color:#5aad4e;font-weight:500}
 .tab-btn:hover:not(.active){background:var(--color-background-secondary)}
 .progress-wrap{margin-bottom:16px}
 .progress-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
-.progress-title{font-size:13px;font-weight:500;color:var(--color-text-primary);display:flex;align-items:center;gap:6px}
-.progress-pct{font-size:13px;color:var(--color-text-secondary)}
+.progress-title{font-size:var(--fs-base);font-weight:500;color:var(--color-text-primary);display:flex;align-items:center;gap:6px}
+.progress-pct{font-size:var(--fs-base);color:var(--color-text-secondary)}
 .progress-bar-outer{height:8px;background:var(--color-background-tertiary);border-radius:4px;overflow:hidden}
 .progress-bar-inner{height:100%;border-radius:4px;background:#5aad4e}
 .phase-block{margin-bottom:12px}
@@ -89,8 +97,8 @@ body{font-family:var(--font-sans);background:#f9f8f4;min-height:100vh;padding:0}
 .phase-radio{width:14px;height:14px;border-radius:50%;border:2px solid #B4B2A9;background:var(--color-background-primary);flex-shrink:0}
 .phase-radio.active{border-color:#5aad4e;background:#5aad4e}
 .phase-radio.done{border-color:#B4B2A9;background:#B4B2A9}
-.phase-name{font-size:12px;font-weight:500}
-.phase-period{font-size:11px;color:var(--color-text-tertiary)}
+.phase-name{font-size:var(--fs-sm);font-weight:500}
+.phase-period{font-size:var(--fs-xs);color:var(--color-text-tertiary)}
 .task-card{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);margin-bottom:6px;overflow:hidden;background:var(--color-background-primary)}
 .task-main{display:flex;align-items:flex-start}
 .task-cb-wrap{padding:10px 8px 10px 12px;flex-shrink:0}
@@ -98,135 +106,135 @@ body{font-family:var(--font-sans);background:#f9f8f4;min-height:100vh;padding:0}
 .task-clickable{flex:1;display:flex;align-items:center;gap:8px;padding:10px 12px 10px 0;cursor:pointer;min-width:0}
 .task-clickable:hover{background:var(--color-background-secondary)}
 .task-body{flex:1;min-width:0}
-.task-name{font-size:13px;color:var(--color-text-primary);line-height:1.3}
+.task-name{font-size:var(--fs-base);color:var(--color-text-primary);line-height:1.3}
 .task-name.done-text{text-decoration:line-through;color:var(--color-text-tertiary)}
-.task-desc{font-size:11px;color:var(--color-text-tertiary);margin-top:2px}
+.task-desc{font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-top:2px}
 .task-dates{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
-.task-date-chip{font-size:10px;padding:1px 6px;border-radius:3px;background:#d4f0b8;color:#2e7a28;border:0.5px solid #a0d870}
-.task-day-badge{font-size:11px;color:var(--color-text-secondary);background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:2px 7px;white-space:nowrap;flex-shrink:0}
-.task-expand-icon{color:var(--color-text-tertiary);flex-shrink:0;font-size:14px;padding:0 4px}
+.task-date-chip{font-size:var(--fs-xs);padding:1px 6px;border-radius:3px;background:#d4f0b8;color:#2e7a28;border:0.5px solid #a0d870}
+.task-day-badge{font-size:var(--fs-xs);color:var(--color-text-secondary);background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:2px 7px;white-space:nowrap;flex-shrink:0}
+.task-expand-icon{color:var(--color-text-tertiary);flex-shrink:0;font-size:var(--fs-base);padding:0 4px}
 .task-detail{display:none;padding:8px 12px 10px 38px;border-top:0.5px solid var(--color-border-tertiary)}
 .task-detail.open{display:block}
-.task-detail-memo{font-size:11px;color:var(--color-text-secondary);line-height:1.5;margin-bottom:6px}
-.task-detail-url{font-size:11px;color:#185FA5;text-decoration:none;display:inline-flex;align-items:center;gap:3px;margin-bottom:8px}
+.task-detail-memo{font-size:var(--fs-xs);color:var(--color-text-secondary);line-height:1.5;margin-bottom:6px}
+.task-detail-url{font-size:var(--fs-xs);color:#185FA5;text-decoration:none;display:inline-flex;align-items:center;gap:3px;margin-bottom:8px}
 .task-detail-url:hover{text-decoration:underline}
 .skip-row{display:flex;align-items:center;gap:6px;padding-top:6px;border-top:0.5px solid var(--color-border-tertiary)}
 .skip-cb{width:14px;height:14px;cursor:pointer;accent-color:#B4B2A9}
-.skip-label{font-size:11px;color:var(--color-text-tertiary)}
+.skip-label{font-size:var(--fs-xs);color:var(--color-text-tertiary)}
 .ai-banner{margin-bottom:14px;padding:10px 12px;border:0.5px dashed var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);display:flex;align-items:center;gap:10px}
-.ai-banner-text{font-size:11px;color:var(--color-text-secondary);flex:1;line-height:1.5}
-.complete-notice{margin-bottom:14px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);display:flex;align-items:flex-start;gap:8px;font-size:11px;color:var(--color-text-tertiary);line-height:1.6;transition:background 0.3s,border-color 0.3s,color 0.3s}
+.ai-banner-text{font-size:var(--fs-xs);color:var(--color-text-secondary);flex:1;line-height:1.5}
+.complete-notice{margin-bottom:14px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);display:flex;align-items:flex-start;gap:8px;font-size:var(--fs-xs);color:var(--color-text-tertiary);line-height:1.6;transition:background 0.3s,border-color 0.3s,color 0.3s}
 .complete-notice.highlight{background:#FFF3E0;border-color:#EF9F27;color:#92600B}
-.btn-complete-final{width:100%;font-size:13px;padding:10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-danger);background:var(--color-background-danger);color:var(--color-text-danger);cursor:pointer;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-complete-final{width:100%;font-size:var(--fs-base);padding:10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-danger);background:var(--color-background-danger);color:var(--color-text-danger);cursor:pointer;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px}
 .btn-complete-final:hover{filter:brightness(0.97)}
-.btn-ai{font-size:11px;padding:4px 10px;border-radius:var(--border-radius-md);border:0.5px solid #7F77DD;background:#EEEDFE;color:#3C3489;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
-.placeholder-tab{padding:2rem 0;text-align:center;color:var(--color-text-tertiary);font-size:12px}
+.btn-ai{font-size:var(--fs-xs);padding:4px 10px;border-radius:var(--border-radius-md);border:0.5px solid #7F77DD;background:#EEEDFE;color:#3C3489;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+.placeholder-tab{padding:2rem 0;text-align:center;color:var(--color-text-tertiary);font-size:var(--fs-sm)}
 .summary-section{margin-bottom:20px;padding-bottom:18px;border-bottom:0.5px solid var(--color-border-tertiary)}
 .summary-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
 .summary-stat{padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary)}
-.summary-stat-label{font-size:10px;color:var(--color-text-tertiary);margin-bottom:4px}
-.summary-stat-val{font-size:12px;font-weight:500;color:var(--color-text-primary);line-height:1.4}
-.summary-stat-sub{font-size:10px;color:var(--color-text-tertiary);margin-top:2px}
+.summary-stat-label{font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-bottom:4px}
+.summary-stat-val{font-size:var(--fs-sm);font-weight:500;color:var(--color-text-primary);line-height:1.4}
+.summary-stat-sub{font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-top:2px}
 .summary-memo-box{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);overflow:hidden}
-.summary-memo-header{padding:8px 12px;background:var(--color-background-secondary);font-size:11px;font-weight:500;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:5px}
+.summary-memo-header{padding:8px 12px;background:var(--color-background-secondary);font-size:var(--fs-xs);font-weight:500;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:5px}
 .summary-memo-body{padding:10px 12px}
-.summary-memo-ta{width:100%;font-size:12px;padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);resize:vertical;min-height:64px;line-height:1.6}
-.summary-save-btn{font-size:11px;padding:4px 12px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-success);background:var(--color-background-success);color:var(--color-text-success);cursor:pointer;margin-top:6px;font-weight:500;display:inline-flex;align-items:center;gap:4px}
-.log-section-title{font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:10px;display:flex;align-items:center;gap:5px}
+.summary-memo-ta{width:100%;font-size:var(--fs-sm);padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);resize:vertical;min-height:64px;line-height:1.6}
+.summary-save-btn{font-size:var(--fs-xs);padding:4px 12px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-success);background:var(--color-background-success);color:var(--color-text-success);cursor:pointer;margin-top:6px;font-weight:500;display:inline-flex;align-items:center;gap:4px}
+.log-section-title{font-size:var(--fs-sm);font-weight:500;color:var(--color-text-secondary);margin-bottom:10px;display:flex;align-items:center;gap:5px}
 .log-date-group{margin-bottom:14px}
 .log-date-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.log-date-label{font-size:12px;font-weight:500;color:var(--color-text-primary);white-space:nowrap}
+.log-date-label{font-size:var(--fs-sm);font-weight:500;color:var(--color-text-primary);white-space:nowrap}
 .log-date-line{flex:1;height:0.5px;background:var(--color-border-tertiary)}
 .log-entry{display:flex;align-items:center;gap:10px;padding:8px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);margin-bottom:5px}
-.log-entry-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px}
+.log-entry-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:var(--fs-xs)}
 .log-entry-icon.task{background:var(--color-background-secondary);color:var(--color-text-secondary)}
 .log-entry-icon.harvest{background:#d4f0b8;color:#2e7a28}
-.log-entry-title{font-size:12px;color:var(--color-text-primary);flex:1}
-.log-entry-badge{font-size:11px;font-weight:500;color:#2e7a28;white-space:nowrap}
+.log-entry-title{font-size:var(--fs-sm);color:var(--color-text-primary);flex:1}
+.log-entry-badge{font-size:var(--fs-xs);font-weight:500;color:#2e7a28;white-space:nowrap}
 .harvest-input-row{display:flex;gap:8px;align-items:flex-end;margin-bottom:16px;flex-wrap:wrap}
 .harvest-input-group{display:flex;flex-direction:column;gap:4px}
-.harvest-input-group label{font-size:11px;color:var(--color-text-secondary)}
-.harvest-input-group input[type=date]{font-size:12px;padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
-.harvest-input-group input[type=number]{width:72px;font-size:12px;padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
-.harvest-input-group select{font-size:12px;padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
-.harvest-add-btn{font-size:12px;padding:6px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-success);background:var(--color-background-success);color:var(--color-text-success);cursor:pointer;font-weight:500;white-space:nowrap;align-self:flex-end}
+.harvest-input-group label{font-size:var(--fs-xs);color:var(--color-text-secondary)}
+.harvest-input-group input[type=date]{font-size:var(--fs-sm);padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
+.harvest-input-group input[type=number]{width:72px;font-size:var(--fs-sm);padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
+.harvest-input-group select{font-size:var(--fs-sm);padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
+.harvest-add-btn{font-size:var(--fs-sm);padding:6px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-success);background:var(--color-background-success);color:var(--color-text-success);cursor:pointer;font-weight:500;white-space:nowrap;align-self:flex-end}
 .harvest-list{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
 .harvest-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary)}
-.harvest-row-date{font-size:12px;color:var(--color-text-secondary);white-space:nowrap}
-.harvest-row-amount{font-size:13px;font-weight:500;color:var(--color-text-primary);flex:1}
+.harvest-row-date{font-size:var(--fs-sm);color:var(--color-text-secondary);white-space:nowrap}
+.harvest-row-amount{font-size:var(--fs-base);font-weight:500;color:var(--color-text-primary);flex:1}
 .harvest-del-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-tertiary);cursor:pointer;flex-shrink:0}
 .harvest-del-btn:hover{color:var(--color-text-danger)}
 .harvest-total{padding:12px 14px;border-radius:var(--border-radius-md);background:#d4f0b8;border:0.5px solid #a0d870;display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-.harvest-total-label{font-size:12px;color:#2e7a28;font-weight:500}
-.harvest-total-val{font-size:16px;font-weight:500;color:#2e7a28}
-.harvest-empty{font-size:11px;color:var(--color-text-tertiary);padding:8px 0}
-.btn-primary{font-size:12px;padding:5px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-success);background:var(--color-background-success);color:var(--color-text-success);cursor:pointer;font-weight:500}
+.harvest-total-label{font-size:var(--fs-sm);color:#2e7a28;font-weight:500}
+.harvest-total-val{font-size:var(--fs-md);font-weight:500;color:#2e7a28}
+.harvest-empty{font-size:var(--fs-xs);color:var(--color-text-tertiary);padding:8px 0}
+.btn-primary{font-size:var(--fs-sm);padding:5px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-success);background:var(--color-background-success);color:var(--color-text-success);cursor:pointer;font-weight:500}
 .btn-primary:disabled{opacity:0.4;cursor:default}
-.btn-danger-outline{font-size:12px;padding:5px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-danger);background:var(--color-background-primary);color:var(--color-text-danger);cursor:pointer}
+.btn-danger-outline{font-size:var(--fs-sm);padding:5px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-danger);background:var(--color-background-primary);color:var(--color-text-danger);cursor:pointer}
 .divider{border:none;border-top:0.5px solid var(--color-border-tertiary);margin:14px 0}
 .settings-panel{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem;margin-bottom:12px}
-.settings-section-label{font-size:11px;color:var(--color-text-secondary);font-weight:500;margin-bottom:8px}
+.settings-section-label{font-size:var(--fs-xs);color:var(--color-text-secondary);font-weight:500;margin-bottom:8px}
 .settings-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
-.settings-row input[type=number]{width:56px;font-size:12px;padding:4px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
-.settings-label{font-size:11px;color:var(--color-text-secondary)}
-.master-layout{display:flex;gap:12px;min-height:480px}
-.master-list-col{width:130px;flex-shrink:0;display:flex;flex-direction:column;gap:4px}
-.master-list-header{font-size:11px;font-weight:500;color:var(--color-text-secondary);padding:4px 0 6px;border-bottom:0.5px solid var(--color-border-tertiary);margin-bottom:4px}
-.master-list-item{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:var(--border-radius-md);cursor:pointer;font-size:12px;color:var(--color-text-primary);border:0.5px solid transparent}
+.settings-row input[type=number]{width:56px;font-size:var(--fs-sm);padding:4px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
+.settings-label{font-size:var(--fs-xs);color:var(--color-text-secondary)}
+.master-layout{display:flex;gap:12px;min-height:100%}
+.master-list-col{width:130px;flex-shrink:0;display:flex;flex-direction:column;gap:4px;background:#fff;margin:0 -0.5rem 0 -0.5rem;padding:8px 8px 8px 0.5rem}
+.master-list-header{font-size:var(--fs-xs);font-weight:500;color:var(--color-text-secondary);padding:4px 0 6px;border-bottom:0.5px solid var(--color-border-tertiary);margin-bottom:4px}
+.master-list-item{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:var(--border-radius-md);cursor:pointer;font-size:var(--fs-sm);color:var(--color-text-primary);border:0.5px solid transparent}
 .master-list-item:hover{background:var(--color-background-secondary)}
 .master-list-item.active{background:var(--color-background-secondary);border-color:var(--color-border-secondary);font-weight:500}
 .master-list-item-badge{font-size:9px;padding:1px 5px;border-radius:3px;background:#d4f0b8;color:#2e7a28;margin-left:auto;white-space:nowrap;flex-shrink:0}
 .master-list-item-badge.empty{background:var(--color-background-tertiary);color:var(--color-text-tertiary)}
-.master-add-btn{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:var(--border-radius-md);cursor:pointer;font-size:12px;color:var(--color-text-tertiary);border:0.5px dashed var(--color-border-secondary);margin-top:4px;background:transparent}
+.master-add-btn{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:var(--border-radius-md);cursor:pointer;font-size:var(--fs-sm);color:var(--color-text-tertiary);border:0.5px dashed var(--color-border-secondary);margin-top:4px;background:transparent}
 .master-add-btn:hover{color:var(--color-text-primary)}
-.master-detail-col{flex:1;min-width:0;border-left:0.5px solid var(--color-border-tertiary);padding-left:14px;overflow-y:auto}
+.master-detail-col{flex:1;min-width:0;padding-left:14px;overflow-y:auto}
 .master-detail-scroll{padding-bottom:8px}
-.master-detail-empty{display:flex;align-items:center;justify-content:center;height:200px;color:var(--color-text-tertiary);font-size:12px;flex-direction:column;gap:8px}
+.master-detail-empty{display:flex;align-items:center;justify-content:center;height:200px;color:var(--color-text-tertiary);font-size:var(--fs-sm);flex-direction:column;gap:8px}
 .master-detail-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:0.5px solid var(--color-border-tertiary)}
 .master-detail-icon{font-size:24px;display:flex;align-items:center}
 .master-detail-name{font-size:15px;font-weight:500;color:var(--color-text-primary)}
-.master-detail-sub{font-size:11px;color:var(--color-text-tertiary);margin-top:2px}
+.master-detail-sub{font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-top:2px}
 .master-phase-block{margin-bottom:12px}
 .master-phase-header{display:flex;align-items:center;gap:6px;margin-bottom:6px}
-.master-phase-label{font-size:11px;font-weight:500;color:var(--color-text-secondary)}
+.master-phase-label{font-size:var(--fs-xs);font-weight:500;color:var(--color-text-secondary)}
 .master-task-row{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);margin-bottom:6px;overflow:hidden;background:var(--color-background-primary)}
 .master-task-header{display:flex;align-items:center;gap:6px;padding:7px 10px;background:var(--color-background-secondary)}
-.master-task-name-input{flex:1;min-width:0;font-size:12px;padding:3px 6px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
-.master-task-day-input{width:40px;flex-shrink:0;font-size:11px;padding:3px 5px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);text-align:center}
+.master-task-name-input{flex:1;min-width:0;font-size:var(--fs-sm);padding:3px 6px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
+.master-task-day-input{width:40px;flex-shrink:0;font-size:var(--fs-xs);padding:3px 5px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);text-align:center}
 .master-task-del{width:22px;height:22px;display:flex;align-items:center;justify-content:center;border:none;background:none;color:var(--color-text-tertiary);cursor:pointer;border-radius:var(--border-radius-md);flex-shrink:0}
 .master-task-del:hover{color:var(--color-text-danger)}
 .master-task-body{padding:6px 10px 8px}
-.master-task-label{font-size:10px;color:var(--color-text-tertiary);margin-bottom:3px;margin-top:5px}
-.master-task-memo{width:100%;font-size:11px;padding:4px 6px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);resize:vertical;min-height:36px;line-height:1.5}
-.master-task-url{width:100%;font-size:11px;padding:4px 6px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
-.master-add-task-btn{font-size:11px;padding:3px 10px;border-radius:var(--border-radius-md);border:0.5px dashed var(--color-border-secondary);background:transparent;color:var(--color-text-tertiary);cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin-top:2px}
+.master-task-label{font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-bottom:3px;margin-top:5px}
+.master-task-memo{width:100%;font-size:var(--fs-xs);padding:4px 6px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);resize:vertical;min-height:36px;line-height:1.5}
+.master-task-url{width:100%;font-size:var(--fs-xs);padding:4px 6px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
+.master-add-task-btn{font-size:var(--fs-xs);padding:3px 10px;border-radius:var(--border-radius-md);border:0.5px dashed var(--color-border-secondary);background:transparent;color:var(--color-text-tertiary);cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin-top:2px}
 .master-add-task-btn:hover{color:var(--color-text-primary)}
 .master-save-bar{margin-top:14px;padding-top:12px;border-top:0.5px solid var(--color-border-tertiary);display:flex;gap:8px;justify-content:space-between;align-items:center}
-.btn-save-master{font-size:12px;padding:6px 16px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-success);background:var(--color-background-success);color:var(--color-text-success);cursor:pointer;font-weight:500;display:inline-flex;align-items:center;gap:5px}
-.btn-delete-master{font-size:11px;padding:5px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-danger);background:var(--color-background-primary);color:var(--color-text-danger);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.btn-save-master{font-size:var(--fs-sm);padding:6px 16px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-success);background:var(--color-background-success);color:var(--color-text-success);cursor:pointer;font-weight:500;display:inline-flex;align-items:center;gap:5px}
+.btn-delete-master{font-size:var(--fs-xs);padding:5px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-danger);background:var(--color-background-primary);color:var(--color-text-danger);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
 .emoji-grid{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
 .emoji-opt{width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:17px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);cursor:pointer;background:var(--color-background-primary)}
 .emoji-opt:hover{border-color:var(--color-border-primary)}
 .emoji-opt.selected{border:2px solid #5aad4e;background:#d4f0b8}
 .dlg-field{margin-bottom:11px}
-.dlg-field label{font-size:11px;color:var(--color-text-secondary);display:block;margin-bottom:4px}
-.dlg-field select,.dlg-field input[type=text],.dlg-field input[type=url]{width:100%;font-size:13px;padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
+.dlg-field label{font-size:var(--fs-xs);color:var(--color-text-secondary);display:block;margin-bottom:4px}
+.dlg-field select,.dlg-field input[type=text],.dlg-field input[type=url]{width:100%;font-size:var(--fs-base);padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
 .dlg-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
 .archive-sort-bar{display:flex;gap:6px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
-.archive-sort-label{font-size:11px;color:var(--color-text-tertiary)}
-.archive-sort-btn{font-size:11px;padding:3px 10px;border-radius:99px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer;display:inline-flex;align-items:center;gap:3px}
+.archive-sort-label{font-size:var(--fs-xs);color:var(--color-text-tertiary)}
+.archive-sort-btn{font-size:var(--fs-xs);padding:3px 10px;border-radius:99px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer;display:inline-flex;align-items:center;gap:3px}
 .archive-sort-btn.active{background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-primary);font-weight:500}
 .archive-card{padding:12px 14px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);margin-bottom:8px;cursor:pointer}
 .archive-card:hover{border-color:var(--color-border-secondary)}
 .archive-card-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.archive-card-name{font-size:13px;font-weight:500;color:var(--color-text-primary);flex:1}
-.archive-card-date{font-size:11px;color:var(--color-text-tertiary)}
+.archive-card-name{font-size:var(--fs-base);font-weight:500;color:var(--color-text-primary);flex:1}
+.archive-card-date{font-size:var(--fs-xs);color:var(--color-text-tertiary)}
 .archive-card-meta{display:flex;gap:12px;flex-wrap:wrap}
-.archive-card-stat{font-size:11px;color:var(--color-text-secondary);display:flex;align-items:center;gap:3px}
-.archive-detail-back{font-size:12px;color:var(--color-text-secondary);cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin-bottom:14px;padding:4px 0}
+.archive-card-stat{font-size:var(--fs-xs);color:var(--color-text-secondary);display:flex;align-items:center;gap:3px}
+.archive-detail-back{font-size:var(--fs-sm);color:var(--color-text-secondary);cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin-bottom:14px;padding:4px 0}
 .archive-detail-back:hover{color:var(--color-text-primary)}
-.archive-empty{font-size:12px;color:var(--color-text-tertiary);padding:24px 0;text-align:center}
-input,select,textarea{font-size:16px !important}
+.archive-empty{font-size:var(--fs-sm);color:var(--color-text-tertiary);padding:24px 0;text-align:center}
+input,select,textarea{font-size:var(--fs-md) !important}
 body{
   --color-background-primary:#ffffff;
   --color-background-secondary:#f0f0f0;
@@ -238,12 +246,12 @@ body{
   --color-border-tertiary:#aaaaaa;
   font-size:15px !important;
 }
-.app{font-size:15px}
-.btn{font-size:13px;border-width:1.5px;border-color:#555}
+.app{font-size:var(--fs-md)}
+.btn{font-size:var(--fs-base);border-width:1.5px;border-color:#555}
 .seg-item{border-width:1.5px;border-color:#888}
-.cell-label{font-size:12px;font-weight:700}
+.cell-label{font-size:var(--fs-sm);font-weight:700}
 .row-num,.col-num{font-size:7px;font-weight:400;color:#2e7a28}
-.status-pill{font-size:12px;padding:3px 10px;font-weight:700}
+.status-pill{font-size:var(--fs-sm);padding:3px 10px;font-weight:700}
 
 .view-mode .admin-only{display:none !important}
 @keyframes pulse-fade{0%,100%{opacity:1}50%{opacity:0.25}}
@@ -252,20 +260,20 @@ body{
 </style>
 </head>
 <body>
-<div id="dev-banner" style="display:none;position:sticky;top:0;z-index:9999;background:#e53e3e;color:#fff;text-align:center;font-size:12px;padding:3px;font-weight:bold">🛠 DEV MODE — 本番データに影響しません</div>
+<div id="dev-banner" style="display:none;position:sticky;top:0;z-index:9999;background:#e53e3e;color:#fff;text-align:center;font-size:var(--fs-sm);padding:3px;font-weight:bold">🛠 DEV MODE — 本番データに影響しません</div>
 
 <div id="splash-screen" style="position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--color-background-secondary);transition:opacity 0.6s ease;padding-bottom:48px">
   <div id="splash-img-wrap" style="width:240px;height:240px;border-radius:20px;overflow:hidden;margin-bottom:24px;display:flex;align-items:center;justify-content:center">
     <img id="splash-img" src="" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;display:none">
     <div id="splash-placeholder" style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px">
       <div id="splash-month-emoji" style="font-size:72px"></div>
-      <div id="splash-month-label" style="font-size:14px;color:var(--color-text-secondary);font-weight:500"></div>
+      <div id="splash-month-label" style="font-size:var(--fs-base);color:var(--color-text-secondary);font-weight:500"></div>
     </div>
   </div>
   <div id="splash-farm-name" style="font-size:22px;font-weight:600;color:var(--color-text-primary);margin-bottom:12px;font-family:'Noto Serif JP',serif"></div>
-  <div id="splash-quote" style="font-size:13px;color:var(--color-text-secondary);text-align:center;max-width:280px;line-height:1.7;padding:0 20px"></div>
-  <div style="margin-top:32px;font-size:13px;color:var(--color-text-tertiary);text-align:center;line-height:1.8">今日も楽しく頑張ろう 😊<br><span class="tap-to-start">タップして開始</span></div>
-  <div style="position:absolute;bottom:24px;left:0;right:0;text-align:center;font-size:11px;color:var(--color-text-tertiary);letter-spacing:0.04em">Crafted with care by momitaka</div>
+  <div id="splash-quote" style="font-size:var(--fs-base);color:var(--color-text-secondary);text-align:center;max-width:280px;line-height:1.7;padding:0 20px"></div>
+  <div style="margin-top:32px;font-size:var(--fs-base);color:var(--color-text-tertiary);text-align:center;line-height:1.8">今日も楽しく頑張ろう 😊<br><span class="tap-to-start">タップして開始</span></div>
+  <div style="position:absolute;bottom:24px;left:0;right:0;text-align:center;font-size:var(--fs-xs);color:var(--color-text-tertiary);letter-spacing:0.04em">Crafted with care by momitaka</div>
 </div>
 <div class="app" id="app">
   <div class="screen active" id="screen-register">
@@ -282,10 +290,10 @@ body{
           </div>
         </div>
         <div class="header-card-bottom">
-          <button class="btn-grid-chip btn-undo" id="undo-btn" disabled><i class="ti ti-arrow-back-up" style="font-size:10px"></i>取り消し</button>
+          <button class="btn-grid-chip btn-undo" id="undo-btn" disabled><i class="ti ti-arrow-back-up" style="font-size:var(--fs-xs)"></i>取り消し</button>
           <span class="undo-count" id="undo-count" style="color:rgba(255,255,255,0.7)"></span>
           <div style="flex:1"></div>
-          <button class="btn-grid-chip btn-master" id="btn-open-master"><i class="ti ti-plant-2" style="font-size:10px"></i>野菜マスタ</button>
+          <button class="btn-grid-chip btn-master" id="btn-open-master"><i class="ti ti-plant-2" style="font-size:var(--fs-xs)"></i>野菜マスタ</button>
           <button class="btn-grid-icon" id="btn-open-archive" title="過去データ"><i class="ti ti-archive"></i></button>
           <button class="btn-grid-icon" id="btn-settings" title="設定"><i class="ti ti-settings"></i></button>
         </div>
@@ -293,8 +301,8 @@ body{
     </div>
     <div id="dlg-undo-confirm" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:300;align-items:center;justify-content:center">
       <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);padding:20px 24px;width:min(320px,90vw);box-shadow:0 8px 32px rgba(0,0,0,0.18)">
-        <div style="font-size:14px;font-weight:600;margin-bottom:6px;color:var(--color-text-primary)">操作を取り消しますか？</div>
-        <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:18px">直前の変更を元に戻します。この操作は取り消せません。</div>
+        <div style="font-size:var(--fs-base);font-weight:600;margin-bottom:6px;color:var(--color-text-primary)">操作を取り消しますか？</div>
+        <div style="font-size:var(--fs-sm);color:var(--color-text-secondary);margin-bottom:18px">直前の変更を元に戻します。この操作は取り消せません。</div>
         <div style="display:flex;gap:8px;justify-content:flex-end">
           <button class="btn" id="btn-undo-cancel">キャンセル</button>
           <button class="btn" id="btn-undo-ok" style="background:var(--color-text-danger);border-color:var(--color-text-danger);color:#fff">取り消す</button>
@@ -303,13 +311,13 @@ body{
     </div>
     <div id="dlg-settings" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;align-items:flex-start;justify-content:center;padding-top:56px">
       <div class="settings-panel" style="width:min(400px,92vw);max-height:80vh;overflow-y:auto;margin:0">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><span style="font-size:14px;font-weight:600;color:var(--color-text-primary)">設定</span><button class="btn" id="btn-close-settings"><i class="ti ti-x"></i>閉じる</button></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><span style="font-size:var(--fs-base);font-weight:600;color:var(--color-text-primary)">設定</span><button class="btn" id="btn-close-settings"><i class="ti ti-x"></i>閉じる</button></div>
         <div class="settings-section-label">管理者モード</div>
         <div class="settings-row"><input type="password" id="s-admin-pw" placeholder="管理者パスワード" style="flex:1;padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)"><button class="btn" id="btn-admin-login">ログイン</button></div>
-        <div id="admin-status" style="font-size:11px;margin-bottom:8px;color:var(--color-text-tertiary)">閲覧モード</div>
+        <div id="admin-status" style="font-size:var(--fs-xs);margin-bottom:8px;color:var(--color-text-tertiary)">閲覧モード</div>
         <hr class="divider" style="margin:10px 0">
         <div class="settings-section-label admin-only">農園名</div>
-        <div class="settings-row admin-only"><input type="text" id="s-farm-name" placeholder="例：我が家の畑" style="flex:1;font-size:13px;padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)"><button class="btn" id="btn-save-farm-name">保存</button></div>
+        <div class="settings-row admin-only"><input type="text" id="s-farm-name" placeholder="例：我が家の畑" style="flex:1;font-size:var(--fs-base);padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)"><button class="btn" id="btn-save-farm-name">保存</button></div>
         <div class="settings-row admin-only" style="flex-direction:column;align-items:stretch;gap:6px;margin-top:8px">
           <span class="settings-label">フォント</span>
           <div style="display:flex;flex-direction:column;gap:5px" id="font-options">
@@ -326,7 +334,7 @@ body{
         <div class="settings-row admin-only" style="flex-direction:column;align-items:stretch;gap:6px;margin-top:8px">
           <span class="settings-label">農園アイコン</span>
           <div id="farm-icon-picker" style="display:flex;flex-wrap:wrap;gap:6px"></div>
-          <div style="font-size:10px;color:var(--color-text-tertiary)">野菜マスタに登録されているアイコンから選択。もう一度タップで解除。</div>
+          <div style="font-size:var(--fs-xs);color:var(--color-text-tertiary)">野菜マスタに登録されているアイコンから選択。もう一度タップで解除。</div>
         </div>
         <hr class="divider admin-only" style="margin:10px 0">
         <div class="settings-section-label admin-only">グリッドサイズ</div>
@@ -339,32 +347,32 @@ body{
         <div class="settings-row admin-only" style="flex-direction:column;align-items:stretch;gap:6px">
           <div style="display:flex;align-items:center;gap:8px">
             <span class="settings-label" style="min-width:60px">通路の行</span>
-            <input type="text" id="s-aisle-rows" placeholder="例: 4, 6" style="flex:1;font-size:13px;padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)">
+            <input type="text" id="s-aisle-rows" placeholder="例: 4, 6" style="flex:1;font-size:var(--fs-base);padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)">
           </div>
           <div style="display:flex;align-items:center;gap:8px">
             <span class="settings-label" style="min-width:60px">通路の列</span>
-            <input type="text" id="s-aisle-cols" placeholder="例: 3, 5" style="flex:1;font-size:13px;padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)">
+            <input type="text" id="s-aisle-cols" placeholder="例: 3, 5" style="flex:1;font-size:var(--fs-base);padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)">
           </div>
-          <div style="font-size:10px;color:var(--color-text-tertiary)">行はA=1、B=2…として番号で入力。列は左から1, 2…。カンマ区切りで複数指定可。</div>
+          <div style="font-size:var(--fs-xs);color:var(--color-text-tertiary)">行はA=1、B=2…として番号で入力。列は左から1, 2…。カンマ区切りで複数指定可。</div>
           <button class="btn admin-only" onclick="applyAisles()" style="align-self:flex-start"><i class="ti ti-refresh"></i>適用</button>
         </div>
         <hr class="divider" style="margin:10px 0">
-        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:8px" class="admin-only">全区画データを削除します。元に戻せません。</div>
+        <div style="font-size:var(--fs-xs);color:var(--color-text-secondary);margin-bottom:8px" class="admin-only">全区画データを削除します。元に戻せません。</div>
         <button class="btn-danger-outline admin-only" onclick="resetAll()"><i class="ti ti-trash"></i>全データをリセット</button>
       </div>
     </div>
     <div style="background:#fff;padding:8px 0.5rem 10px;margin:0 -0.5rem">
       <div class="grid-wrap" id="grid-wrap"><table class="grid-table" id="grid-table"></table></div>
     </div>
-    <div class="seg-list-wrap" style="background:#edf3e3;margin:0 -0.5rem;padding:8px 0.5rem 12px">
-      <h3><i class="ti ti-leaf" style="color:#1a5c16;font-size:14px"></i>管理中の作物<span id="seg-count" style="font-size:11px;color:#2e7a28;font-weight:400;margin-left:4px"></span></h3>
+    <div class="seg-list-wrap" style="background:#f5faed;margin:0 -0.5rem;padding:8px 0.5rem 12px">
+      <h3><i class="ti ti-leaf" style="color:#1a5c16;font-size:var(--fs-base)"></i>管理中の作物<span id="seg-count" style="font-size:var(--fs-xs);color:#2e7a28;font-weight:400;margin-left:4px"></span></h3>
       <div class="seg-list" id="seg-list"></div>
     </div>
     <div class="legend"><div class="legend-title">野菜の科 — 枠線の色</div><div class="legend-grid" id="family-legend"></div></div>
   </div>
 
   <div class="screen" id="screen-manage">
-    <div class="toolbar"><button class="btn-grid-chip btn-master" onclick="goBack()"><i class="ti ti-arrow-left" style="font-size:10px"></i>グリッドへ戻る</button><div style="flex:1"></div><button class="btn-grid-chip admin-only" id="btn-complete-manage" onclick="currentTab='log';renderManage();setTimeout(()=>{const n=document.getElementById('complete-notice');if(n){n.classList.add('highlight');setTimeout(()=>n.classList.remove('highlight'),2500);}},50);" style="background:#fff;border-color:#fff;color:#c62828;font-weight:600"><i class="ti ti-flag-check" style="font-size:10px"></i>管理の完了</button></div>
+    <div class="toolbar"><button class="btn-grid-chip btn-master" onclick="goBack()"><i class="ti ti-arrow-left" style="font-size:var(--fs-xs)"></i>グリッドへ戻る</button><div style="flex:1"></div><button class="btn-grid-chip admin-only" id="btn-complete-manage" onclick="currentTab='log';renderManage();setTimeout(()=>{const n=document.getElementById('complete-notice');if(n){n.classList.add('highlight');setTimeout(()=>n.classList.remove('highlight'),2500);}},50);" style="background:#fff;border-color:#fff;color:#c62828;font-weight:600"><i class="ti ti-flag-check" style="font-size:var(--fs-xs)"></i>管理の完了</button></div>
     <div id="manage-static"></div>
     <div id="manage-content"></div>
   </div>
@@ -372,26 +380,28 @@ body{
   <div class="screen" id="screen-archive">
     <div class="toolbar">
       <button class="btn" onclick="closeArchive()"><i class="ti ti-arrow-left"></i>グリッドへ戻る</button>
-      <span style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin-left:4px">過去データ</span>
+      <span style="font-size:var(--fs-base);font-weight:500;color:var(--color-text-primary);margin-left:4px">過去データ</span>
     </div>
     <div id="archive-content"></div>
   </div>
 
   <div class="screen" id="screen-master">
     <div class="toolbar">
-      <button class="btn" onclick="closeMaster()"><i class="ti ti-arrow-left"></i>グリッドへ戻る</button>
-      <span style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin-left:4px;flex:1">野菜マスタ</span>
+      <button class="btn-grid-chip btn-master" onclick="closeMaster()"><i class="ti ti-arrow-left" style="font-size:var(--fs-xs)"></i>グリッドへ戻る</button>
+      <span style="font-size:var(--fs-base);font-weight:600;color:#fff;margin-left:4px;flex:1">野菜マスタ</span>
       <div id="master-toolbar-btns" style="display:none;gap:6px;align-items:center"></div>
     </div>
-    <div class="master-layout">
-      <div class="master-list-col">
-        <div class="master-list-header">登録済み野菜</div>
-        <div id="master-list-items"></div>
-        <button class="master-add-btn admin-only" id="btn-add-veg"><i class="ti ti-plus" style="font-size:13px"></i>野菜を追加</button>
-      </div>
-      <div class="master-detail-col" id="master-detail-col">
-        <div class="master-detail-scroll" id="master-detail-scroll">
-          <div class="master-detail-empty"><i class="ti ti-plant-2" style="font-size:24px;color:var(--color-text-tertiary)"></i>左のリストから野菜を選択</div>
+    <div id="master-content">
+      <div class="master-layout">
+        <div class="master-list-col">
+          <div class="master-list-header">登録済み野菜</div>
+          <div id="master-list-items"></div>
+          <button class="master-add-btn admin-only" id="btn-add-veg"><i class="ti ti-plus" style="font-size:var(--fs-base)"></i>野菜を追加</button>
+        </div>
+        <div class="master-detail-col" id="master-detail-col">
+          <div class="master-detail-scroll" id="master-detail-scroll">
+            <div class="master-detail-empty"><i class="ti ti-plant-2" style="font-size:24px;color:var(--color-text-tertiary)"></i>左のリストから野菜を選択</div>
+          </div>
         </div>
       </div>
     </div>
@@ -401,25 +411,25 @@ body{
 <div id="dlg-register" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:99;background:rgba(0,0,0,0.4)">
   <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.25rem;min-width:260px;max-width:320px;width:90%">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <div style="font-size:14px;font-weight:500;display:flex;align-items:center;gap:6px"><i class="ti ti-plant-2" style="color:#5aad4e"></i>区画を登録</div>
+      <div style="font-size:var(--fs-base);font-weight:500;display:flex;align-items:center;gap:6px"><i class="ti ti-plant-2" style="color:#5aad4e"></i>区画を登録</div>
       <button id="btn-dlg-cancel" style="background:none;border:none;padding:2px 4px;cursor:pointer;color:var(--color-text-tertiary);font-size:18px;line-height:1;flex-shrink:0">✕</button>
     </div>
-    <div id="dlg-preview" style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:12px"></div>
-    <div id="dlg-no-veg" style="display:none;margin-bottom:14px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);font-size:12px;color:var(--color-text-secondary);line-height:1.6">登録できる野菜がありません。<br>先に野菜マスタで野菜を追加してください。<br><button id="dlg-go-master" class="btn-primary" style="margin-top:8px;font-size:12px;padding:5px 14px">野菜マスタで追加する</button></div>
-    <div id="dlg-crop-field" class="dlg-field"><label>作物</label><select id="dlg-crop"><option value="">— 選択してください —</option></select><div style="margin-top:5px"><button id="dlg-add-new-veg" style="font-size:11px;color:var(--color-text-secondary);background:none;border:none;cursor:pointer;padding:0;display:inline-flex;align-items:center;gap:3px"><i class="ti ti-plus" style="font-size:11px"></i>新しい野菜を追加する</button></div></div>
-    <div id="dlg-date-field" class="dlg-field"><label>作業開始日</label><div style="display:flex;gap:8px;align-items:center"><input type="date" id="dlg-date-input" style="flex:1;min-width:0;padding:8px 10px;border-radius:var(--border-radius-md);border:1px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:14px;box-sizing:border-box"><button class="btn-primary" id="dlg-save" disabled style="flex-shrink:0;white-space:nowrap">登録</button></div></div>
-    <div id="dlg-rotation-warn" style="display:none;margin-bottom:12px;padding:9px 11px;border-radius:var(--border-radius-md);background:#FAEEDA;border:1px solid #EF9F27;font-size:11px;color:#92600B;line-height:1.6"></div>
+    <div id="dlg-preview" style="font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-bottom:12px"></div>
+    <div id="dlg-no-veg" style="display:none;margin-bottom:14px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);font-size:var(--fs-sm);color:var(--color-text-secondary);line-height:1.6">登録できる野菜がありません。<br>先に野菜マスタで野菜を追加してください。<br><button id="dlg-go-master" class="btn-primary" style="margin-top:8px;font-size:var(--fs-sm);padding:5px 14px">野菜マスタで追加する</button></div>
+    <div id="dlg-crop-field" class="dlg-field"><label>作物</label><select id="dlg-crop"><option value="">— 選択してください —</option></select><div style="margin-top:5px"><button id="dlg-add-new-veg" style="font-size:var(--fs-xs);color:var(--color-text-secondary);background:none;border:none;cursor:pointer;padding:0;display:inline-flex;align-items:center;gap:3px"><i class="ti ti-plus" style="font-size:var(--fs-xs)"></i>新しい野菜を追加する</button></div></div>
+    <div id="dlg-date-field" class="dlg-field"><label>作業開始日</label><div style="display:flex;gap:8px;align-items:center"><input type="date" id="dlg-date-input" style="flex:1;min-width:0;padding:8px 10px;border-radius:var(--border-radius-md);border:1px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:var(--fs-base);box-sizing:border-box"><button class="btn-primary" id="dlg-save" disabled style="flex-shrink:0;white-space:nowrap">登録</button></div></div>
+    <div id="dlg-rotation-warn" style="display:none;margin-bottom:12px;padding:9px 11px;border-radius:var(--border-radius-md);background:#FAEEDA;border:1px solid #EF9F27;font-size:var(--fs-xs);color:#92600B;line-height:1.6"></div>
   </div>
 </div>
 
 <div id="dlg-add-veg" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:99;background:rgba(0,0,0,0.4)">
   <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.25rem;min-width:260px;max-width:340px;width:90%;max-height:90vh;overflow-y:auto">
-    <div style="font-size:14px;font-weight:500;margin-bottom:14px;display:flex;align-items:center;gap:6px"><i class="ti ti-plant" style="color:#5aad4e"></i>野菜を追加</div>
+    <div style="font-size:var(--fs-base);font-weight:500;margin-bottom:14px;display:flex;align-items:center;gap:6px"><i class="ti ti-plant" style="color:#5aad4e"></i>野菜を追加</div>
     <div class="dlg-field"><label>プリセットから選ぶ</label><select id="av-preset"><option value="">— プリセット野菜 —</option></select></div>
-    <div style="font-size:11px;color:var(--color-text-tertiary);text-align:center;margin:2px 0 6px">または</div>
+    <div style="font-size:var(--fs-xs);color:var(--color-text-tertiary);text-align:center;margin:2px 0 6px">または</div>
     <div class="dlg-field"><label>野菜名（自由入力）</label><input type="text" id="av-name" placeholder="例：パプリカ"></div>
     <div class="dlg-field"><label>品種・メモ（任意）</label><input type="text" id="av-variety" placeholder="例：ミニ、大玉など"></div>
-    <div class="dlg-field"><label>アイコン</label><div class="emoji-grid" id="av-emoji-grid"></div><div style="margin-top:6px;display:flex;align-items:center;gap:8px"><button type="button" class="btn" id="btn-upload-icon" style="font-size:11px"><i class="ti ti-upload"></i>画像をアップロード</button><span id="upload-icon-hint" style="font-size:10px;color:var(--color-text-tertiary)">JPEG・PNG・WebP／2MB以内</span></div><input type="file" id="av-icon-upload" accept="image/jpeg,image/png,image/webp" style="display:none"><div id="upload-icon-error" style="display:none;font-size:11px;color:var(--color-text-danger);margin-top:4px"></div></div><div class="dlg-field"><label>育成方法</label><select id="av-grow-method" style="width:100%;font-size:13px;padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)"><option value="seedling">苗から</option><option value="seed_pot">種（ポット）から</option><option value="seed_ground">種（地植え）から</option></select></div><div class="dlg-field"><label>参考URL（任意）</label><input type="url" id="av-ref-url" placeholder="https://..." style="width:100%;font-size:13px;padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)"></div>
+    <div class="dlg-field"><label>アイコン</label><div class="emoji-grid" id="av-emoji-grid"></div><div style="margin-top:6px;display:flex;align-items:center;gap:8px"><button type="button" class="btn" id="btn-upload-icon" style="font-size:var(--fs-xs)"><i class="ti ti-upload"></i>画像をアップロード</button><span id="upload-icon-hint" style="font-size:var(--fs-xs);color:var(--color-text-tertiary)">JPEG・PNG・WebP／2MB以内</span></div><input type="file" id="av-icon-upload" accept="image/jpeg,image/png,image/webp" style="display:none"><div id="upload-icon-error" style="display:none;font-size:var(--fs-xs);color:var(--color-text-danger);margin-top:4px"></div></div><div class="dlg-field"><label>育成方法</label><select id="av-grow-method" style="width:100%;font-size:var(--fs-base);padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)"><option value="seedling">苗から</option><option value="seed_pot">種（ポット）から</option><option value="seed_ground">種（地植え）から</option></select></div><div class="dlg-field"><label>参考URL（任意）</label><input type="url" id="av-ref-url" placeholder="https://..." style="width:100%;font-size:var(--fs-base);padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)"></div>
     <div class="dlg-btns">
       <button class="btn" id="btn-add-veg-cancel">キャンセル</button>
       <button class="btn-primary" id="av-next" disabled>次へ（ロードマップ生成）</button>
@@ -431,10 +441,10 @@ body{
 
 <div id="task-chip-menu" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:120;background:rgba(0,0,0,0.25)" onclick="this.style.display='none'">
   <div style="background:var(--color-background-primary);border-radius:12px;padding:16px 18px;width:80%;max-width:280px;box-shadow:0 8px 32px rgba(0,0,0,0.18)" onclick="event.stopPropagation()">
-    <div style="font-size:12px;color:var(--color-text-tertiary);text-align:center;margin-bottom:12px" id="task-chip-menu-label"></div>
+    <div style="font-size:var(--fs-sm);color:var(--color-text-tertiary);text-align:center;margin-bottom:12px" id="task-chip-menu-label"></div>
     <div style="display:flex;flex-direction:column;gap:8px">
-      <button class="btn" style="width:100%;justify-content:center;font-size:13px" onclick="if(window._chipEdit)window._chipEdit()"><i class="ti ti-pencil"></i>日付を変更</button>
-      <button class="btn" style="width:100%;justify-content:center;font-size:13px;color:var(--color-text-danger);border-color:var(--color-border-danger)" onclick="if(window._chipDelete)window._chipDelete()"><i class="ti ti-trash"></i>この記録を削除</button>
+      <button class="btn" style="width:100%;justify-content:center;font-size:var(--fs-base)" onclick="if(window._chipEdit)window._chipEdit()"><i class="ti ti-pencil"></i>日付を変更</button>
+      <button class="btn" style="width:100%;justify-content:center;font-size:var(--fs-base);color:var(--color-text-danger);border-color:var(--color-border-danger)" onclick="if(window._chipDelete)window._chipDelete()"><i class="ti ti-trash"></i>この記録を削除</button>
     </div>
   </div>
 </div>
@@ -443,8 +453,8 @@ body{
 <div id="dlg-milestone" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:115;background:rgba(0,0,0,0.4)" onclick="this.style.display='none'">
   <div style="background:var(--color-background-primary);border-radius:16px;padding:28px 20px;width:88%;max-width:320px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.2)" onclick="event.stopPropagation()">
     <img id="dlg-milestone-img" src="data:," style="width:182px;height:182px;object-fit:contain;margin-bottom:12px">
-    <div id="dlg-milestone-title" style="font-size:16px;font-weight:700;color:var(--color-text-primary);margin-bottom:6px"></div>
-    <div id="dlg-milestone-msg" style="font-size:13px;color:var(--color-text-secondary);line-height:1.6;margin-bottom:18px"></div>
+    <div id="dlg-milestone-title" style="font-size:var(--fs-md);font-weight:700;color:var(--color-text-primary);margin-bottom:6px"></div>
+    <div id="dlg-milestone-msg" style="font-size:var(--fs-base);color:var(--color-text-secondary);line-height:1.6;margin-bottom:18px"></div>
     <button class="btn-primary" onclick="document.getElementById('dlg-milestone').style.display='none'">ありがとう！</button>
   </div>
 </div>
@@ -453,13 +463,13 @@ body{
   <div style="background:var(--color-background-primary);border-radius:12px;padding:16px 16px 18px;width:88%;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,0.18)" onclick="event.stopPropagation()">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2px">
       <div>
-        <div style="font-size:14px;font-weight:600;color:var(--color-text-primary)" id="dlg-task-date-title">実施日を選択</div>
-        <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px" id="dlg-task-date-name"></div>
+        <div style="font-size:var(--fs-base);font-weight:600;color:var(--color-text-primary)" id="dlg-task-date-title">実施日を選択</div>
+        <div style="font-size:var(--fs-sm);color:var(--color-text-secondary);margin-top:2px" id="dlg-task-date-name"></div>
       </div>
       <button onclick="document.getElementById('dlg-task-date').style.display='none';if(window._taskDateCancel)window._taskDateCancel();" style="background:none;border:none;padding:2px 4px;cursor:pointer;color:var(--color-text-tertiary);font-size:18px;line-height:1;flex-shrink:0">✕</button>
     </div>
     <div style="display:flex;gap:8px;align-items:center;margin-top:14px">
-      <input type="date" id="dlg-task-date-input" style="flex:1;min-width:0;padding:10px 8px;border-radius:8px;border:1px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:16px;box-sizing:border-box">
+      <input type="date" id="dlg-task-date-input" style="flex:1;min-width:0;padding:10px 8px;border-radius:8px;border:1px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:var(--fs-md);box-sizing:border-box">
       <button class="btn-primary" style="flex-shrink:0;white-space:nowrap" onclick="document.getElementById('dlg-task-date').style.display='none';if(window._taskDateConfirm)window._taskDateConfirm(document.getElementById('dlg-task-date-input').value);">記録</button>
     </div>
   </div>
@@ -468,16 +478,16 @@ body{
 <div id="dlg-archive-done" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:110;background:rgba(0,0,0,0.35)" onclick="this.style.display='none'">
   <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.5rem 1.25rem;min-width:260px;max-width:320px;width:88%;text-align:center" onclick="event.stopPropagation()">
     <div style="font-size:32px;margin-bottom:10px">🌱</div>
-    <div style="font-size:14px;font-weight:600;color:var(--color-text-primary);margin-bottom:10px">アーカイブが完了しました</div>
-    <div style="font-size:12px;color:var(--color-text-secondary);line-height:1.7;margin-bottom:16px">以後、過去データからこの内容が確認できます。<br>よく頑張りましたね。お疲れ様でした！</div>
-    <button class="btn-primary" style="width:100%;font-size:13px;padding:9px" onclick="document.getElementById('dlg-archive-done').style.display='none'">閉じる</button>
+    <div style="font-size:var(--fs-base);font-weight:600;color:var(--color-text-primary);margin-bottom:10px">アーカイブが完了しました</div>
+    <div style="font-size:var(--fs-sm);color:var(--color-text-secondary);line-height:1.7;margin-bottom:16px">以後、過去データからこの内容が確認できます。<br>よく頑張りましたね。お疲れ様でした！</div>
+    <button class="btn-primary" style="width:100%;font-size:var(--fs-base);padding:9px" onclick="document.getElementById('dlg-archive-done').style.display='none'">閉じる</button>
   </div>
 </div>
 <div id="dlg-complete-confirm" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:100;background:rgba(0,0,0,0.4)">
   <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.25rem;min-width:260px;max-width:340px;width:90%;max-height:90vh;overflow-y:auto">
-    <div style="font-size:14px;font-weight:500;margin-bottom:12px;display:flex;align-items:center;gap:6px;color:var(--color-text-danger)"><i class="ti ti-alert-triangle"></i>この野菜の管理を完了しますか？</div>
-    <div id="dlg-complete-target" style="font-size:13px;font-weight:500;margin-bottom:10px"></div>
-    <ul style="font-size:12px;color:var(--color-text-secondary);line-height:1.7;margin:0 0 4px 18px;padding:0">
+    <div style="font-size:var(--fs-base);font-weight:500;margin-bottom:12px;display:flex;align-items:center;gap:6px;color:var(--color-text-danger)"><i class="ti ti-alert-triangle"></i>この野菜の管理を完了しますか？</div>
+    <div id="dlg-complete-target" style="font-size:var(--fs-base);font-weight:500;margin-bottom:10px"></div>
+    <ul style="font-size:var(--fs-sm);color:var(--color-text-secondary);line-height:1.7;margin:0 0 4px 18px;padding:0">
       <li>この操作は<b style="color:var(--color-text-danger)">取り消せません</b></li>
       <li>この区画は<b>グリッドから消えます</b>（枠は未登録状態に戻ります）</li>
       <li>作業ログ・収量・全体メモは<b>アーカイブに保存され</b>、削除されません</li>
@@ -844,7 +854,7 @@ document.getElementById('dlg-crop').addEventListener('change',()=>{
   const hits=checkRotation(pendingRow,cols).filter(a=>a.family===veg.family);
   if(!hits.length)return;
   const h=hits[0];const months=Math.round(daysBetween(h.completedDate,todayISO())/30);
-  warn.innerHTML=`<i class="ti ti-alert-triangle" style="font-size:11px;margin-right:3px"></i>このエリアでは<strong>${months}ヶ月前</strong>に${h.family}（${h.cropName}）を栽培していました。連作障害に注意してください。`;
+  warn.innerHTML=`<i class="ti ti-alert-triangle" style="font-size:var(--fs-xs);margin-right:3px"></i>このエリアでは<strong>${months}ヶ月前</strong>に${h.family}（${h.cropName}）を栽培していました。連作障害に注意してください。`;
   warn.style.display='block';
 });
 document.getElementById('btn-dlg-cancel').addEventListener('click',()=>{document.getElementById('dlg-register').style.display='none';pendingRow=-1;pendingStart=-1;pendingEnd=-1;renderGrid();});
@@ -882,11 +892,11 @@ function renderSnapshotViewer(el){
   const snaps=getSnapshots();
   const wrap=document.createElement('div');
   wrap.style.cssText='background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);padding:12px 14px';
-  const secTitle1=document.createElement('div');secTitle1.style.cssText='font-size:11px;font-weight:600;color:var(--color-text-secondary);letter-spacing:0.04em;margin-bottom:10px;display:flex;align-items:center;gap:5px';secTitle1.innerHTML='<i class="ti ti-layout-grid" style="font-size:11px"></i>畑レイアウト履歴';wrap.appendChild(secTitle1);
+  const secTitle1=document.createElement('div');secTitle1.style.cssText='font-size:var(--fs-xs);font-weight:600;color:var(--color-text-secondary);letter-spacing:0.04em;margin-bottom:10px;display:flex;align-items:center;gap:5px';secTitle1.innerHTML='<i class="ti ti-layout-grid" style="font-size:var(--fs-xs)"></i>畑レイアウト履歴';wrap.appendChild(secTitle1);
 
   if(!snaps.length){
     const note=document.createElement('div');
-    note.style.cssText='font-size:11px;color:var(--color-text-tertiary);text-align:center;padding:8px 0';
+    note.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary);text-align:center;padding:8px 0';
     note.textContent='スナップショットはまだありません（作物完了時に自動記録されます）';
     wrap.appendChild(note);el.appendChild(wrap);return;
   }
@@ -930,7 +940,7 @@ function renderSnapshotViewer(el){
     const legend=document.createElement('div');legend.style.cssText='display:flex;flex-wrap:wrap;gap:6px;margin-top:6px';
     families.forEach(fam=>{
       const fs=famStyle(fam);if(!fs)return;
-      const chip=document.createElement('div');chip.style.cssText='display:flex;align-items:center;gap:3px;font-size:10px;color:var(--color-text-secondary)';
+      const chip=document.createElement('div');chip.style.cssText='display:flex;align-items:center;gap:3px;font-size:var(--fs-xs);color:var(--color-text-secondary)';
       chip.innerHTML=`<div style="width:9px;height:9px;border-radius:2px;background:${fs.bg};border:1px solid ${fs.border}"></div>${fam}`;
       legend.appendChild(chip);
     });
@@ -941,26 +951,26 @@ function renderSnapshotViewer(el){
   // ナビゲーションバー（← 日付▾ →）
   const nav=document.createElement('div');nav.style.cssText='display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px';
   const prevBtn=document.createElement('button');
-  prevBtn.style.cssText='width:28px;height:28px;border-radius:50%;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--color-text-primary)';
+  prevBtn.style.cssText='width:28px;height:28px;border-radius:50%;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:var(--fs-base);color:var(--color-text-primary)';
   prevBtn.innerHTML='<i class="ti ti-chevron-left"></i>';
   prevBtn.disabled=currentSnapshotIdx>=snaps.length-1;
   prevBtn.style.opacity=prevBtn.disabled?'0.3':'1';
   prevBtn.addEventListener('click',()=>{currentSnapshotIdx++;renderArchive();});
 
   const nextBtn=document.createElement('button');
-  nextBtn.style.cssText='width:28px;height:28px;border-radius:50%;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--color-text-primary)';
+  nextBtn.style.cssText='width:28px;height:28px;border-radius:50%;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:var(--fs-base);color:var(--color-text-primary)';
   nextBtn.innerHTML='<i class="ti ti-chevron-right"></i>';
   nextBtn.disabled=currentSnapshotIdx<=0;
   nextBtn.style.opacity=nextBtn.disabled?'0.3':'1';
   nextBtn.addEventListener('click',()=>{currentSnapshotIdx--;renderArchive();});
 
   const dateBtn=document.createElement('button');
-  dateBtn.style.cssText='font-size:12px;font-weight:500;color:var(--color-text-primary);background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:4px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:4px';
-  dateBtn.innerHTML=`${isoShort(snap.completedDate)}<i class="ti ti-calendar" style="font-size:11px;color:var(--color-text-tertiary)"></i>`;
+  dateBtn.style.cssText='font-size:var(--fs-sm);font-weight:500;color:var(--color-text-primary);background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:4px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:4px';
+  dateBtn.innerHTML=`${isoShort(snap.completedDate)}<i class="ti ti-calendar" style="font-size:var(--fs-xs);color:var(--color-text-tertiary)"></i>`;
   dateBtn.addEventListener('click',()=>openSnapshotCalendar(snaps));
 
   const counter=document.createElement('span');
-  counter.style.cssText='font-size:10px;color:var(--color-text-tertiary);position:absolute;right:14px';
+  counter.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary);position:absolute;right:14px';
   counter.textContent=`${snaps.length-currentSnapshotIdx}/${snaps.length}`;
 
   nav.style.position='relative';
@@ -984,19 +994,19 @@ function openSnapshotCalendar(snaps){
 
     // ヘッダ
     const hdr=document.createElement('div');hdr.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:12px';
-    const mPrev=document.createElement('button');mPrev.innerHTML='<i class="ti ti-chevron-left"></i>';mPrev.style.cssText='background:none;border:none;cursor:pointer;font-size:16px;color:var(--color-text-primary);padding:4px';
+    const mPrev=document.createElement('button');mPrev.innerHTML='<i class="ti ti-chevron-left"></i>';mPrev.style.cssText='background:none;border:none;cursor:pointer;font-size:var(--fs-md);color:var(--color-text-primary);padding:4px';
     mPrev.addEventListener('click',()=>{calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCal();});
-    const mNext=document.createElement('button');mNext.innerHTML='<i class="ti ti-chevron-right"></i>';mNext.style.cssText='background:none;border:none;cursor:pointer;font-size:16px;color:var(--color-text-primary);padding:4px';
+    const mNext=document.createElement('button');mNext.innerHTML='<i class="ti ti-chevron-right"></i>';mNext.style.cssText='background:none;border:none;cursor:pointer;font-size:var(--fs-md);color:var(--color-text-primary);padding:4px';
     mNext.addEventListener('click',()=>{calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCal();});
-    const mLabel=document.createElement('span');mLabel.style.cssText='font-size:14px;font-weight:500';mLabel.textContent=`${calYear}年${calMonth+1}月`;
-    const closeBtn=document.createElement('button');closeBtn.innerHTML='<i class="ti ti-x"></i>';closeBtn.style.cssText='background:none;border:none;cursor:pointer;font-size:16px;color:var(--color-text-secondary);padding:4px';
+    const mLabel=document.createElement('span');mLabel.style.cssText='font-size:var(--fs-base);font-weight:500';mLabel.textContent=`${calYear}年${calMonth+1}月`;
+    const closeBtn=document.createElement('button');closeBtn.innerHTML='<i class="ti ti-x"></i>';closeBtn.style.cssText='background:none;border:none;cursor:pointer;font-size:var(--fs-md);color:var(--color-text-secondary);padding:4px';
     closeBtn.addEventListener('click',()=>overlay.remove());
     hdr.append(mPrev,mLabel,mNext,closeBtn);panel.appendChild(hdr);
 
     // 曜日ヘッダ
     const dayNames=['日','月','火','水','木','金','土'];
     const dayHdr=document.createElement('div');dayHdr.style.cssText='display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px';
-    dayNames.forEach((d,i)=>{const dh=document.createElement('div');dh.style.cssText=`text-align:center;font-size:10px;color:${i===0?'#D85A30':i===6?'#378ADD':'var(--color-text-tertiary)'}`;dh.textContent=d;dayHdr.appendChild(dh);});
+    dayNames.forEach((d,i)=>{const dh=document.createElement('div');dh.style.cssText=`text-align:center;font-size:var(--fs-xs);color:${i===0?'#D85A30':i===6?'#378ADD':'var(--color-text-tertiary)'}`;dh.textContent=d;dayHdr.appendChild(dh);});
     panel.appendChild(dayHdr);
 
     // カレンダーグリッド
@@ -1009,7 +1019,7 @@ function openSnapshotCalendar(snaps){
       const hasSnap=availDates.has(dateStr);
       const isSelected=snaps[currentSnapshotIdx].completedDate===dateStr;
       const cell=document.createElement('div');
-      cell.style.cssText=`text-align:center;padding:6px 2px;border-radius:6px;font-size:13px;cursor:${hasSnap?'pointer':'default'};color:${hasSnap?(isSelected?'#fff':'var(--color-text-primary)'):'var(--color-border-secondary)'};background:${isSelected?'#5aad4e':hasSnap?'var(--color-background-secondary)':'transparent'};font-weight:${hasSnap?'500':'400'}`;
+      cell.style.cssText=`text-align:center;padding:6px 2px;border-radius:6px;font-size:var(--fs-base);cursor:${hasSnap?'pointer':'default'};color:${hasSnap?(isSelected?'#fff':'var(--color-text-primary)'):'var(--color-border-secondary)'};background:${isSelected?'#5aad4e':hasSnap?'var(--color-background-secondary)':'transparent'};font-weight:${hasSnap?'500':'400'}`;
       cell.textContent=d;
       if(hasSnap){
         if(!isSelected){
@@ -1038,7 +1048,7 @@ function renderArchive(){
   if(!entries.length){const emp=document.createElement('div');emp.className='archive-empty';emp.innerHTML='<i class="ti ti-database" style="font-size:24px;display:block;margin-bottom:8px;opacity:0.3"></i>過去データはまだありません';el.appendChild(emp);return;}
 
   // 栽培履歴 見出し
-  const secTitle2=document.createElement('div');secTitle2.style.cssText='font-size:11px;font-weight:600;color:var(--color-text-secondary);letter-spacing:0.04em;margin:14px 0 8px;display:flex;align-items:center;gap:5px;padding:0 2px';secTitle2.innerHTML='<i class="ti ti-plant-2" style="font-size:11px"></i>栽培履歴';el.appendChild(secTitle2);
+  const secTitle2=document.createElement('div');secTitle2.style.cssText='font-size:var(--fs-xs);font-weight:600;color:var(--color-text-secondary);letter-spacing:0.04em;margin:14px 0 8px;display:flex;align-items:center;gap:5px;padding:0 2px';secTitle2.innerHTML='<i class="ti ti-plant-2" style="font-size:var(--fs-xs)"></i>栽培履歴';el.appendChild(secTitle2);
 
   // ソートバー
   const sortBar=document.createElement('div');sortBar.className='archive-sort-bar';
@@ -1071,7 +1081,7 @@ function renderArchive(){
     const midLabel=isSeedArch?'種まき':'定植';
     const midVal=isSeedArch?(arch.sowingDate?isoShort(arch.sowingDate):'—'):(arch.plantingDate?isoShort(arch.plantingDate):'—');
     const areaLabel=`${arch.row+1}行 ${Math.min(...arch.cols)+1}〜${Math.max(...arch.cols)+1}列`;
-    meta.innerHTML=`<span class="archive-card-stat"><i class="ti ti-calendar" style="font-size:11px"></i>開始：${startVal}</span><span class="archive-card-stat"><i class="ti ti-plant-2" style="font-size:11px"></i>${midLabel}：${midVal}</span><span class="archive-card-stat"><i class="ti ti-layout-grid" style="font-size:11px"></i>${areaLabel}</span><span class="archive-card-stat"><i class="ti ti-basket" style="font-size:11px;color:#2e7a28"></i><span style="color:#2e7a28">${harvestVal}</span></span>`;
+    meta.innerHTML=`<span class="archive-card-stat"><i class="ti ti-calendar" style="font-size:var(--fs-xs)"></i>開始：${startVal}</span><span class="archive-card-stat"><i class="ti ti-plant-2" style="font-size:var(--fs-xs)"></i>${midLabel}：${midVal}</span><span class="archive-card-stat"><i class="ti ti-layout-grid" style="font-size:var(--fs-xs)"></i>${areaLabel}</span><span class="archive-card-stat"><i class="ti ti-basket" style="font-size:var(--fs-xs);color:#2e7a28"></i><span style="color:#2e7a28">${harvestVal}</span></span>`;
     card.append(hdr,meta);
     card.addEventListener('click',()=>{archiveDetailSeg=arch.segId;renderArchive();});
     el.appendChild(card);
@@ -1083,7 +1093,7 @@ function renderArchiveDetail(el,segId){
   const veg=vegMaster[arch.cropId];
 
   // 戻るリンク
-  const backBtn=document.createElement('div');backBtn.className='archive-detail-back';backBtn.innerHTML='<i class="ti ti-arrow-left" style="font-size:12px"></i>リストへ戻る';backBtn.addEventListener('click',()=>{archiveDetailSeg=null;renderArchive();});el.appendChild(backBtn);
+  const backBtn=document.createElement('div');backBtn.className='archive-detail-back';backBtn.innerHTML='<i class="ti ti-arrow-left" style="font-size:var(--fs-sm)"></i>リストへ戻る';backBtn.addEventListener('click',()=>{archiveDetailSeg=null;renderArchive();});el.appendChild(backBtn);
 
   // ヘッダー
   const hdr=document.createElement('div');hdr.className='manage-header';
@@ -1112,7 +1122,7 @@ function renderArchiveDetail(el,segId){
   const miniGridWrap=document.createElement('div');
   miniGridWrap.style.cssText='margin-bottom:10px';
   const miniGridLabel=document.createElement('div');
-  miniGridLabel.style.cssText='font-size:10px;color:var(--color-text-tertiary);margin-bottom:6px';
+  miniGridLabel.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-bottom:6px';
   miniGridLabel.textContent='栽培エリア（完了時のグリッド状態）';
   miniGridWrap.appendChild(miniGridLabel);
   const gs=arch.gridSnapshot||[];
@@ -1146,10 +1156,10 @@ function renderArchiveDetail(el,segId){
     }
   }
   if(gs.length===0){
-    const note=document.createElement('div');note.style.cssText='font-size:11px;color:var(--color-text-tertiary)';note.textContent='（スナップショットなし — 完了時に自動記録されます）';miniGridWrap.appendChild(note);
+    const note=document.createElement('div');note.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary)';note.textContent='（スナップショットなし — 完了時に自動記録されます）';miniGridWrap.appendChild(note);
   } else {
     const areaLabel=document.createElement('div');
-    areaLabel.style.cssText='font-size:11px;color:var(--color-text-secondary);margin-bottom:4px;font-weight:500';
+    areaLabel.style.cssText='font-size:var(--fs-xs);color:var(--color-text-secondary);margin-bottom:4px;font-weight:500';
     areaLabel.textContent=`${arch.row+1}行 ${Math.min(...arch.cols)+1}〜${Math.max(...arch.cols)+1}列`;
     miniGridWrap.appendChild(areaLabel);
     miniGridWrap.appendChild(grid);
@@ -1159,7 +1169,7 @@ function renderArchiveDetail(el,segId){
       const legend=document.createElement('div');legend.style.cssText='display:flex;flex-wrap:wrap;gap:6px;margin-top:6px';
       [{family:arch.family,isSelf:true},...families.map(f=>({family:f,isSelf:false}))].forEach(({family,isSelf})=>{
         const fs2=famStyle(family);if(!fs2)return;
-        const chip=document.createElement('div');chip.style.cssText='display:flex;align-items:center;gap:3px;font-size:10px;color:var(--color-text-secondary)';
+        const chip=document.createElement('div');chip.style.cssText='display:flex;align-items:center;gap:3px;font-size:var(--fs-xs);color:var(--color-text-secondary)';
         chip.innerHTML=`<div style="width:10px;height:10px;border-radius:2px;background:${fs2.bg};border:${isSelf?'2':'1'}px solid ${fs2.border}"></div>${family}${isSelf?' (本作)':''}`;
         legend.appendChild(chip);
       });
@@ -1170,13 +1180,13 @@ function renderArchiveDetail(el,segId){
 
   // 全体メモ（読み取り専用）
   const memo=segSummaryMemo[segId]||'';
-  if(memo){const memoBox=document.createElement('div');memoBox.className='summary-memo-box';memoBox.innerHTML=`<div class="summary-memo-header"><i class="ti ti-notes" style="color:#9c9a93"></i>全体メモ</div><div class="summary-memo-body" style="font-size:12px;line-height:1.6;color:var(--color-text-primary);white-space:pre-wrap">${memo}</div>`;summary.appendChild(memoBox);}
+  if(memo){const memoBox=document.createElement('div');memoBox.className='summary-memo-box';memoBox.innerHTML=`<div class="summary-memo-header"><i class="ti ti-notes" style="color:#9c9a93"></i>全体メモ</div><div class="summary-memo-body" style="font-size:var(--fs-sm);line-height:1.6;color:var(--color-text-primary);white-space:pre-wrap">${memo}</div>`;summary.appendChild(memoBox);}
   el.appendChild(summary);
 
   // 作業履歴
-  const logTitle=document.createElement('div');logTitle.className='log-section-title';logTitle.innerHTML='<i class="ti ti-clock" style="font-size:13px"></i>作業履歴';el.appendChild(logTitle);
+  const logTitle=document.createElement('div');logTitle.className='log-section-title';logTitle.innerHTML='<i class="ti ti-clock" style="font-size:var(--fs-base)"></i>作業履歴';el.appendChild(logTitle);
   const byDate=getMergedLogsByDate(segId);const sortedDates=Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
-  if(!sortedDates.length){const p=document.createElement('p');p.style.cssText='font-size:11px;color:#9c9a93;padding:4px 0';p.textContent='作業記録がありません。';el.appendChild(p);}
+  if(!sortedDates.length){const p=document.createElement('p');p.style.cssText='font-size:var(--fs-xs);color:#9c9a93;padding:4px 0';p.textContent='作業記録がありません。';el.appendChild(p);}
   else{sortedDates.forEach(date=>{const group=document.createElement('div');group.className='log-date-group';const ghdr=document.createElement('div');ghdr.className='log-date-header';ghdr.innerHTML=`<span class="log-date-label">${isoFull(date)}</span><div class="log-date-line"></div>`;group.appendChild(ghdr);byDate[date].forEach(item=>{const isHarvest=item._type==='harvest';const entry=document.createElement('div');entry.className='log-entry';const icon=document.createElement('div');icon.className=`log-entry-icon ${isHarvest?'harvest':'task'}`;icon.innerHTML=`<i class="ti ${isHarvest?'ti-basket':'ti-check'}" aria-hidden="true"></i>`;const title=document.createElement('div');title.className='log-entry-title';title.textContent=isHarvest?'収穫':item.task;entry.append(icon,title);if(isHarvest){const badge=document.createElement('div');badge.className='log-entry-badge';badge.textContent=`${item.amount} ${item.unit}`;entry.appendChild(badge);}group.appendChild(entry);});el.appendChild(group);});}
 }
 
@@ -1194,7 +1204,7 @@ function renderManage(){
   st.appendChild(hdr);
   const tabs=[{id:'basic',icon:'ti-plant',label:'基礎知識'},{id:'roadmap',icon:'ti-road',label:'ロードマップ'},{id:'harvest',icon:'ti-basket',label:'収量'},{id:'log',icon:'ti-clipboard-list',label:'作業ログ'}];
   const tabBar=document.createElement('div');tabBar.className='tab-bar';tabBar.style.margin='0 0 0';
-  tabs.forEach(tab=>{const btn=document.createElement('div');btn.className='tab-btn'+(currentTab===tab.id?' active':'');btn.innerHTML=`<i class="ti ${tab.icon}" style="font-size:12px"></i>${tab.label}`;btn.addEventListener('click',()=>{currentTab=tab.id;renderManage();});tabBar.appendChild(btn);});
+  tabs.forEach(tab=>{const btn=document.createElement('div');btn.className='tab-btn'+(currentTab===tab.id?' active':'');btn.innerHTML=`<i class="ti ${tab.icon}" style="font-size:var(--fs-sm)"></i>${tab.label}`;btn.addEventListener('click',()=>{currentTab=tab.id;renderManage();});tabBar.appendChild(btn);});
   st.appendChild(tabBar);
   if(currentTab==='roadmap')renderRoadmapTab(el,seg,veg);
   else if(currentTab==='log')renderLogTab(el,seg);
@@ -1215,7 +1225,7 @@ function renderRoadmapTab(el,seg,veg){
       const scheduledDate=seg.plantDate?addDays(seg.plantDate,task.day):null;const dayLabel=`+${task.day}日${scheduledDate?' ('+scheduledDate+')':''}`;
       const main=document.createElement('div');main.className='task-main';const cbWrap=document.createElement('div');cbWrap.className='task-cb-wrap';const cb=document.createElement('input');cb.type='checkbox';cb.className='task-cb';cb.checked=state.done;cbWrap.appendChild(cb);
       const clickable=document.createElement('div');clickable.className='task-clickable';const body=document.createElement('div');body.className='task-body';const nameEl=document.createElement('div');nameEl.className='task-name'+(state.done?' done-text':'');nameEl.textContent=task.name;const descEl=document.createElement('div');descEl.className='task-desc';descEl.textContent=task.desc;const datesWrap=document.createElement('div');datesWrap.className='task-dates';(state.doneDates||[]).forEach((d,di)=>{const chip=document.createElement('div');chip.className='task-date-chip';chip.style.cursor='pointer';chip.textContent=d;chip.addEventListener('click',e=>{e.stopPropagation();const menu=document.getElementById('task-chip-menu');menu.style.display='flex';document.getElementById('task-chip-menu-label').textContent=d;window._chipEdit=()=>{menu.style.display='none';showTaskDateDialog('日付を変更',task.name,(dateVal)=>{if(!dateVal)return;pushUndo();const dates=[...(state.doneDates||[])];const disp=dateVal.slice(5).replace('-','/');dates[di]=disp;setTaskState(currentSeg,task.id,{done:dates.length>0,skip:false,doneDates:dates});renderManage();renderGrid();});};window._chipDelete=()=>{menu.style.display='none';pushUndo();const dates=[...(state.doneDates||[])];dates.splice(di,1);setTaskState(currentSeg,task.id,{done:dates.length>0,skip:false,doneDates:dates});renderManage();renderGrid();};});datesWrap.appendChild(chip);});const addChip=document.createElement('div');addChip.className='task-date-chip';addChip.style.cursor='pointer';addChip.textContent='＋追加';addChip.addEventListener('click',e=>{e.stopPropagation();showTaskDateDialog('追加の実施日',task.name,(dateVal)=>{if(!dateVal)return;pushUndo();const disp=dateVal.slice(5).replace('-','/');const dates=[...(state.doneDates||[]),disp];setTaskState(currentSeg,task.id,{done:true,skip:false,doneDates:dates});renderManage();renderGrid();if(task.milestone==='germination'||task.milestone==='firstHarvest')setTimeout(()=>showMilestoneDialog(task.milestone),300);});});datesWrap.appendChild(addChip);body.append(nameEl,descEl,datesWrap);const dayBadge=document.createElement('div');dayBadge.className='task-day-badge';dayBadge.textContent=dayLabel;const expandIcon=document.createElement('div');expandIcon.className='task-expand-icon';expandIcon.innerHTML='<i class="ti ti-chevron-down"></i>';clickable.append(body,dayBadge,expandIcon);main.append(cbWrap,clickable);
-      const detail=document.createElement('div');detail.className='task-detail';if(task.memo){const m=document.createElement('div');m.className='task-detail-memo';m.textContent=task.memo;detail.appendChild(m);}if(task.url){const a=document.createElement('a');a.className='task-detail-url';a.href=task.url;a.target='_blank';a.innerHTML='<i class="ti ti-brand-youtube" style="font-size:13px"></i>参考動画を見る';detail.appendChild(a);}card.append(main,detail);block.appendChild(card);
+      const detail=document.createElement('div');detail.className='task-detail';if(task.memo){const m=document.createElement('div');m.className='task-detail-memo';m.textContent=task.memo;detail.appendChild(m);}if(task.url){const a=document.createElement('a');a.className='task-detail-url';a.href=task.url;a.target='_blank';a.innerHTML='<i class="ti ti-brand-youtube" style="font-size:var(--fs-base)"></i>参考動画を見る';detail.appendChild(a);}card.append(main,detail);block.appendChild(card);
       clickable.addEventListener('click',()=>{const isOpen=detail.classList.contains('open');detail.classList.toggle('open',!isOpen);expandIcon.querySelector('i').className=`ti ${isOpen?'ti-chevron-down':'ti-chevron-up'}`;});
       cb.addEventListener('change',e=>{e.stopPropagation();if(cb.checked){showTaskDateDialog('実施日を選択',task.name,(dateVal)=>{if(!dateVal)return;pushUndo();const disp=dateVal.slice(5).replace('-','/');const dates=[...(state.doneDates||[]),disp];setTaskState(currentSeg,task.id,{done:true,skip:false,doneDates:dates});renderManage();renderGrid();if(task.milestone==='germination'||task.milestone==='firstHarvest')setTimeout(()=>showMilestoneDialog(task.milestone),300);},()=>{cb.checked=false;});}else{pushUndo();const dates=[...(state.doneDates||[])];dates.pop();setTaskState(currentSeg,task.id,{done:dates.length>0,skip:false,doneDates:dates});renderManage();renderGrid();}});
     });
@@ -1224,7 +1234,7 @@ function renderRoadmapTab(el,seg,veg){
 }
 
 function renderLogTab(el,seg){
-  const notice=document.createElement('div');notice.className='complete-notice';notice.id='complete-notice';notice.innerHTML='<i class="ti ti-info-circle" style="font-size:13px;flex-shrink:0;margin-top:1px"></i><span>管理を完了する場合は内容を確認して下部の「この野菜の管理を完了」を押下してください。</span>';el.appendChild(notice);
+  const notice=document.createElement('div');notice.className='complete-notice';notice.id='complete-notice';notice.innerHTML='<i class="ti ti-info-circle" style="font-size:var(--fs-base);flex-shrink:0;margin-top:1px"></i><span>管理を完了する場合は内容を確認して下部の「この野菜の管理を完了」を押下してください。</span>';el.appendChild(notice);
   const summary=document.createElement('div');summary.className='summary-section';
   // doneDates から全日付を収集して作業期間を計算
   const allTaskDates=[];const _seg2=segs[currentSeg];if(_seg2){const _veg2=getVeg(_seg2.crop);if(_veg2&&_veg2.phases){_veg2.phases.forEach(ph=>{ph.tasks.forEach(t=>{(getTaskState(currentSeg,t.id).doneDates||[]).forEach(d=>{const iso=dispToISO(d);if(iso)allTaskDates.push(iso);});});});}}
@@ -1242,17 +1252,18 @@ function renderLogTab(el,seg){
   const transplantHtml=`<div class="summary-stat"><div class="summary-stat-label">定植 ／ 収穫開始</div><div class="summary-stat-val">${plantingDate?isoShort(plantingDate):'—'}</div><div class="summary-stat-sub">収穫開始：${harvestStartDate?isoShort(harvestStartDate):'—'}</div></div>`;
   const stats=document.createElement('div');stats.className='summary-stats';stats.innerHTML=`<div class="summary-stat"><div class="summary-stat-label">作業期間</div><div class="summary-stat-val">${workPeriodVal}</div>${workPeriodSub?`<div class="summary-stat-sub">${workPeriodSub}</div>`:''}</div>${seedHtml}${transplantHtml}<div class="summary-stat"><div class="summary-stat-label">合計収量</div><div class="summary-stat-val" style="color:#2e7a28">${harvestTotalStr(currentSeg)||'未記録'}</div></div>`;
   summary.appendChild(stats);
-  const memoBox=document.createElement('div');memoBox.className='summary-memo-box';memoBox.innerHTML='<div class="summary-memo-header"><i class="ti ti-notes" style="color:#9c9a93"></i>全体メモ</div>';const memoBody=document.createElement('div');memoBody.className='summary-memo-body';const memoTa=document.createElement('textarea');memoTa.className='summary-memo-ta';memoTa.placeholder='この区画の栽培を振り返って...';memoTa.value=segSummaryMemo[currentSeg]||'';const memoSave=document.createElement('button');memoSave.className='summary-save-btn';memoSave.innerHTML='<i class="ti ti-device-floppy" style="font-size:11px"></i>保存';memoSave.addEventListener('click',()=>{segSummaryMemo[currentSeg]=memoTa.value;saveLS();memoSave.textContent='保存しました';setTimeout(()=>{memoSave.innerHTML='<i class="ti ti-device-floppy" style="font-size:11px"></i>保存';},1200);});memoBody.append(memoTa,memoSave);memoBox.appendChild(memoBody);summary.appendChild(memoBox);el.appendChild(summary);
-  const logTitle=document.createElement('div');logTitle.className='log-section-title';logTitle.innerHTML='<i class="ti ti-clock" style="font-size:13px"></i>作業履歴';el.appendChild(logTitle);
+  const memoBox=document.createElement('div');memoBox.className='summary-memo-box';memoBox.innerHTML='<div class="summary-memo-header"><i class="ti ti-notes" style="color:#9c9a93"></i>全体メモ</div>';const memoBody=document.createElement('div');memoBody.className='summary-memo-body';const memoTa=document.createElement('textarea');memoTa.className='summary-memo-ta';memoTa.placeholder='この区画の栽培を振り返って...';memoTa.value=segSummaryMemo[currentSeg]||'';const memoSave=document.createElement('button');memoSave.className='summary-save-btn';memoSave.innerHTML='<i class="ti ti-device-floppy" style="font-size:var(--fs-xs)"></i>保存';memoSave.addEventListener('click',()=>{segSummaryMemo[currentSeg]=memoTa.value;saveLS();memoSave.textContent='保存しました';setTimeout(()=>{memoSave.innerHTML='<i class="ti ti-device-floppy" style="font-size:var(--fs-xs)"></i>保存';},1200);});memoBody.append(memoTa,memoSave);memoBox.appendChild(memoBody);summary.appendChild(memoBox);el.appendChild(summary);
+  const logTitle=document.createElement('div');logTitle.className='log-section-title';logTitle.innerHTML='<i class="ti ti-clock" style="font-size:var(--fs-base)"></i>作業履歴';el.appendChild(logTitle);
   const byDate=getMergedLogsByDate(currentSeg);const sortedDates=Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
-  if(!sortedDates.length){const p=document.createElement('p');p.style.cssText='font-size:11px;color:#9c9a93;padding:4px 0';p.textContent='タスクを完了するか収穫を記録すると表示されます。';el.appendChild(p);}
+  if(!sortedDates.length){const p=document.createElement('p');p.style.cssText='font-size:var(--fs-xs);color:#9c9a93;padding:4px 0';p.textContent='タスクを完了するか収穫を記録すると表示されます。';el.appendChild(p);}
   else{sortedDates.forEach(date=>{const group=document.createElement('div');group.className='log-date-group';const hdr=document.createElement('div');hdr.className='log-date-header';hdr.innerHTML=`<span class="log-date-label">${isoFull(date)}</span><div class="log-date-line"></div>`;group.appendChild(hdr);byDate[date].forEach(item=>{const isHarvest=item._type==='harvest';const entry=document.createElement('div');entry.className='log-entry';const icon=document.createElement('div');icon.className=`log-entry-icon ${isHarvest?'harvest':'task'}`;icon.innerHTML=`<i class="ti ${isHarvest?'ti-basket':'ti-check'}" aria-hidden="true"></i>`;const title=document.createElement('div');title.className='log-entry-title';title.textContent=isHarvest?'収穫':item.task;entry.append(icon,title);if(isHarvest){const badge=document.createElement('div');badge.className='log-entry-badge';badge.textContent=`${item.amount} ${item.unit}`;entry.appendChild(badge);}group.appendChild(entry);});el.appendChild(group);});}
   if(!requireAdmin())return;
   const completeBar=document.createElement('div');completeBar.style.cssText='margin-top:20px;padding-top:14px;border-top:0.5px solid var(--color-border-tertiary)';
   const completeBtn=document.createElement('button');completeBtn.className='btn-complete-final';completeBtn.innerHTML='<i class="ti ti-flag-check"></i>この野菜の管理を完了';
   completeBtn.addEventListener('click',()=>openCompleteConfirm(currentSeg));
   completeBar.appendChild(completeBtn);
-  const deleteBtn=document.createElement('button');deleteBtn.style.cssText='margin-top:10px;width:100%;font-size:12px;padding:8px;border-radius:var(--border-radius-md);border:0.5px solid #e57373;background:#fff5f5;color:#c62828;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px';deleteBtn.innerHTML='<i class="ti ti-trash"></i>この区画の登録を削除';deleteBtn.addEventListener('click',()=>{if(!confirm('この区画の登録を削除します。\n作業記録や収穫記録も失われます。\nよろしいですか？'))return;pushUndo();const sid=currentSeg;Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===sid)delete cells[k];});delete segTasks[sid];delete actionLogs[sid];delete harvestLogs[sid];delete segSummaryMemo[sid];buildSegs();saveLS();goBack();renderGrid();});
+  const delDivider=document.createElement('hr');delDivider.style.cssText='border:none;border-top:0.5px solid var(--color-border-tertiary);margin:16px 0';completeBar.appendChild(delDivider);
+  const deleteBtn=document.createElement('button');deleteBtn.style.cssText='margin-top:0;width:100%;font-size:var(--fs-sm);padding:8px;border-radius:var(--border-radius-md);border:0.5px solid #e57373;background:#fff5f5;color:#c62828;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px';deleteBtn.innerHTML='<i class="ti ti-trash"></i>この区画の登録を削除';deleteBtn.addEventListener('click',()=>{if(!confirm('この区画の登録を削除します。\n作業記録や収穫記録も失われます。\nよろしいですか？'))return;pushUndo();const sid=currentSeg;Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===sid)delete cells[k];});delete segTasks[sid];delete actionLogs[sid];delete harvestLogs[sid];delete segSummaryMemo[sid];buildSegs();saveLS();goBack();renderGrid();});
   completeBar.appendChild(deleteBtn);el.appendChild(completeBar);
 }
 
@@ -1268,9 +1279,9 @@ function renderHarvestTab(el,seg){
   addBtn.addEventListener('click',()=>{const date=iDate.value,amount=parseFloat(iAmt.value),unit=iUnit.value;if(!date||isNaN(amount)||amount<=0)return;pushUndo();if(!harvestLogs[currentSeg])harvestLogs[currentSeg]=[];harvestLogs[currentSeg].push({id:`h_${Date.now()}`,date,amount,unit});harvestLogs[currentSeg].sort((a,b)=>a.date.localeCompare(b.date));saveLS();renderManage();});
   const listWrap=document.createElement('div');listWrap.className='harvest-list';
   if(!logs.length){const emp=document.createElement('div');emp.className='harvest-empty';emp.textContent='まだ収穫記録がありません。';listWrap.appendChild(emp);}
-  else{[...logs].reverse().forEach(h=>{const row=document.createElement('div');row.className='harvest-row';const dateEl=document.createElement('div');dateEl.className='harvest-row-date';dateEl.textContent=h.date;const amtEl=document.createElement('div');amtEl.className='harvest-row-amount';amtEl.textContent=`${h.amount} ${h.unit}`;const delBtn=document.createElement('button');delBtn.className='harvest-del-btn';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:12px"></i>';delBtn.classList.add('admin-only');if(isAdmin)delBtn.addEventListener('click',()=>{pushUndo();harvestLogs[currentSeg]=harvestLogs[currentSeg].filter(x=>x.id!==h.id);saveLS();renderManage();});row.append(dateEl,amtEl,delBtn);listWrap.appendChild(row);});}
+  else{[...logs].reverse().forEach(h=>{const row=document.createElement('div');row.className='harvest-row';const dateEl=document.createElement('div');dateEl.className='harvest-row-date';dateEl.textContent=h.date;const amtEl=document.createElement('div');amtEl.className='harvest-row-amount';amtEl.textContent=`${h.amount} ${h.unit}`;const delBtn=document.createElement('button');delBtn.className='harvest-del-btn';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>';delBtn.classList.add('admin-only');if(isAdmin)delBtn.addEventListener('click',()=>{pushUndo();harvestLogs[currentSeg]=harvestLogs[currentSeg].filter(x=>x.id!==h.id);saveLS();renderManage();});row.append(dateEl,amtEl,delBtn);listWrap.appendChild(row);});}
   el.appendChild(listWrap);
-  Object.entries(getHarvestSummary(currentSeg)).forEach(([unit,amt])=>{const totalEl=document.createElement('div');totalEl.className='harvest-total';totalEl.innerHTML=`<span class="harvest-total-label"><i class="ti ti-calculator" style="font-size:12px;margin-right:4px"></i>合計（${unit}）</span><span class="harvest-total-val">${amt} ${unit}</span>`;el.appendChild(totalEl);});
+  Object.entries(getHarvestSummary(currentSeg)).forEach(([unit,amt])=>{const totalEl=document.createElement('div');totalEl.className='harvest-total';totalEl.innerHTML=`<span class="harvest-total-label"><i class="ti ti-calculator" style="font-size:var(--fs-sm);margin-right:4px"></i>合計（${unit}）</span><span class="harvest-total-val">${amt} ${unit}</span>`;el.appendChild(totalEl);});
 }
 
 const GRID_BG_SRC='images/grid_bg_farmer.png';
@@ -1305,7 +1316,7 @@ function applyGridBg(){
 function renderSegList(){
   buildSegs();const list=document.getElementById('seg-list');list.innerHTML='';
   const arr=Object.values(segs).filter(s=>s.crop).sort((a,b)=>a.row-b.row||(Math.min(...a.cols)-Math.min(...b.cols)));
-  if(!arr.length){list.innerHTML='<p style="font-size:11px;color:#9c9a93;padding:6px 0">まだ登録された区画がありません</p>';return;}
+  if(!arr.length){list.innerHTML='<p style="font-size:var(--fs-xs);color:#9c9a93;padding:6px 0">まだ登録された区画がありません</p>';return;}
   const countEl=document.getElementById('seg-count');if(countEl)countEl.textContent=arr.length+'件';
   arr.forEach(seg=>{const veg=getVeg(seg.crop);const majorSt=calcMajorStatus(seg.id,seg.crop);const{pct}=calcProgress(seg.id,seg.crop);
     // 直近の完了タスクを取得
@@ -1313,7 +1324,7 @@ function renderSegList(){
     let recentTaskName='',recentDate='';
     allTasks.forEach(t=>{const st=getTaskState(seg.id,t.id);if(st.doneDates&&st.doneDates.length){const last=st.doneDates[st.doneDates.length-1];if(!recentDate||last>recentDate){recentDate=last;recentTaskName=t.name;}}});
     const item=document.createElement('div');item.className='seg-item';item.style.cssText='flex-direction:column;align-items:stretch;gap:0';
-    item.innerHTML=`<div style="display:flex;align-items:center;gap:7px;margin-bottom:4px"><span style="font-size:17px;line-height:1;flex-shrink:0">${veg?(vegIconHtml(veg,18)):'🌱'}</span><span style="font-size:13px;font-weight:600;color:#1a1915;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${veg?veg.name:'—'}</span><span class="status-pill" style="background:${majorSt.bg};color:${majorSt.color};font-size:9px;padding:2px 7px;border-radius:99px;font-weight:500">${majorSt.name}</span></div><div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><div style="flex:1;height:3px;background:#d4edb8;border-radius:2px"><div style="height:3px;border-radius:2px;background:${majorSt.color};width:${pct}%"></div></div><span style="font-size:10px;font-weight:600;color:${majorSt.color};min-width:26px;text-align:right">${pct}%</span></div><div style="display:flex;align-items:center;gap:4px"><i class="ti ti-check" style="font-size:9px;color:#b4b2a9"></i><span style="font-size:10px;color:#9c9a93;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${recentTaskName||'—'}</span><span style="font-size:10px;color:#b4b2a9;flex-shrink:0">${recentDate}</span></div>`;
+    item.innerHTML=`<div style="display:flex;align-items:center;gap:7px;margin-bottom:4px"><span style="font-size:17px;line-height:1;flex-shrink:0">${veg?(vegIconHtml(veg,18)):'🌱'}</span><span style="font-size:var(--fs-base);font-weight:600;color:#1a1915;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${veg?veg.name:'—'}</span><span class="status-pill" style="background:${majorSt.bg};color:${majorSt.color};font-size:9px;padding:2px 7px;border-radius:99px;font-weight:500">${majorSt.name}</span></div><div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><div style="flex:1;height:3px;background:#d4edb8;border-radius:2px"><div style="height:3px;border-radius:2px;background:${majorSt.color};width:${pct}%"></div></div><span style="font-size:var(--fs-xs);font-weight:600;color:${majorSt.color};min-width:26px;text-align:right">${pct}%</span></div><div style="display:flex;align-items:center;gap:4px"><i class="ti ti-check" style="font-size:9px;color:#b4b2a9"></i><span style="font-size:var(--fs-xs);color:#9c9a93;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${recentTaskName||'—'}</span><span style="font-size:var(--fs-xs);color:#b4b2a9;flex-shrink:0">${recentDate}</span></div>`;
     item.addEventListener('click',()=>openManage(seg.id));list.appendChild(item);});
 }
 
@@ -1354,7 +1365,7 @@ function renderMasterList(){
   const el=document.getElementById('master-list-items');el.innerHTML='';
   Object.values(vegMaster).sort((a,b)=>a.name.localeCompare(b.name,'ja')).forEach(veg=>{
     const item=document.createElement('div');item.className='master-list-item'+(selectedMasterVeg===veg.id?' active':'');const hasRM=veg.phases&&veg.phases.length>0;
-    item.innerHTML=`<span style="display:inline-flex;align-items:center">${vegIconHtml(veg,20)}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px">${veg.name}${veg.variety?'<br><span style="font-size:10px;color:#9c9a93">'+veg.variety+'</span>':''}</span><span class="master-list-item-badge ${hasRM?'':'empty'}">${hasRM?'有':'未'}</span>`;
+    item.innerHTML=`<span style="display:inline-flex;align-items:center">${vegIconHtml(veg,20)}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--fs-sm)">${veg.name}${veg.variety?'<br><span style="font-size:var(--fs-xs);color:#9c9a93">'+veg.variety+'</span>':''}</span><span class="master-list-item-badge ${hasRM?'':'empty'}">${hasRM?'有':'未'}</span>`;
     item.addEventListener('click',()=>{selectedMasterVeg=veg.id;renderMasterList();renderMasterDetail();});el.appendChild(item);
   });
 }
@@ -1366,21 +1377,21 @@ function renderMasterDetail(){
   const veg=vegMaster[selectedMasterVeg];
   if(!veg){scroll.innerHTML='<div class="master-detail-empty"><i class="ti ti-plant-2" style="font-size:24px;color:#9c9a93"></i>左のリストから野菜を選択</div>';const s=document.getElementById('master-toolbar-btns');if(s)s.style.display='none';return;}
   const hdr=document.createElement('div');hdr.className='master-detail-header';hdr.innerHTML=`<span class="master-detail-icon">${vegIconHtml(veg,30)}</span><div><div class="master-detail-name">${veg.name}</div><div class="master-detail-sub">${veg.variety||'標準'} ／ ${veg.family||'科未設定'}</div></div>`;
-  const growBlock=document.createElement('div');growBlock.classList.add('admin-only');growBlock.style.cssText='margin-bottom:12px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary)';const growLabel=document.createElement('div');growLabel.style.cssText='font-size:11px;font-weight:500;color:var(--color-text-secondary);margin-bottom:8px';growLabel.textContent='栽培設定';const growRow=document.createElement('div');growRow.style.cssText='display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end';const growMethodWrap=document.createElement('div');growMethodWrap.style.cssText='display:flex;flex-direction:column;gap:3px;flex:1;min-width:120px';const growMethodLbl=document.createElement('div');growMethodLbl.style.cssText='font-size:10px;color:var(--color-text-tertiary)';growMethodLbl.textContent='育成方法';const growMethodSel=document.createElement('select');growMethodSel.style.cssText='font-size:12px;padding:5px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)';[{v:'seedling',l:'苗から'},{v:'seed_pot',l:'種（ポット）から'},{v:'seed_ground',l:'種（地植え）から'}].forEach(opt=>{const o=document.createElement('option');o.value=opt.v;o.textContent=opt.l;if((veg.growMethod||'seedling')===opt.v)o.selected=true;growMethodSel.appendChild(o);});if(!requireAdmin())growMethodSel.disabled=true;else growMethodSel.addEventListener('change',()=>{vegMaster[veg.id].growMethod=growMethodSel.value;});growMethodWrap.append(growMethodLbl,growMethodSel);const refUrlWrap=document.createElement('div');refUrlWrap.style.cssText='display:flex;flex-direction:column;gap:3px;flex:2;min-width:160px';const refUrlLbl=document.createElement('div');refUrlLbl.style.cssText='font-size:10px;color:var(--color-text-tertiary)';refUrlLbl.innerHTML='<i class="ti ti-link" style="font-size:10px"></i> 参考URL（AI生成に使用）';const refUrlIn=document.createElement('input');refUrlIn.type='url';refUrlIn.style.cssText='font-size:12px;padding:5px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);width:100%';refUrlIn.placeholder='https://...';refUrlIn.value=veg.referenceUrl||'';if(!requireAdmin())refUrlIn.readOnly=true;else refUrlIn.addEventListener('input',()=>{vegMaster[veg.id].referenceUrl=refUrlIn.value;});refUrlWrap.append(refUrlLbl,refUrlIn);growRow.append(growMethodWrap,refUrlWrap);growBlock.append(growLabel,growRow);scroll.appendChild(growBlock);const aiBanner=document.createElement('div');aiBanner.className='ai-banner';aiBanner.style.margin='0 0 12px';const hasRM=veg.phases&&veg.phases.length>0;
+  const growBlock=document.createElement('div');growBlock.classList.add('admin-only');growBlock.style.cssText='margin-bottom:12px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary)';const growLabel=document.createElement('div');growLabel.style.cssText='font-size:var(--fs-xs);font-weight:500;color:var(--color-text-secondary);margin-bottom:8px';growLabel.textContent='栽培設定';const growRow=document.createElement('div');growRow.style.cssText='display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end';const growMethodWrap=document.createElement('div');growMethodWrap.style.cssText='display:flex;flex-direction:column;gap:3px;flex:1;min-width:120px';const growMethodLbl=document.createElement('div');growMethodLbl.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary)';growMethodLbl.textContent='育成方法';const growMethodSel=document.createElement('select');growMethodSel.style.cssText='font-size:var(--fs-sm);padding:5px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)';[{v:'seedling',l:'苗から'},{v:'seed_pot',l:'種（ポット）から'},{v:'seed_ground',l:'種（地植え）から'}].forEach(opt=>{const o=document.createElement('option');o.value=opt.v;o.textContent=opt.l;if((veg.growMethod||'seedling')===opt.v)o.selected=true;growMethodSel.appendChild(o);});if(!requireAdmin())growMethodSel.disabled=true;else growMethodSel.addEventListener('change',()=>{vegMaster[veg.id].growMethod=growMethodSel.value;});growMethodWrap.append(growMethodLbl,growMethodSel);const refUrlWrap=document.createElement('div');refUrlWrap.style.cssText='display:flex;flex-direction:column;gap:3px;flex:2;min-width:160px';const refUrlLbl=document.createElement('div');refUrlLbl.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary)';refUrlLbl.innerHTML='<i class="ti ti-link" style="font-size:var(--fs-xs)"></i> 参考URL（AI生成に使用）';const refUrlIn=document.createElement('input');refUrlIn.type='url';refUrlIn.style.cssText='font-size:var(--fs-sm);padding:5px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);width:100%';refUrlIn.placeholder='https://...';refUrlIn.value=veg.referenceUrl||'';if(!requireAdmin())refUrlIn.readOnly=true;else refUrlIn.addEventListener('input',()=>{vegMaster[veg.id].referenceUrl=refUrlIn.value;});refUrlWrap.append(refUrlLbl,refUrlIn);growRow.append(growMethodWrap,refUrlWrap);growBlock.append(growLabel,growRow);scroll.appendChild(growBlock);const aiBanner=document.createElement('div');aiBanner.className='ai-banner';aiBanner.style.margin='0 0 12px';const hasRM=veg.phases&&veg.phases.length>0;
   if(isAdmin){aiBanner.innerHTML=`<div class="ai-banner-text">${hasRM?'ロードマップ・基礎情報が生成済みです。再生成で上書きできます。':'ロードマップと基礎情報がありません。AIで自動生成できます。'}</div><button class="btn-ai" id="btn-ai-gen"><i class="ti ti-sparkles"></i>${hasRM?'再生成':'AIで生成'}</button>`;aiBanner.querySelector('#btn-ai-gen').addEventListener('click',()=>aiGenerate(veg.id));scroll.append(hdr,aiBanner);}else{scroll.appendChild(hdr);}
-  if(!hasRM){const emp=document.createElement('div');emp.style.cssText='font-size:11px;color:#9c9a93;padding:12px 0;text-align:center';emp.textContent='ロードマップを生成すると編集できます';scroll.appendChild(emp);renderMasterSaveBar(col,veg);return;}
+  if(!hasRM){const emp=document.createElement('div');emp.style.cssText='font-size:var(--fs-xs);color:#9c9a93;padding:12px 0;text-align:center';emp.textContent='ロードマップを生成すると編集できます';scroll.appendChild(emp);renderMasterSaveBar(col,veg);return;}
   veg.phases.forEach((phase,pi)=>{
     const pb=document.createElement('div');pb.className='master-phase-block';const ph=document.createElement('div');ph.className='master-phase-header';ph.innerHTML=`<div class="phase-radio active" style="flex-shrink:0"></div><span class="master-phase-label">${phase.name}（${phase.period}）</span>`;pb.appendChild(ph);
     phase.tasks.forEach((task,ti)=>{
       const tr=document.createElement('div');tr.className='master-task-row';const th=document.createElement('div');th.className='master-task-header';
       const nameIn=document.createElement('input');nameIn.type='text';nameIn.className='master-task-name-input';nameIn.value=task.name;nameIn.placeholder='タスク名';
-      const dayIn=document.createElement('input');dayIn.type='number';dayIn.className='master-task-day-input';dayIn.value=task.day;const dayLbl=document.createElement('span');dayLbl.style.cssText='font-size:10px;color:#9c9a93';dayLbl.textContent='日';
-      const delBtn=document.createElement('button');delBtn.className='master-task-del';delBtn.innerHTML='<i class="ti ti-x" style="font-size:12px"></i>';th.append(nameIn,dayIn,dayLbl,delBtn);
-      const tbody=document.createElement('div');tbody.className='master-task-body';const memoLbl=document.createElement('div');memoLbl.className='master-task-label';memoLbl.textContent='作業メモ';const memoIn=document.createElement('textarea');memoIn.className='master-task-memo';memoIn.placeholder='作業内容の補足';memoIn.value=task.memo||'';const urlLbl=document.createElement('div');urlLbl.className='master-task-label';urlLbl.innerHTML='<i class="ti ti-brand-youtube" style="font-size:10px;margin-right:2px"></i>参考動画URL';const urlIn=document.createElement('input');urlIn.type='url';urlIn.className='master-task-url';urlIn.placeholder='https://...';urlIn.value=task.url||'';
+      const dayIn=document.createElement('input');dayIn.type='number';dayIn.className='master-task-day-input';dayIn.value=task.day;const dayLbl=document.createElement('span');dayLbl.style.cssText='font-size:var(--fs-xs);color:#9c9a93';dayLbl.textContent='日';
+      const delBtn=document.createElement('button');delBtn.className='master-task-del';delBtn.innerHTML='<i class="ti ti-x" style="font-size:var(--fs-sm)"></i>';th.append(nameIn,dayIn,dayLbl,delBtn);
+      const tbody=document.createElement('div');tbody.className='master-task-body';const memoLbl=document.createElement('div');memoLbl.className='master-task-label';memoLbl.textContent='作業メモ';const memoIn=document.createElement('textarea');memoIn.className='master-task-memo';memoIn.placeholder='作業内容の補足';memoIn.value=task.memo||'';const urlLbl=document.createElement('div');urlLbl.className='master-task-label';urlLbl.innerHTML='<i class="ti ti-brand-youtube" style="font-size:var(--fs-xs);margin-right:2px"></i>参考動画URL';const urlIn=document.createElement('input');urlIn.type='url';urlIn.className='master-task-url';urlIn.placeholder='https://...';urlIn.value=task.url||'';
       tbody.append(memoLbl,memoIn,urlLbl,urlIn);tr.append(th,tbody);pb.appendChild(tr);
       if(!requireAdmin()){nameIn.readOnly=true;dayIn.readOnly=true;memoIn.readOnly=true;urlIn.readOnly=true;delBtn.style.display='none';}else{nameIn.addEventListener('input',()=>{vegMaster[veg.id].phases[pi].tasks[ti].name=nameIn.value;});dayIn.addEventListener('input',()=>{vegMaster[veg.id].phases[pi].tasks[ti].day=parseInt(dayIn.value)||0;});memoIn.addEventListener('input',()=>{vegMaster[veg.id].phases[pi].tasks[ti].memo=memoIn.value;});urlIn.addEventListener('input',()=>{vegMaster[veg.id].phases[pi].tasks[ti].url=urlIn.value;});delBtn.addEventListener('click',()=>{vegMaster[veg.id].phases[pi].tasks.splice(ti,1);saveLS();renderMasterDetail();});}
     });
-    const addTaskBtn=document.createElement('button');addTaskBtn.className='master-add-task-btn';addTaskBtn.innerHTML='<i class="ti ti-plus" style="font-size:11px"></i>タスクを追加';addTaskBtn.classList.add('admin-only');if(isAdmin){addTaskBtn.addEventListener('click',()=>{vegMaster[veg.id].phases[pi].tasks.push({id:`t_${Date.now()}`,name:'',desc:'',day:0,memo:'',url:''});renderMasterDetail();});}pb.appendChild(addTaskBtn);scroll.appendChild(pb);
+    const addTaskBtn=document.createElement('button');addTaskBtn.className='master-add-task-btn';addTaskBtn.innerHTML='<i class="ti ti-plus" style="font-size:var(--fs-xs)"></i>タスクを追加';addTaskBtn.classList.add('admin-only');if(isAdmin){addTaskBtn.addEventListener('click',()=>{vegMaster[veg.id].phases[pi].tasks.push({id:`t_${Date.now()}`,name:'',desc:'',day:0,memo:'',url:''});renderMasterDetail();});}pb.appendChild(addTaskBtn);scroll.appendChild(pb);
   });
   renderMasterSaveBar(col,veg);
 }
@@ -1390,7 +1401,7 @@ function renderMasterSaveBar(col,veg){
   if(!slot)return;
   slot.innerHTML='';
   if(!requireAdmin()){slot.style.display='none';return;}
-  const delBtn=document.createElement('button');delBtn.className='btn-delete-master';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:12px"></i>削除';delBtn.addEventListener('click',()=>{if(!confirm(`「${veg.name}」をマスタから削除しますか？`))return;delete vegMaster[veg.id];selectedMasterVeg=null;saveLS();renderMasterList();renderMasterDetail();});
+  const delBtn=document.createElement('button');delBtn.className='btn-delete-master';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>削除';delBtn.addEventListener('click',()=>{if(!confirm(`「${veg.name}」をマスタから削除しますか？`))return;delete vegMaster[veg.id];selectedMasterVeg=null;saveLS();renderMasterList();renderMasterDetail();});
   const saveBtn=document.createElement('button');saveBtn.className='btn-save-master';saveBtn.innerHTML='<i class="ti ti-device-floppy"></i>保存';saveBtn.addEventListener('click',()=>{saveLS();if(fromRegDlg){fromRegDlg=false;saveBtn.textContent='完了';setTimeout(()=>{closeMaster();populateCropSelect();document.getElementById('dlg-crop').value=selectedMasterVeg||'';document.getElementById('dlg-save').disabled=!selectedMasterVeg;document.getElementById('dlg-register').style.display='flex';},1200);}else{saveBtn.textContent='完了';setTimeout(()=>closeMaster(),1200);}});
   slot.append(delBtn,saveBtn);slot.style.display='flex';
 }
@@ -1451,19 +1462,19 @@ function renderBasicTab(el,veg){
   const bi=veg&&veg.basicInfo;
   if(!bi){
     const empty=document.createElement('div');
-    empty.style.cssText='text-align:center;padding:40px 20px;color:var(--color-text-tertiary);font-size:13px';
+    empty.style.cssText='text-align:center;padding:40px 20px;color:var(--color-text-tertiary);font-size:var(--fs-base)';
     empty.innerHTML='<i class="ti ti-plant" style="font-size:32px;display:block;margin-bottom:8px"></i>野菜マスタでAI生成すると<br>基礎知識が表示されます';
     wrap.appendChild(empty);el.appendChild(wrap);return;
   }
 
   function section(title,icon){
     const s=document.createElement('div');s.style.cssText='margin-bottom:16px';
-    const h=document.createElement('div');h.style.cssText='font-size:12px;font-weight:700;color:var(--color-text-secondary);margin-bottom:8px;display:flex;align-items:center;gap:5px;border-bottom:1px solid var(--color-border-tertiary);padding-bottom:4px';
-    h.innerHTML=`<i class="ti ${icon}" style="font-size:13px"></i>${title}`;s.appendChild(h);return s;
+    const h=document.createElement('div');h.style.cssText='font-size:var(--fs-sm);font-weight:700;color:var(--color-text-secondary);margin-bottom:8px;display:flex;align-items:center;gap:5px;border-bottom:1px solid var(--color-border-tertiary);padding-bottom:4px';
+    h.innerHTML=`<i class="ti ${icon}" style="font-size:var(--fs-base)"></i>${title}`;s.appendChild(h);return s;
   }
   function row(label,value){
-    const r=document.createElement('div');r.style.cssText='display:flex;gap:8px;margin-bottom:6px;font-size:12px;align-items:flex-start';
-    const l=document.createElement('div');l.style.cssText='min-width:100px;color:var(--color-text-tertiary);flex-shrink:0;font-size:11px;padding-top:1px';l.textContent=label;
+    const r=document.createElement('div');r.style.cssText='display:flex;gap:8px;margin-bottom:6px;font-size:var(--fs-sm);align-items:flex-start';
+    const l=document.createElement('div');l.style.cssText='min-width:100px;color:var(--color-text-tertiary);flex-shrink:0;font-size:var(--fs-xs);padding-top:1px';l.textContent=label;
     const v=document.createElement('div');v.style.cssText='color:var(--color-text-primary);line-height:1.5;flex:1';v.textContent=value||'—';
     r.append(l,v);return r;
   }
@@ -1509,16 +1520,16 @@ function renderBasicTab(el,veg){
   if(bi.pollination)s5.appendChild(row('受粉',bi.pollination));
   if(bi.methods&&bi.methods.length){
     const mv=document.createElement('div');mv.style.cssText='display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px';
-    bi.methods.forEach(m=>{const chip=document.createElement('div');chip.style.cssText='font-size:11px;padding:2px 8px;border-radius:99px;background:var(--color-background-tertiary);color:var(--color-text-secondary)';chip.textContent=m;mv.appendChild(chip);});
-    const rr=document.createElement('div');rr.style.cssText='display:flex;gap:8px;margin-bottom:6px;font-size:12px;align-items:flex-start';
-    const ll=document.createElement('div');ll.style.cssText='min-width:100px;color:var(--color-text-tertiary);flex-shrink:0;font-size:11px;padding-top:2px';ll.textContent='育成方法';
+    bi.methods.forEach(m=>{const chip=document.createElement('div');chip.style.cssText='font-size:var(--fs-xs);padding:2px 8px;border-radius:99px;background:var(--color-background-tertiary);color:var(--color-text-secondary)';chip.textContent=m;mv.appendChild(chip);});
+    const rr=document.createElement('div');rr.style.cssText='display:flex;gap:8px;margin-bottom:6px;font-size:var(--fs-sm);align-items:flex-start';
+    const ll=document.createElement('div');ll.style.cssText='min-width:100px;color:var(--color-text-tertiary);flex-shrink:0;font-size:var(--fs-xs);padding-top:2px';ll.textContent='育成方法';
     rr.append(ll,mv);s5.appendChild(rr);
   }
   if(bi.materials&&bi.materials.length){
     const mv=document.createElement('div');mv.style.cssText='display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px';
-    bi.materials.forEach(m=>{const chip=document.createElement('div');chip.style.cssText='font-size:11px;padding:2px 8px;border-radius:99px;background:#E8F4FE;color:#185FA5';chip.textContent=m;mv.appendChild(chip);});
-    const rr=document.createElement('div');rr.style.cssText='display:flex;gap:8px;margin-bottom:6px;font-size:12px;align-items:flex-start';
-    const ll=document.createElement('div');ll.style.cssText='min-width:100px;color:var(--color-text-tertiary);flex-shrink:0;font-size:11px;padding-top:2px';ll.textContent='必要資材';
+    bi.materials.forEach(m=>{const chip=document.createElement('div');chip.style.cssText='font-size:var(--fs-xs);padding:2px 8px;border-radius:99px;background:#E8F4FE;color:#185FA5';chip.textContent=m;mv.appendChild(chip);});
+    const rr=document.createElement('div');rr.style.cssText='display:flex;gap:8px;margin-bottom:6px;font-size:var(--fs-sm);align-items:flex-start';
+    const ll=document.createElement('div');ll.style.cssText='min-width:100px;color:var(--color-text-tertiary);flex-shrink:0;font-size:var(--fs-xs);padding-top:2px';ll.textContent='必要資材';
     rr.append(ll,mv);s5.appendChild(rr);
   }
   wrap.appendChild(s5);
@@ -1529,11 +1540,11 @@ function renderBasicTab(el,veg){
     function diseaseCard(item,typeLabel){
       const card=document.createElement('div');card.style.cssText='border:1px solid var(--color-border-secondary);border-radius:8px;padding:8px 10px;margin-bottom:8px;background:var(--color-background-primary)';
       const top=document.createElement('div');top.style.cssText='display:flex;align-items:center;gap:6px;margin-bottom:4px';
-      const badge=document.createElement('div');badge.style.cssText='font-size:10px;padding:1px 6px;border-radius:99px;'+(typeLabel==='病気'?'background:#FAECE7;color:#993C1D':'background:#FFF3E0;color:#92600B');badge.textContent=typeLabel;
-      const name=document.createElement('div');name.style.cssText='font-size:13px;font-weight:600;color:var(--color-text-primary)';name.textContent=item.name;
+      const badge=document.createElement('div');badge.style.cssText='font-size:var(--fs-xs);padding:1px 6px;border-radius:99px;'+(typeLabel==='病気'?'background:#FAECE7;color:#993C1D':'background:#FFF3E0;color:#92600B');badge.textContent=typeLabel;
+      const name=document.createElement('div');name.style.cssText='font-size:var(--fs-base);font-weight:600;color:var(--color-text-primary)';name.textContent=item.name;
       top.append(badge,name);
-      const sym=document.createElement('div');sym.style.cssText='font-size:11px;color:var(--color-text-secondary);margin-bottom:3px';sym.textContent='症状：'+item.symptoms;
-      const treat=document.createElement('div');treat.style.cssText='font-size:11px;color:#2e7a28';treat.textContent='対策：'+item.treatment;
+      const sym=document.createElement('div');sym.style.cssText='font-size:var(--fs-xs);color:var(--color-text-secondary);margin-bottom:3px';sym.textContent='症状：'+item.symptoms;
+      const treat=document.createElement('div');treat.style.cssText='font-size:var(--fs-xs);color:#2e7a28';treat.textContent='対策：'+item.treatment;
       card.append(top,sym,treat);s6.appendChild(card);
     }
     (bi.diseases||[]).forEach(d=>diseaseCard(d,'病気'));
@@ -1553,8 +1564,8 @@ function renderBasicTab(el,veg){
       const iconFiles={'発芽':'stage_germination.png','本葉出始め':'stage_firstleaf.png','開花':'stage_flower.png','収穫期（全体像）':'stage_harvest_plant.png','実（つき始め）':'stage_fruit_early.png','実（食べごろ）':'stage_fruit_ripe.png'};
       const icon=document.createElement('div');
       if(iconFiles[stage.label]){const img=document.createElement('img');img.src='images/'+iconFiles[stage.label];img.style.cssText='width:64px;height:64px;object-fit:contain';icon.appendChild(img);}else{icon.style.fontSize='22px';icon.textContent='📷';}
-      const lbl=document.createElement('div');lbl.style.cssText='font-size:11px;color:var(--color-text-secondary);text-align:center';lbl.textContent=stage.label;
-      const search=document.createElement('div');search.style.cssText='font-size:10px;color:#185FA5';search.textContent='画像を検索 →';
+      const lbl=document.createElement('div');lbl.style.cssText='font-size:var(--fs-xs);color:var(--color-text-secondary);text-align:center';lbl.textContent=stage.label;
+      const search=document.createElement('div');search.style.cssText='font-size:var(--fs-xs);color:#185FA5';search.textContent='画像を検索 →';
       card.append(icon,lbl,search);grid.appendChild(card);
     });
     s7.appendChild(grid);wrap.appendChild(s7);
