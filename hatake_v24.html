@@ -28,7 +28,7 @@ body{font-family:var(--font-sans);background:#f9f8f4;min-height:100vh;padding:0}
 .toolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--color-background-primary);border-bottom:2px solid #5aad4e;padding:0 0.5rem;margin:0 -0.5rem 12px;position:sticky;top:0;z-index:20}
 .toolbar-grid{background:#f9f8f4;border-bottom:none;flex-direction:column;align-items:stretch;gap:0;padding:0;margin-bottom:10px}
 .header-card{background:#fff;border-radius:0 0 14px 14px;overflow:visible;box-shadow:0 4px 14px rgba(0,0,0,0.13)}
-.header-card-top{padding:12px 13px 10px;display:flex;justify-content:space-between;align-items:flex-start;position:relative;overflow:visible}
+.header-card-top{padding:12px 13px 10px;display:flex;justify-content:space-between;align-items:flex-start;position:relative;overflow:visible;min-height:54px}
 .header-card-bottom{background:#5aad4e;padding:7px 13px 10px;display:flex;gap:6px;align-items:center;position:relative;z-index:1;border-bottom-right-radius:14px}
 .btn-grid-icon{width:28px;height:28px;border-radius:50%;background:#fff;border:1px solid #fff;color:#2e7a28;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .btn-grid-icon:hover{background:#d4f0b8}
@@ -44,6 +44,7 @@ body{font-family:var(--font-sans);background:#f9f8f4;min-height:100vh;padding:0}
 .btn-undo:disabled{opacity:0.4;cursor:default}
 .undo-count{font-size:10px;color:var(--color-text-tertiary)}
 .grid-wrap{margin-bottom:12px;width:100%;position:relative}
+.cell-empty-bg{background-repeat:no-repeat}
 .grid-table{position:relative;z-index:1}
 .grid-table{border-collapse:separate;border-spacing:3px;width:100%;table-layout:fixed}
 .grid-table td{position:relative;vertical-align:top;padding:0}
@@ -247,7 +248,7 @@ body{
 </style>
 </head>
 <body>
-<div id="dev-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#e53e3e;color:#fff;text-align:center;font-size:12px;padding:3px;font-weight:bold">🛠 DEV MODE — 本番データに影響しません</div>
+<div id="dev-banner" style="display:none;position:sticky;top:0;z-index:9999;background:#e53e3e;color:#fff;text-align:center;font-size:12px;padding:3px;font-weight:bold">🛠 DEV MODE — 本番データに影響しません</div>
 
 <div id="splash-screen" style="position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--color-background-secondary);transition:opacity 0.6s ease;padding-bottom:48px">
   <div id="splash-img-wrap" style="width:240px;height:240px;border-radius:20px;overflow:hidden;margin-bottom:24px;display:flex;align-items:center;justify-content:center">
@@ -267,7 +268,7 @@ body{
     <div class="toolbar toolbar-grid">
       <div class="header-card">
         <div class="header-card-top">
-          <img style="position:absolute;right:20px;top:0;height:102px;z-index:0;width:auto;pointer-events:none;" src="images/header_illust.png" />
+          <img style="position:absolute;right:20px;top:0;height:80px;z-index:0;width:auto;pointer-events:none;" src="images/header_illust.png" />
           <div style="display:flex;align-items:center;gap:8px;min-width:0">
             <span id="farm-icon-display" style="font-size:26px;line-height:1;display:none;flex-shrink:0"></span>
             <div style="min-width:0">
@@ -545,7 +546,12 @@ const ADMIN_PASSWORD='hatake2026';
 const IS_DEV=new URLSearchParams(location.search).get('dev')==='1';
 const LS_KEY=IS_DEV?'hatake_v21_dev':'hatake_v21';
 const DB_ID=IS_DEV?'dev':'main';
-if(IS_DEV)document.addEventListener('DOMContentLoaded',()=>{document.getElementById('dev-banner').style.display='block';});
+if(IS_DEV)document.addEventListener('DOMContentLoaded',()=>{
+  const b=document.getElementById('dev-banner');
+  b.style.display='block';
+  const h=b.offsetHeight;
+  document.querySelectorAll('.toolbar').forEach(t=>t.style.top=h+'px');
+});
 let isAdmin=false;
 const MAX_UNDO=30;
 let COLS=8,ROWS=6,cells={},segs={},segTasks={},actionLogs={},harvestLogs={},segSummaryMemo={},vegMaster={},archivedSegs={},customIcons={},undoStack=[];
@@ -639,7 +645,7 @@ function showTaskDateDialog(title, taskName, onConfirm, onCancel){
   dlg.style.display='flex';
 }
 function saveLS(){try{const d={cells,COLS,ROWS,segTasks,actionLogs,harvestLogs,segSummaryMemo,vegMaster,archivedSegs,farmName,aisleRows,aisleCols,farmNameFont,farmIcon};localStorage.setItem(LS_KEY,JSON.stringify(d));localStorage.setItem(LS_KEY+'_icons',JSON.stringify(customIcons));saveToDB(d);}catch(e){}}
-function updateFarmNameDisplay(){const el=document.getElementById('farm-name-display');const sc=document.getElementById('farm-seg-count');const splashEl=document.getElementById('splash-farm-name');const iconEl=document.getElementById('farm-icon-display');const fontFamily=`'${farmNameFont}',serif`;if(el)el.style.fontFamily=fontFamily;if(splashEl)splashEl.style.fontFamily=fontFamily;if(iconEl){if(farmIcon&&vegMaster[farmIcon]){iconEl.innerHTML=vegIconHtml(vegMaster[farmIcon],28);iconEl.style.display='inline-flex';}else{iconEl.innerHTML='';iconEl.style.display='none';}}if(farmName){el.textContent=farmName;el.style.display='block';}else{el.style.display='none';}if(sc){buildSegs();const cnt=Object.keys(segs).length;sc.textContent=cnt+'区画 管理中';sc.style.display='block';}}
+function updateFarmNameDisplay(){const el=document.getElementById('farm-name-display');const sc=document.getElementById('farm-seg-count');const splashEl=document.getElementById('splash-farm-name');const iconEl=document.getElementById('farm-icon-display');const fontFamily=`'${farmNameFont}',serif`;if(el)el.style.fontFamily=fontFamily;if(splashEl)splashEl.style.fontFamily=fontFamily;if(iconEl){const iconId=farmIcon||'tomato';if(iconId&&vegMaster[iconId]){iconEl.innerHTML=vegIconHtml(vegMaster[iconId],28);iconEl.style.display='inline-flex';}else{iconEl.innerHTML='🍅';iconEl.style.display='inline-flex';}}if(el){el.textContent=farmName||'私の畑';el.style.display='block';}if(sc){buildSegs();const cnt=Object.keys(segs).length;sc.textContent=cnt+'区画 管理中';sc.style.display='block';}}
 function loadLS(){
   try{const d=JSON.parse(localStorage.getItem(LS_KEY)||'null');if(d&&d.cells){cells=d.cells;COLS=d.COLS||8;ROWS=d.ROWS||6;segTasks=d.segTasks||{};actionLogs=d.actionLogs||{};harvestLogs=d.harvestLogs||{};segSummaryMemo=d.segSummaryMemo||{};vegMaster=d.vegMaster||{};archivedSegs=d.archivedSegs||{};farmName=d.farmName||'';aisleRows=d.aisleRows||[];aisleCols=d.aisleCols||[];farmNameFont=d.farmNameFont||'Kaisei Opti';farmIcon=d.farmIcon||'';}}catch(e){}
   try{const ic=JSON.parse(localStorage.getItem(LS_KEY+'_icons')||'null');if(ic)customIcons=ic;}catch(e){}
@@ -777,7 +783,7 @@ function renderGrid(){
       } else if(registered&&fs){
         inner.style.background=fs.bg;inner.style.borderTop=`3px solid ${fs.border}`;inner.style.boxShadow='0 1px 4px rgba(0,0,0,0.08)';
       } else {
-        inner.style.background='transparent';inner.style.borderRadius='3px';inner.classList.add('cell-empty-bg');
+        inner.style.backgroundColor='transparent';inner.style.borderRadius='3px';inner.classList.add('cell-empty-bg');
       }
       if(selecting)inner.style.backgroundImage='repeating-linear-gradient(45deg,transparent,transparent 5px,rgba(55,138,221,0.2) 5px,rgba(55,138,221,0.2) 7px)';
       else if(cell&&!registered)inner.style.backgroundImage='repeating-linear-gradient(45deg,transparent,transparent 5px,rgba(0,0,0,0.10) 5px,rgba(0,0,0,0.10) 7px)';
@@ -1259,17 +1265,31 @@ function renderHarvestTab(el,seg){
   Object.entries(getHarvestSummary(currentSeg)).forEach(([unit,amt])=>{const totalEl=document.createElement('div');totalEl.className='harvest-total';totalEl.innerHTML=`<span class="harvest-total-label"><i class="ti ti-calculator" style="font-size:12px;margin-right:4px"></i>合計（${unit}）</span><span class="harvest-total-val">${amt} ${unit}</span>`;el.appendChild(totalEl);});
 }
 
+const GRID_BG_SRC='images/grid_bg_farmer.png';
 function applyGridBg(){
   const wrap=document.getElementById('grid-wrap');
   if(!wrap)return;
   const wr=wrap.getBoundingClientRect();
-  document.querySelectorAll('.cell-empty-bg').forEach(el=>{
+  const _img=new Image();
+  _img.src=GRID_BG_SRC;
+  const imgW=_img.naturalWidth||840,imgH=_img.naturalHeight||400;
+  const zoom=1.2;
+  const scale=wr.width/imgW*zoom;
+  const dw=imgW*scale,dh=imgH*scale;
+  const cx=(dw-wr.width)/2;
+  const els=document.querySelectorAll('.cell-empty-bg');
+  let maxBottom=0,rowBTop=Infinity;
+  els.forEach((el,i)=>{const r=el.getBoundingClientRect();maxBottom=Math.max(maxBottom,r.bottom-wr.top);if(i===COLS)rowBTop=r.top-wr.top;});
+  const imgTop=Math.max(rowBTop,maxBottom-dh+40);
+  els.forEach(el=>{
     const r=el.getBoundingClientRect();
     const ox=r.left-wr.left;
     const oy=r.top-wr.top;
-    el.style.backgroundImage="url('images/grid_bg_farmer.png')";
-    el.style.backgroundSize=`${wr.width}px ${wr.height}px`;
-    el.style.backgroundPosition=`-${ox}px -${oy}px`;
+    const bgY=-(oy-imgTop);
+    if(bgY>=r.height||bgY+dh<=0){el.style.backgroundImage='none';el.style.opacity='';return;}
+    el.style.backgroundImage=`url('${GRID_BG_SRC}')`;
+    el.style.backgroundSize=`${dw}px ${dh}px`;
+    el.style.backgroundPosition=`${-ox-cx}px ${bgY}px`;
     el.style.backgroundRepeat='no-repeat';
     el.style.opacity='0.22';
   });
