@@ -1245,7 +1245,9 @@ function renderLogTab(el,seg){
   const completeBar=document.createElement('div');completeBar.style.cssText='margin-top:20px;padding-top:14px;border-top:0.5px solid var(--color-border-tertiary)';
   const completeBtn=document.createElement('button');completeBtn.className='btn-complete-final';completeBtn.innerHTML='<i class="ti ti-flag-check"></i>この野菜の管理を完了';
   completeBtn.addEventListener('click',()=>openCompleteConfirm(currentSeg));
-  completeBar.appendChild(completeBtn);el.appendChild(completeBar);
+  completeBar.appendChild(completeBtn);
+  const deleteBtn=document.createElement('button');deleteBtn.style.cssText='margin-top:10px;width:100%;font-size:12px;padding:8px;border-radius:var(--border-radius-md);border:0.5px solid #e57373;background:#fff5f5;color:#c62828;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px';deleteBtn.innerHTML='<i class="ti ti-trash"></i>この区画の登録を削除';deleteBtn.addEventListener('click',()=>{if(!confirm('この区画の登録を削除します。\n作業記録や収穫記録も失われます。\nよろしいですか？'))return;pushUndo();const sid=currentSeg;Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===sid)delete cells[k];});delete segTasks[sid];delete actionLogs[sid];delete harvestLogs[sid];delete segSummaryMemo[sid];buildSegs();saveLS();goBack();renderGrid();});
+  completeBar.appendChild(deleteBtn);el.appendChild(completeBar);
 }
 
 function renderHarvestTab(el,seg){
