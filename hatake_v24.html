@@ -1200,7 +1200,10 @@ function renderManage(){
   const existingIframe=el.querySelector('iframe');if(existingIframe)existingIframe.src='';
   st.innerHTML='';el.innerHTML='';
   const hdr=document.createElement('div');hdr.className='manage-header';
-  hdr.innerHTML=`<span style="display:inline-flex;align-items:center;font-size:22px">${veg?vegIconHtml(veg,28):''}</span><div style="flex:1"><div class="manage-title">${veg?veg.name+(veg.variety?' ('+veg.variety+')':''):'不明'}</div><div class="manage-meta">${seg.row+1}行 ${Math.min(...seg.cols)+1}〜${Math.max(...seg.cols)+1}列 ${seg.cols.length}マス${seg.plantDate?' ／ '+seg.plantDate.slice(5).replace('-','/')+'開始':''}</div></div><div class="status-pill" style="background:${majorSt.bg};color:${majorSt.color}">${majorSt.name}</div>`;
+  const startLabel=seg.plantDate?' ／ '+seg.plantDate.slice(5).replace('-','/')+'開始':(isAdmin?' ／ 開始日未設定':'');
+  const startSpan=isAdmin?`<span id="manage-start-date" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px">${startLabel}</span>`:`<span>${startLabel}</span>`;
+  hdr.innerHTML=`<span style="display:inline-flex;align-items:center;font-size:22px">${veg?vegIconHtml(veg,28):''}</span><div style="flex:1"><div class="manage-title">${veg?veg.name+(veg.variety?' ('+veg.variety+')':''):'不明'}</div><div class="manage-meta">${seg.row+1}行 ${Math.min(...seg.cols)+1}〜${Math.max(...seg.cols)+1}列 ${seg.cols.length}マス${startSpan}</div></div><div class="status-pill" style="background:${majorSt.bg};color:${majorSt.color}">${majorSt.name}</div>`;
+  if(isAdmin){const startEl=hdr.querySelector('#manage-start-date');if(startEl)startEl.addEventListener('click',()=>{showTaskDateDialog('作業開始日を設定','作業開始日',(dateVal)=>{if(!dateVal)return;pushUndo();Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===currentSeg)cells[k].plantDate=dateVal;});buildSegs();saveLS();renderManage();renderGrid();});});}
   st.appendChild(hdr);
   const tabs=[{id:'basic',icon:'ti-plant',label:'基礎知識'},{id:'roadmap',icon:'ti-road',label:'ロードマップ'},{id:'harvest',icon:'ti-basket',label:'収量'},{id:'log',icon:'ti-clipboard-list',label:'作業ログ'}];
   const tabBar=document.createElement('div');tabBar.className='tab-bar';tabBar.style.margin='0 0 0';
