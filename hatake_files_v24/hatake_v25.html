@@ -385,7 +385,7 @@ body{
           <button class="btn-grid-chip btn-undo" id="undo-btn" disabled><i class="ti ti-arrow-back-up" style="font-size:var(--fs-xs)"></i>取り消し</button>
           <span class="undo-count" id="undo-count" style="color:rgba(255,255,255,0.7)"></span>
           <div style="flex:1"></div>
-          <button class="btn-grid-chip btn-master" id="btn-open-master"><i class="ti ti-plant-2" style="font-size:var(--fs-xs)"></i>栽培計画</button>
+          <button class="btn-grid-chip btn-master" id="btn-open-master"><i class="ti ti-plant-2" style="font-size:var(--fs-xs)"></i>栽培レシピ</button>
           <button class="btn-grid-icon" id="btn-open-archive" title="過去データ"><i class="ti ti-archive"></i></button>
           <button class="btn-grid-icon" id="btn-settings" title="設定"><i class="ti ti-settings"></i></button>
         </div>
@@ -426,7 +426,7 @@ body{
         <div class="settings-row admin-only" style="flex-direction:column;align-items:stretch;gap:6px;margin-top:8px">
           <span class="settings-label">農園アイコン</span>
           <div id="farm-icon-picker" style="display:flex;flex-wrap:wrap;gap:6px"></div>
-          <div style="font-size:var(--fs-xs);color:var(--color-text-tertiary)">栽培計画に登録されているアイコンから選択。もう一度タップで解除。</div>
+          <div style="font-size:var(--fs-xs);color:var(--color-text-tertiary)">栽培レシピに登録されているアイコンから選択。もう一度タップで解除。</div>
         </div>
         <hr class="divider admin-only" style="margin:10px 0">
         <div class="settings-section-label admin-only">グリッドサイズ</div>
@@ -481,7 +481,7 @@ body{
   <div class="screen" id="screen-master">
     <div class="toolbar">
       <button class="btn-grid-chip btn-master" onclick="closeMaster()"><i class="ti ti-arrow-left" style="font-size:var(--fs-xs)"></i>グリッドへ戻る</button>
-      <span style="font-size:var(--fs-base);font-weight:600;color:#fff;margin-left:4px;flex:1;text-align:center">栽培計画</span>
+      <span style="font-size:var(--fs-base);font-weight:600;color:#fff;margin-left:4px;flex:1;text-align:center">栽培レシピ</span>
       <div id="master-toolbar-btns" style="display:none;gap:6px;align-items:center"></div>
     </div>
     <div id="master-content">
@@ -508,7 +508,7 @@ body{
       <button id="btn-dlg-cancel" style="background:none;border:none;padding:2px 4px;cursor:pointer;color:var(--color-text-tertiary);font-size:18px;line-height:1;flex-shrink:0">✕</button>
     </div>
     <div id="dlg-preview" style="font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-bottom:12px"></div>
-    <div id="dlg-no-veg" style="display:none;margin-bottom:14px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);font-size:var(--fs-sm);color:var(--color-text-secondary);line-height:1.6">登録できる野菜がありません。<br>先に栽培計画に野菜を追加してください。<br><button id="dlg-go-master" class="btn-primary" style="margin-top:8px;font-size:var(--fs-sm);padding:5px 14px">栽培計画に追加する</button></div>
+    <div id="dlg-no-veg" style="display:none;margin-bottom:14px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);font-size:var(--fs-sm);color:var(--color-text-secondary);line-height:1.6">登録できる野菜がありません。<br>先に栽培レシピに野菜を追加してください。<br><button id="dlg-go-master" class="btn-primary" style="margin-top:8px;font-size:var(--fs-sm);padding:5px 14px">栽培レシピに追加する</button></div>
     <div id="dlg-crop-field" class="dlg-field"><label>作物</label><select id="dlg-crop"><option value="">— 選択してください —</option></select><div style="margin-top:5px"><button id="dlg-add-new-veg" style="font-size:var(--fs-xs);color:var(--color-text-secondary);background:none;border:none;cursor:pointer;padding:0;display:inline-flex;align-items:center;gap:3px"><i class="ti ti-plus" style="font-size:var(--fs-xs)"></i>新しい野菜を追加する</button></div></div>
     <div id="dlg-date-field" class="dlg-field"><label>作業開始日</label><div style="display:flex;gap:8px;align-items:center"><input type="date" id="dlg-date-input" style="flex:1;min-width:0;padding:8px 10px;border-radius:var(--border-radius-md);border:1px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:var(--fs-base);box-sizing:border-box"><button class="btn-primary" id="dlg-save" disabled style="flex-shrink:0;white-space:nowrap">登録</button></div></div>
     <div id="dlg-rotation-warn" style="display:none;margin-bottom:12px;padding:9px 11px;border-radius:var(--border-radius-md);background:#FAEEDA;border:1px solid #EF9F27;font-size:var(--fs-xs);color:#92600B;line-height:1.6"></div>
@@ -906,7 +906,7 @@ document.getElementById('btn-close-settings').addEventListener('click',closeSett
 document.getElementById('dlg-settings').addEventListener('mousedown',e=>{if(e.target===e.currentTarget)closeSettings();});
 // ── 権限定義 ──────────────────────────────────────────────
 // 全ユーザー可: タスク記録・収穫追加・全体メモ・画面閲覧
-// 管理者のみ  : 区画登録/編集、栽培計画追加/編集/削除、
+// 管理者のみ  : 区画登録/編集、栽培レシピ追加/編集/削除、
 //               AI生成、設定変更、収穫削除、管理完了
 // ────────────────────────────────────────────────────────
 function requireAdmin(){return isAdmin;}
@@ -1458,7 +1458,7 @@ function renderManage(){
 }
 
 function renderRoadmapTab(el,seg,veg){
-  if(!veg||!veg.phases||!veg.phases.length){const b=document.createElement('div');b.className='ai-banner';b.innerHTML='<div class="ai-banner-text">工程表がありません。栽培計画で生成してください。</div>';el.appendChild(b);return;}
+  if(!veg||!veg.phases||!veg.phases.length){const b=document.createElement('div');b.className='ai-banner';b.innerHTML='<div class="ai-banner-text">工程表がありません。栽培レシピで生成してください。</div>';el.appendChild(b);return;}
   const{pct,phaseIdx}=calcProgress(currentSeg,seg.crop);
   const wrap=document.createElement('div');wrap.className='progress-wrap';wrap.innerHTML=`<div class="progress-label"><div class="progress-title">${vegIconHtml(veg,18)} ${veg.name} 工程表</div><div class="progress-pct">${pct}%</div></div><div class="progress-bar-outer"><div class="progress-bar-inner" style="width:${pct}%"></div></div>`;el.appendChild(wrap);
   veg.phases.forEach((phase,pi)=>{
@@ -1660,7 +1660,7 @@ function renderMasterDetail(){
   if(!hasRM){const emp=document.createElement('div');emp.style.cssText='font-size:var(--fs-xs);color:#9c9a93;padding:12px 0;text-align:center';emp.textContent='工程表を生成すると編集できます';scroll.appendChild(emp);renderMasterSaveBar(col,veg);return;}
   const hint=document.createElement('div');hint.style.cssText='font-size:var(--fs-xs);color:var(--color-text-secondary);background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:8px 12px;margin-bottom:10px;line-height:1.6';
   const _gm2=veg.growMethod||'seedling';const _isSeed2=_gm2==='seed_pot'||_gm2==='seed_ground';
-  hint.textContent=_isSeed2?'日数は種まきを0日とした目安です。種まき予定日を作業開始日に設定すると、各タスクのスケジュールが自動計算されます。':'日数は定植を0日とした目安です。定植予定日を作業開始日に設定すると、準備タスクの逆算スケジュールが自動計算されます。';
+  hint.textContent=_isSeed2?'日数は種まき（播種）を0日とした目安です。工程表で種まきの実施日/予定日を記録すると、それを基準に各タスクのスケジュールが自動計算されます。':'日数は苗を植えた日（定植）を0日とした目安です。工程表で定植の実施日/予定日を記録すると、それを基準に各タスクのスケジュールが自動計算されます。';
   scroll.appendChild(hint);
   veg.phases.forEach((phase,pi)=>{
     const pb=document.createElement('div');pb.className='master-phase-block';const ph=document.createElement('div');ph.className='master-phase-header';ph.innerHTML=`<div class="phase-radio active" style="flex-shrink:0"></div><span class="master-phase-label">${phase.name}（${phase.period}）</span>`;pb.appendChild(ph);
@@ -1763,7 +1763,7 @@ function renderBasicTab(el,veg){
   if(!bi){
     const empty=document.createElement('div');
     empty.style.cssText='text-align:center;padding:40px 20px;color:var(--color-text-tertiary);font-size:var(--fs-base)';
-    empty.innerHTML='<i class="ti ti-plant" style="font-size:32px;display:block;margin-bottom:8px"></i>栽培計画でAI生成すると<br>基礎知識が表示されます';
+    empty.innerHTML='<i class="ti ti-plant" style="font-size:32px;display:block;margin-bottom:8px"></i>栽培レシピでAI生成すると<br>基礎知識が表示されます';
     wrap.appendChild(empty);el.appendChild(wrap);return;
   }
 
