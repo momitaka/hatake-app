@@ -1,0 +1,17 @@
+{
+  "appName": "科学的自給自足ファーム",
+  "youtuberName": "科学的に楽しく自給自足ch",
+  "youtubeChannelId": "UCxxxxxxxxxxxxxxxxxxxxxxxx",
+  "themeColor": "#2E7D32",
+  "accentColor": "#A5D6A7",
+  "splashImage": "",
+  "topIllustration": "",
+  "recipes": [],
+  "supabaseTable": "user_records",
+  "dbId": "kagaku_main",
+  "lsKey": "hatake_kagaku_v1",
+  "adminPassword": "kagaku2026",
+  "autoAdmin": true,
+  "freeDataStrategy": "session",
+  "channelId": "kagaku-jikyu"
+}

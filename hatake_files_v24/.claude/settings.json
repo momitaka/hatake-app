@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"\nimport sys, json, os\ndata = json.load(sys.stdin)\nfp = data.get('tool_input',{}).get('file_path','')\nif 'hatake_v24.html' not in fp:\n    sys.exit(0)\nsize = os.path.getsize(fp)\nlines = sum(1 for _ in open(fp))\nkb = size // 1024\nif size > 300000 or lines > 2000:\n    print(json.dumps({'systemMessage': f'⚠️ hatake_v24.html が大きくなっています（{kb} KB / {lines}行）— Claudeに直接貼ると限界を超える可能性があります'}))\n\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

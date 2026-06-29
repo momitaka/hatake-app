@@ -1,0 +1,17 @@
+{
+  "appName": "私の畑",
+  "youtuberName": "",
+  "youtubeChannelId": "",
+  "themeColor": "#5aad4e",
+  "accentColor": "#d4f0b8",
+  "splashImage": "",
+  "topIllustration": "",
+  "recipes": [],
+  "supabaseTable": "app_data",
+  "dbId": "main",
+  "lsKey": "hatake_v21",
+  "adminPassword": "hatake2026",
+  "autoAdmin": false,
+  "freeDataStrategy": "localStorage",
+  "channelId": "default"
+}
