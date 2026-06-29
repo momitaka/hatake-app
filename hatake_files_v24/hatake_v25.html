@@ -1444,9 +1444,7 @@ function renderManage(){
   st.innerHTML='';tb.innerHTML='';el.innerHTML='';
   const hdr=document.createElement('div');hdr.className='manage-header';
   const plantDisp=seg.plantDate?seg.plantDate.slice(5).replace('-','/'):null;
-  const startChipHtml=isAdmin?`<span id="manage-start-chip" class="task-date-chip" style="cursor:pointer;margin-left:6px">${plantDisp?plantDisp+'〜':'＋開始日'}</span>`:(plantDisp?` ／ ${plantDisp}開始`:'');
-  hdr.innerHTML=`<span style="display:inline-flex;align-items:center;font-size:22px">${veg?vegIconHtml(veg,28):''}</span><div style="flex:1"><div class="manage-title">${veg?veg.name+(veg.variety?' ('+veg.variety+')':''):'不明'}</div><div class="manage-meta" style="display:flex;align-items:center;flex-wrap:wrap;gap:2px">${seg.row+1}行 ${Math.min(...seg.cols)+1}〜${Math.max(...seg.cols)+1}列 ${seg.cols.length}マス${startChipHtml}</div></div><div class="status-pill" style="background:${majorSt.bg};color:${majorSt.color}">${majorSt.name}</div>`;
-  if(isAdmin){const chip=hdr.querySelector('#manage-start-chip');if(chip)chip.addEventListener('click',()=>{if(seg.plantDate){const menu=document.getElementById('task-chip-menu');menu.style.display='flex';document.getElementById('task-chip-menu-label').textContent=plantDisp+'〜 作業開始';window._chipEdit=()=>{menu.style.display='none';showTaskDateDialog('作業開始日を変更','作業開始日',(dateVal)=>{if(!dateVal)return;pushUndo();Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===currentSeg)cells[k].plantDate=dateVal;});buildSegs();saveLS();renderManage();renderGrid();});};window._chipDelete=()=>{menu.style.display='none';pushUndo();Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===currentSeg)cells[k].plantDate=null;});buildSegs();saveLS();renderManage();renderGrid();};}else{showTaskDateDialog('作業開始日を設定','作業開始日',(dateVal)=>{if(!dateVal)return;pushUndo();Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===currentSeg)cells[k].plantDate=dateVal;});buildSegs();saveLS();renderManage();renderGrid();});}});}
+  hdr.innerHTML=`<span style="display:inline-flex;align-items:center;font-size:22px">${veg?vegIconHtml(veg,28):''}</span><div style="flex:1"><div class="manage-title">${veg?veg.name+(veg.variety?' ('+veg.variety+')':''):'不明'}</div><div class="manage-meta" style="display:flex;align-items:center;flex-wrap:wrap;gap:2px">${seg.row+1}行 ${Math.min(...seg.cols)+1}〜${Math.max(...seg.cols)+1}列 ${seg.cols.length}マス</div></div><div class="status-pill" style="background:${majorSt.bg};color:${majorSt.color}">${majorSt.name}</div>`;
   st.appendChild(hdr);
   const tabs=[{id:'basic',icon:'ti-plant',label:'基礎知識'},{id:'roadmap',icon:'ti-road',label:'工程表'},{id:'harvest',icon:'ti-basket',label:'収穫'},{id:'log',icon:'ti-clipboard-list',label:'作業ログ'}];
   const tabBar=document.createElement('div');tabBar.className='tab-bar';tabBar.style.margin='0 0 0';
@@ -1484,8 +1482,9 @@ function renderLogTab(el,seg){
   const summary=document.createElement('div');summary.className='summary-section';
   // doneDates から全日付を収集して作業期間を計算
   const allTaskDates=[];const _seg2=segs[currentSeg];if(_seg2){const _veg2=getVeg(_seg2.crop);if(_veg2&&_veg2.phases){_veg2.phases.forEach(ph=>{ph.tasks.forEach(t=>{(getTaskState(currentSeg,t.id).doneDates||[]).forEach(d=>{const iso=dispToISO(d);if(iso)allTaskDates.push(iso);});});});}}
-  allTaskDates.sort();const lastLogDate=allTaskDates[allTaskDates.length-1]||null;
-  let workPeriodVal='—',workPeriodSub='';if(seg.plantDate&&lastLogDate){const days=daysBetween(seg.plantDate,lastLogDate);workPeriodVal=`${isoShort(seg.plantDate)} 〜 ${isoShort(lastLogDate)}`;workPeriodSub=`${days}日間`;}else if(seg.plantDate)workPeriodVal=`${isoShort(seg.plantDate)} 〜 作業中`;
+  allTaskDates.sort();
+  let workPeriodVal='—',workPeriodSub='';
+  if(seg.plantDate){const today=new Date().toISOString().slice(0,10);const elapsed=daysBetween(seg.plantDate,today);workPeriodVal=`${isoShort(seg.plantDate)}〜 （${elapsed}日経過）`;}
   const veg=getVeg(seg.crop);const growMethod=veg?veg.growMethod||'seedling':'seedling';
   const isSeed=growMethod==='seed_pot'||growMethod==='seed_ground';
   const sowingDate=getMilestoneDate(currentSeg,seg.crop,'sowing');
@@ -1494,9 +1493,26 @@ function renderLogTab(el,seg){
   const harvestStartDate=getMilestoneDate(currentSeg,seg.crop,'harvest_start');
   let seedHtml='';
   if(!isSeed){seedHtml=`<div class="summary-stat"><div class="summary-stat-label">種まき情報</div><div class="summary-stat-val" style="color:var(--color-text-tertiary)">なし（苗から）</div></div>`;}
-  else{const sv=sowingDate?isoShort(sowingDate):'—';const gv=germinationDate?isoShort(germinationDate):'—';const gdays=(sowingDate&&germinationDate)?`発芽まで${daysBetween(sowingDate,germinationDate)}日`:'';seedHtml=`<div class="summary-stat"><div class="summary-stat-label">種まき情報</div><div class="summary-stat-val">種まき：${sv}</div><div class="summary-stat-sub">発芽確認：${gv}${gdays?' ／ '+gdays:''}</div></div>`;}
-  const transplantHtml=`<div class="summary-stat"><div class="summary-stat-label">定植 ／ 収穫開始</div><div class="summary-stat-val">${plantingDate?isoShort(plantingDate):'—'}</div><div class="summary-stat-sub">収穫開始：${harvestStartDate?isoShort(harvestStartDate):'—'}</div></div>`;
-  const stats=document.createElement('div');stats.className='summary-stats';stats.innerHTML=`<div class="summary-stat"><div class="summary-stat-label">作業期間</div><div class="summary-stat-val">${workPeriodVal}</div>${workPeriodSub?`<div class="summary-stat-sub">${workPeriodSub}</div>`:''}</div>${seedHtml}${transplantHtml}<div class="summary-stat"><div class="summary-stat-label">合計収穫量</div><div class="summary-stat-val" style="color:#2e7a28">${harvestTotalStr(currentSeg)||'未記録'}</div></div>`;
+  else{
+    const sv=sowingDate?isoShort(sowingDate):'—';
+    const gv=germinationDate?isoShort(germinationDate):'—';
+    const sowToGerm=(sowingDate&&germinationDate)?daysBetween(sowingDate,germinationDate):null;
+    const germToPlant=(germinationDate&&plantingDate)?daysBetween(germinationDate,plantingDate):null;
+    const germLine=sowToGerm!=null?`発芽：${gv} ／ ${sowToGerm}日後`:`発芽：${gv}`;
+    const plantLine=germToPlant!=null?`定植：${plantingDate?isoShort(plantingDate):'—'} ／ 発芽から${germToPlant}日後`:'';
+    seedHtml=`<div class="summary-stat"><div class="summary-stat-label">種まき情報</div><div class="summary-stat-val">種まき：${sv}</div><div class="summary-stat-sub">${germLine}${plantLine?'<br>'+plantLine:''}</div></div>`;
+  }
+  const daysToHarvest=(plantingDate&&harvestStartDate)?daysBetween(plantingDate,harvestStartDate):null;
+  const transplantHtml=`<div class="summary-stat"><div class="summary-stat-label">定植 ／ 収穫開始</div><div class="summary-stat-val">${plantingDate?isoShort(plantingDate):'—'}</div><div class="summary-stat-sub">収穫開始：${harvestStartDate?isoShort(harvestStartDate):'—'}${daysToHarvest!=null?' ／ 定植から'+daysToHarvest+'日後':''}</div></div>`;
+  const stats=document.createElement('div');stats.className='summary-stats';
+  const periodStat=document.createElement('div');periodStat.className='summary-stat';
+  const periodNotSet=!seg.plantDate&&workPeriodVal==='—';
+  const periodStyle=isAdmin?'cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;color:'+(periodNotSet?'#b4b2a9':'inherit'):'';
+  const periodDispVal=periodNotSet&&isAdmin?'未設定':workPeriodVal;
+  periodStat.innerHTML='<div class="summary-stat-label">作業期間</div><div class="summary-stat-val" id="work-period-val" style="'+periodStyle+'">'+periodDispVal+'</div>'+(workPeriodSub?'<div class="summary-stat-sub">'+workPeriodSub+'</div>':'');
+  if(isAdmin){periodStat.querySelector('#work-period-val').addEventListener('click',()=>{if(seg.plantDate){const menu=document.getElementById('task-chip-menu');menu.style.display='flex';document.getElementById('task-chip-menu-label').textContent='作業開始日';window._chipEdit=()=>{menu.style.display='none';showTaskDateDialog('作業開始日を変更','作業開始日',(dateVal)=>{if(!dateVal)return;pushUndo();Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===currentSeg)cells[k].plantDate=dateVal;});buildSegs();saveLS();renderManage();renderGrid();});};window._chipDelete=()=>{menu.style.display='none';pushUndo();Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===currentSeg)cells[k].plantDate=null;});buildSegs();saveLS();renderManage();renderGrid();};}else{showTaskDateDialog('作業開始日を設定','作業開始日',(dateVal)=>{if(!dateVal)return;pushUndo();Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===currentSeg)cells[k].plantDate=dateVal;});buildSegs();saveLS();renderManage();renderGrid();});}});}
+  stats.innerHTML=`${seedHtml}${transplantHtml}<div class="summary-stat"><div class="summary-stat-label">合計収穫量</div><div class="summary-stat-val" style="color:#2e7a28">${harvestTotalStr(currentSeg)||'未記録'}</div></div>`;
+  stats.insertBefore(periodStat,stats.firstChild);
   summary.appendChild(stats);
   const memoBox=document.createElement('div');memoBox.className='summary-memo-box';memoBox.innerHTML='<div class="summary-memo-header"><i class="ti ti-notes" style="color:#9c9a93"></i>全体メモ</div>';const memoBody=document.createElement('div');memoBody.className='summary-memo-body';const memoTa=document.createElement('textarea');memoTa.className='summary-memo-ta';memoTa.placeholder='この区画の栽培を振り返って...';memoTa.value=segSummaryMemo[currentSeg]||'';const memoSave=document.createElement('button');memoSave.className='summary-save-btn';memoSave.innerHTML='<i class="ti ti-device-floppy" style="font-size:var(--fs-xs)"></i>保存';memoSave.addEventListener('click',()=>{segSummaryMemo[currentSeg]=memoTa.value;saveLS();memoSave.textContent='保存しました';setTimeout(()=>{memoSave.innerHTML='<i class="ti ti-device-floppy" style="font-size:var(--fs-xs)"></i>保存';},1200);});memoBody.append(memoTa,memoSave);memoBox.appendChild(memoBody);summary.appendChild(memoBox);el.appendChild(summary);
   const logTitle=document.createElement('div');logTitle.className='log-section-title';logTitle.innerHTML='<i class="ti ti-clock" style="font-size:var(--fs-base)"></i>作業履歴';el.appendChild(logTitle);
