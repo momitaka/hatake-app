@@ -385,7 +385,7 @@ body{
           <button class="btn-grid-chip btn-undo" id="undo-btn" disabled><i class="ti ti-arrow-back-up" style="font-size:var(--fs-xs)"></i>取り消し</button>
           <span class="undo-count" id="undo-count" style="color:rgba(255,255,255,0.7)"></span>
           <div style="flex:1"></div>
-          <button class="btn-grid-chip btn-master" id="btn-open-master"><i class="ti ti-plant-2" style="font-size:var(--fs-xs)"></i>野菜マスタ</button>
+          <button class="btn-grid-chip btn-master" id="btn-open-master"><i class="ti ti-plant-2" style="font-size:var(--fs-xs)"></i>栽培計画</button>
           <button class="btn-grid-icon" id="btn-open-archive" title="過去データ"><i class="ti ti-archive"></i></button>
           <button class="btn-grid-icon" id="btn-settings" title="設定"><i class="ti ti-settings"></i></button>
         </div>
@@ -426,7 +426,7 @@ body{
         <div class="settings-row admin-only" style="flex-direction:column;align-items:stretch;gap:6px;margin-top:8px">
           <span class="settings-label">農園アイコン</span>
           <div id="farm-icon-picker" style="display:flex;flex-wrap:wrap;gap:6px"></div>
-          <div style="font-size:var(--fs-xs);color:var(--color-text-tertiary)">野菜マスタに登録されているアイコンから選択。もう一度タップで解除。</div>
+          <div style="font-size:var(--fs-xs);color:var(--color-text-tertiary)">栽培計画に登録されているアイコンから選択。もう一度タップで解除。</div>
         </div>
         <hr class="divider admin-only" style="margin:10px 0">
         <div class="settings-section-label admin-only">グリッドサイズ</div>
@@ -481,7 +481,7 @@ body{
   <div class="screen" id="screen-master">
     <div class="toolbar">
       <button class="btn-grid-chip btn-master" onclick="closeMaster()"><i class="ti ti-arrow-left" style="font-size:var(--fs-xs)"></i>グリッドへ戻る</button>
-      <span style="font-size:var(--fs-base);font-weight:600;color:#fff;margin-left:4px;flex:1">野菜マスタ</span>
+      <span style="font-size:var(--fs-base);font-weight:600;color:#fff;margin-left:4px;flex:1;text-align:center">栽培計画</span>
       <div id="master-toolbar-btns" style="display:none;gap:6px;align-items:center"></div>
     </div>
     <div id="master-content">
@@ -508,7 +508,7 @@ body{
       <button id="btn-dlg-cancel" style="background:none;border:none;padding:2px 4px;cursor:pointer;color:var(--color-text-tertiary);font-size:18px;line-height:1;flex-shrink:0">✕</button>
     </div>
     <div id="dlg-preview" style="font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-bottom:12px"></div>
-    <div id="dlg-no-veg" style="display:none;margin-bottom:14px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);font-size:var(--fs-sm);color:var(--color-text-secondary);line-height:1.6">登録できる野菜がありません。<br>先に野菜マスタで野菜を追加してください。<br><button id="dlg-go-master" class="btn-primary" style="margin-top:8px;font-size:var(--fs-sm);padding:5px 14px">野菜マスタで追加する</button></div>
+    <div id="dlg-no-veg" style="display:none;margin-bottom:14px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);font-size:var(--fs-sm);color:var(--color-text-secondary);line-height:1.6">登録できる野菜がありません。<br>先に栽培計画に野菜を追加してください。<br><button id="dlg-go-master" class="btn-primary" style="margin-top:8px;font-size:var(--fs-sm);padding:5px 14px">栽培計画に追加する</button></div>
     <div id="dlg-crop-field" class="dlg-field"><label>作物</label><select id="dlg-crop"><option value="">— 選択してください —</option></select><div style="margin-top:5px"><button id="dlg-add-new-veg" style="font-size:var(--fs-xs);color:var(--color-text-secondary);background:none;border:none;cursor:pointer;padding:0;display:inline-flex;align-items:center;gap:3px"><i class="ti ti-plus" style="font-size:var(--fs-xs)"></i>新しい野菜を追加する</button></div></div>
     <div id="dlg-date-field" class="dlg-field"><label>作業開始日</label><div style="display:flex;gap:8px;align-items:center"><input type="date" id="dlg-date-input" style="flex:1;min-width:0;padding:8px 10px;border-radius:var(--border-radius-md);border:1px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:var(--fs-base);box-sizing:border-box"><button class="btn-primary" id="dlg-save" disabled style="flex-shrink:0;white-space:nowrap">登録</button></div></div>
     <div id="dlg-rotation-warn" style="display:none;margin-bottom:12px;padding:9px 11px;border-radius:var(--border-radius-md);background:#FAEEDA;border:1px solid #EF9F27;font-size:var(--fs-xs);color:#92600B;line-height:1.6"></div>
@@ -525,7 +525,7 @@ body{
     <div class="dlg-field"><label>アイコン</label><div class="emoji-grid" id="av-emoji-grid"></div><div style="margin-top:6px;display:flex;align-items:center;gap:8px"><button type="button" class="btn" id="btn-upload-icon" style="font-size:var(--fs-xs)"><i class="ti ti-upload"></i>画像をアップロード</button><span id="upload-icon-hint" style="font-size:var(--fs-xs);color:var(--color-text-tertiary)">JPEG・PNG・WebP／2MB以内</span></div><input type="file" id="av-icon-upload" accept="image/jpeg,image/png,image/webp" style="display:none"><div id="upload-icon-error" style="display:none;font-size:var(--fs-xs);color:var(--color-text-danger);margin-top:4px"></div></div><div class="dlg-field"><label>育成方法</label><select id="av-grow-method" style="width:100%;font-size:var(--fs-base);padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)"><option value="seedling">苗から</option><option value="seed_pot">種（ポット）から</option><option value="seed_ground">種（地植え）から</option></select></div><div class="dlg-field"><label>作期（任意）</label><select id="av-season" style="width:100%;font-size:var(--fs-base);padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)"><option value="">— 指定なし —</option><option value="spring">春まき</option><option value="summer">夏まき</option><option value="autumn">秋まき</option><option value="winter">冬まき</option><option value="year_round">通年</option></select></div><div class="dlg-field"><label>地域（任意）</label><select id="av-region" style="width:100%;font-size:var(--fs-base);padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)"><option value="">— 指定なし —</option><option value="cool">冷涼地</option><option value="middle">中間地</option><option value="warm">暖地</option></select></div><div class="dlg-field"><label>参考URL（任意）</label><input type="url" id="av-ref-url" placeholder="https://..." style="width:100%;font-size:var(--fs-base);padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)"></div>
     <div class="dlg-btns">
       <button class="btn" id="btn-add-veg-cancel">キャンセル</button>
-      <button class="btn-primary" id="av-next" disabled>次へ（ロードマップ生成）</button>
+      <button class="btn-primary" id="av-next" disabled>次へ（工程表生成）</button>
     </div>
   </div>
 </div>
@@ -583,7 +583,7 @@ body{
     <ul style="font-size:var(--fs-sm);color:var(--color-text-secondary);line-height:1.7;margin:0 0 4px 18px;padding:0">
       <li>この操作は<b style="color:var(--color-text-danger)">取り消せません</b></li>
       <li>この区画は<b>グリッドから消えます</b>（枠は未登録状態に戻ります）</li>
-      <li>作業ログ・収量・全体メモは<b>アーカイブに保存され</b>、削除されません</li>
+      <li>作業ログ・収穫・全体メモは<b>アーカイブに保存され</b>、削除されません</li>
     </ul>
     <div class="dlg-btns">
       <button class="btn" id="btn-complete-cancel">キャンセル</button>
@@ -708,7 +708,7 @@ const TOMATO_SAMPLE={
     {id:'p3',majorStatus:'harvesting',name:'着果・収穫期',period:'71〜100日',tasks:[
       {id:'t11',name:'着色確認',desc:'赤くなったら収穫サイン',day:70,memo:'全体の8割が赤くなったら収穫適期',url:''},
       {id:'t12',name:'収穫',desc:'ヘタ上でカット',day:75,memo:'ヘタの少し上をハサミでカット',url:'',milestone:'harvest_start'},
-      {id:'t13',name:'収量記録',desc:'個数・重量をメモ',day:75,memo:'',url:''},
+      {id:'t13',name:'収穫記録',desc:'個数・重量をメモ',day:75,memo:'',url:''},
     ]},
     {id:'p4',majorStatus:'done',name:'撤収',period:'101日〜',tasks:[
       {id:'t14',name:'株の撤去',desc:'根ごと引き抜く',day:100,memo:'病気の株は畑に残さず処分',url:''},
@@ -906,7 +906,7 @@ document.getElementById('btn-close-settings').addEventListener('click',closeSett
 document.getElementById('dlg-settings').addEventListener('mousedown',e=>{if(e.target===e.currentTarget)closeSettings();});
 // ── 権限定義 ──────────────────────────────────────────────
 // 全ユーザー可: タスク記録・収穫追加・全体メモ・画面閲覧
-// 管理者のみ  : 区画登録/編集、野菜マスタ追加/編集/削除、
+// 管理者のみ  : 区画登録/編集、栽培計画追加/編集/削除、
 //               AI生成、設定変更、収穫削除、管理完了
 // ────────────────────────────────────────────────────────
 function requireAdmin(){return isAdmin;}
@@ -1356,7 +1356,7 @@ function renderArchiveDetail(el,segId){
   if(!isSeedArch2){archSeedHtml=`<div class="summary-stat"><div class="summary-stat-label">種まき情報</div><div class="summary-stat-val" style="color:var(--color-text-tertiary)">なし（苗から）</div></div>`;}
   else{const sv2=arch.sowingDate?isoShort(arch.sowingDate):'—';const gv2=arch.germinationDate?isoShort(arch.germinationDate):'—';const gd2=(arch.sowingDate&&arch.germinationDate)?`発芽まで${daysBetween(arch.sowingDate,arch.germinationDate)}日`:'';archSeedHtml=`<div class="summary-stat"><div class="summary-stat-label">種まき情報</div><div class="summary-stat-val">種まき：${sv2}</div><div class="summary-stat-sub">発芽確認：${gv2}${gd2?' ／ '+gd2:''}</div></div>`;}
   const archTransplantHtml=`<div class="summary-stat"><div class="summary-stat-label">定植 ／ 収穫開始</div><div class="summary-stat-val">${arch.plantingDate?isoShort(arch.plantingDate):'—'}</div><div class="summary-stat-sub">収穫開始：${arch.harvestStartDate?isoShort(arch.harvestStartDate):'—'}</div></div>`;
-  stats.innerHTML=`<div class="summary-stat"><div class="summary-stat-label">作業期間</div><div class="summary-stat-val">${workPeriodVal}</div>${workPeriodSub?`<div class="summary-stat-sub">${workPeriodSub}</div>`:''}</div>${archSeedHtml}${archTransplantHtml}<div class="summary-stat"><div class="summary-stat-label">合計収量</div><div class="summary-stat-val" style="color:#2e7a28">${arch.harvestTotal||'未記録'}</div></div><div class="summary-stat"><div class="summary-stat-label">完了日</div><div class="summary-stat-val">${isoShort(arch.completedDate)}</div></div>`;
+  stats.innerHTML=`<div class="summary-stat"><div class="summary-stat-label">作業期間</div><div class="summary-stat-val">${workPeriodVal}</div>${workPeriodSub?`<div class="summary-stat-sub">${workPeriodSub}</div>`:''}</div>${archSeedHtml}${archTransplantHtml}<div class="summary-stat"><div class="summary-stat-label">合計収穫量</div><div class="summary-stat-val" style="color:#2e7a28">${arch.harvestTotal||'未記録'}</div></div><div class="summary-stat"><div class="summary-stat-label">完了日</div><div class="summary-stat-val">${isoShort(arch.completedDate)}</div></div>`;
   summary.appendChild(stats);
 
   // 栽培エリア ミニグリッド
@@ -1447,7 +1447,7 @@ function renderManage(){
   hdr.innerHTML=`<span style="display:inline-flex;align-items:center;font-size:22px">${veg?vegIconHtml(veg,28):''}</span><div style="flex:1"><div class="manage-title">${veg?veg.name+(veg.variety?' ('+veg.variety+')':''):'不明'}</div><div class="manage-meta" style="display:flex;align-items:center;flex-wrap:wrap;gap:2px">${seg.row+1}行 ${Math.min(...seg.cols)+1}〜${Math.max(...seg.cols)+1}列 ${seg.cols.length}マス${startChipHtml}</div></div><div class="status-pill" style="background:${majorSt.bg};color:${majorSt.color}">${majorSt.name}</div>`;
   if(isAdmin){const chip=hdr.querySelector('#manage-start-chip');if(chip)chip.addEventListener('click',()=>{if(seg.plantDate){const menu=document.getElementById('task-chip-menu');menu.style.display='flex';document.getElementById('task-chip-menu-label').textContent=plantDisp+'〜 作業開始';window._chipEdit=()=>{menu.style.display='none';showTaskDateDialog('作業開始日を変更','作業開始日',(dateVal)=>{if(!dateVal)return;pushUndo();Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===currentSeg)cells[k].plantDate=dateVal;});buildSegs();saveLS();renderManage();renderGrid();});};window._chipDelete=()=>{menu.style.display='none';pushUndo();Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===currentSeg)cells[k].plantDate=null;});buildSegs();saveLS();renderManage();renderGrid();};}else{showTaskDateDialog('作業開始日を設定','作業開始日',(dateVal)=>{if(!dateVal)return;pushUndo();Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===currentSeg)cells[k].plantDate=dateVal;});buildSegs();saveLS();renderManage();renderGrid();});}});}
   st.appendChild(hdr);
-  const tabs=[{id:'basic',icon:'ti-plant',label:'基礎知識'},{id:'roadmap',icon:'ti-road',label:'ロードマップ'},{id:'harvest',icon:'ti-basket',label:'収量'},{id:'log',icon:'ti-clipboard-list',label:'作業ログ'}];
+  const tabs=[{id:'basic',icon:'ti-plant',label:'基礎知識'},{id:'roadmap',icon:'ti-road',label:'工程表'},{id:'harvest',icon:'ti-basket',label:'収穫'},{id:'log',icon:'ti-clipboard-list',label:'作業ログ'}];
   const tabBar=document.createElement('div');tabBar.className='tab-bar';tabBar.style.margin='0 0 0';
   tabs.forEach(tab=>{const btn=document.createElement('div');btn.className='tab-btn'+(currentTab===tab.id?' active':'');btn.innerHTML=`<i class="ti ${tab.icon}" style="font-size:var(--fs-sm)"></i>${tab.label}`;btn.addEventListener('click',()=>{currentTab=tab.id;renderManage();});tabBar.appendChild(btn);});
   tb.appendChild(tabBar);
@@ -1459,9 +1459,9 @@ function renderManage(){
 }
 
 function renderRoadmapTab(el,seg,veg){
-  if(!veg||!veg.phases||!veg.phases.length){const b=document.createElement('div');b.className='ai-banner';b.innerHTML='<div class="ai-banner-text">ロードマップがありません。野菜マスタで生成してください。</div>';el.appendChild(b);return;}
+  if(!veg||!veg.phases||!veg.phases.length){const b=document.createElement('div');b.className='ai-banner';b.innerHTML='<div class="ai-banner-text">工程表がありません。栽培計画で生成してください。</div>';el.appendChild(b);return;}
   const{pct,phaseIdx}=calcProgress(currentSeg,seg.crop);
-  const wrap=document.createElement('div');wrap.className='progress-wrap';wrap.innerHTML=`<div class="progress-label"><div class="progress-title">${vegIconHtml(veg,18)} ${veg.name} ロードマップ</div><div class="progress-pct">${pct}%</div></div><div class="progress-bar-outer"><div class="progress-bar-inner" style="width:${pct}%"></div></div>`;el.appendChild(wrap);
+  const wrap=document.createElement('div');wrap.className='progress-wrap';wrap.innerHTML=`<div class="progress-label"><div class="progress-title">${vegIconHtml(veg,18)} ${veg.name} 工程表</div><div class="progress-pct">${pct}%</div></div><div class="progress-bar-outer"><div class="progress-bar-inner" style="width:${pct}%"></div></div>`;el.appendChild(wrap);
   veg.phases.forEach((phase,pi)=>{
     const isCurrent=pi===phaseIdx,isDone=pi<phaseIdx;
     const block=document.createElement('div');block.className='phase-block';block.innerHTML=`<div class="phase-heading"><div class="phase-radio ${isDone?'done':isCurrent?'active':''}"></div><span class="phase-name" style="color:${isCurrent?'#1a1915':'#5f5e5a'}">${phase.name}</span><span class="phase-period">（${phase.period}）</span></div>`;
@@ -1495,7 +1495,7 @@ function renderLogTab(el,seg){
   if(!isSeed){seedHtml=`<div class="summary-stat"><div class="summary-stat-label">種まき情報</div><div class="summary-stat-val" style="color:var(--color-text-tertiary)">なし（苗から）</div></div>`;}
   else{const sv=sowingDate?isoShort(sowingDate):'—';const gv=germinationDate?isoShort(germinationDate):'—';const gdays=(sowingDate&&germinationDate)?`発芽まで${daysBetween(sowingDate,germinationDate)}日`:'';seedHtml=`<div class="summary-stat"><div class="summary-stat-label">種まき情報</div><div class="summary-stat-val">種まき：${sv}</div><div class="summary-stat-sub">発芽確認：${gv}${gdays?' ／ '+gdays:''}</div></div>`;}
   const transplantHtml=`<div class="summary-stat"><div class="summary-stat-label">定植 ／ 収穫開始</div><div class="summary-stat-val">${plantingDate?isoShort(plantingDate):'—'}</div><div class="summary-stat-sub">収穫開始：${harvestStartDate?isoShort(harvestStartDate):'—'}</div></div>`;
-  const stats=document.createElement('div');stats.className='summary-stats';stats.innerHTML=`<div class="summary-stat"><div class="summary-stat-label">作業期間</div><div class="summary-stat-val">${workPeriodVal}</div>${workPeriodSub?`<div class="summary-stat-sub">${workPeriodSub}</div>`:''}</div>${seedHtml}${transplantHtml}<div class="summary-stat"><div class="summary-stat-label">合計収量</div><div class="summary-stat-val" style="color:#2e7a28">${harvestTotalStr(currentSeg)||'未記録'}</div></div>`;
+  const stats=document.createElement('div');stats.className='summary-stats';stats.innerHTML=`<div class="summary-stat"><div class="summary-stat-label">作業期間</div><div class="summary-stat-val">${workPeriodVal}</div>${workPeriodSub?`<div class="summary-stat-sub">${workPeriodSub}</div>`:''}</div>${seedHtml}${transplantHtml}<div class="summary-stat"><div class="summary-stat-label">合計収穫量</div><div class="summary-stat-val" style="color:#2e7a28">${harvestTotalStr(currentSeg)||'未記録'}</div></div>`;
   summary.appendChild(stats);
   const memoBox=document.createElement('div');memoBox.className='summary-memo-box';memoBox.innerHTML='<div class="summary-memo-header"><i class="ti ti-notes" style="color:#9c9a93"></i>全体メモ</div>';const memoBody=document.createElement('div');memoBody.className='summary-memo-body';const memoTa=document.createElement('textarea');memoTa.className='summary-memo-ta';memoTa.placeholder='この区画の栽培を振り返って...';memoTa.value=segSummaryMemo[currentSeg]||'';const memoSave=document.createElement('button');memoSave.className='summary-save-btn';memoSave.innerHTML='<i class="ti ti-device-floppy" style="font-size:var(--fs-xs)"></i>保存';memoSave.addEventListener('click',()=>{segSummaryMemo[currentSeg]=memoTa.value;saveLS();memoSave.textContent='保存しました';setTimeout(()=>{memoSave.innerHTML='<i class="ti ti-device-floppy" style="font-size:var(--fs-xs)"></i>保存';},1200);});memoBody.append(memoTa,memoSave);memoBox.appendChild(memoBody);summary.appendChild(memoBox);el.appendChild(summary);
   const logTitle=document.createElement('div');logTitle.className='log-section-title';logTitle.innerHTML='<i class="ti ti-clock" style="font-size:var(--fs-base)"></i>作業履歴';el.appendChild(logTitle);
@@ -1626,8 +1626,8 @@ function renderMasterDetail(){
   if(!veg){scroll.innerHTML='<div class="master-detail-empty"><i class="ti ti-plant-2" style="font-size:24px;color:#9c9a93"></i>左のリストから野菜を選択</div>';const s=document.getElementById('master-toolbar-btns');if(s)s.style.display='none';return;}
   const hdr=document.createElement('div');hdr.className='master-detail-header';hdr.innerHTML=`<span class="master-detail-icon">${vegIconHtml(veg,30)}</span><div><div class="master-detail-name">${veg.name}</div><div class="master-detail-sub">${veg.variety||'標準'} ／ ${veg.family||'科未設定'}</div></div>`;
   const growBlock=document.createElement('div');growBlock.classList.add('admin-only');growBlock.style.cssText='margin-bottom:12px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary)';const growLabel=document.createElement('div');growLabel.style.cssText='font-size:var(--fs-xs);font-weight:500;color:var(--color-text-secondary);margin-bottom:8px';growLabel.textContent='栽培設定';const growRow=document.createElement('div');growRow.style.cssText='display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end';const growMethodWrap=document.createElement('div');growMethodWrap.style.cssText='display:flex;flex-direction:column;gap:3px;flex:1;min-width:120px';const growMethodLbl=document.createElement('div');growMethodLbl.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary)';growMethodLbl.textContent='育成方法';const growMethodSel=document.createElement('select');growMethodSel.style.cssText='font-size:var(--fs-sm);padding:5px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)';[{v:'seedling',l:'苗から'},{v:'seed_pot',l:'種（ポット）から'},{v:'seed_ground',l:'種（地植え）から'}].forEach(opt=>{const o=document.createElement('option');o.value=opt.v;o.textContent=opt.l;if((veg.growMethod||'seedling')===opt.v)o.selected=true;growMethodSel.appendChild(o);});if(!requireAdmin())growMethodSel.disabled=true;else growMethodSel.addEventListener('change',()=>{vegMaster[veg.id].growMethod=growMethodSel.value;});growMethodWrap.append(growMethodLbl,growMethodSel);const refUrlWrap=document.createElement('div');refUrlWrap.style.cssText='display:flex;flex-direction:column;gap:3px;flex:2;min-width:160px';const refUrlLbl=document.createElement('div');refUrlLbl.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary)';refUrlLbl.innerHTML='<i class="ti ti-link" style="font-size:var(--fs-xs)"></i> 参考URL（AI生成に使用）';const refUrlIn=document.createElement('input');refUrlIn.type='url';refUrlIn.style.cssText='font-size:var(--fs-sm);padding:5px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);width:100%';refUrlIn.placeholder='https://...';refUrlIn.value=veg.referenceUrl||'';if(!requireAdmin())refUrlIn.readOnly=true;else refUrlIn.addEventListener('input',()=>{vegMaster[veg.id].referenceUrl=refUrlIn.value;});refUrlWrap.append(refUrlLbl,refUrlIn);growRow.append(growMethodWrap,refUrlWrap);growBlock.append(growLabel,growRow);scroll.appendChild(growBlock);const aiBanner=document.createElement('div');aiBanner.className='ai-banner';aiBanner.style.margin='0 0 12px';const hasRM=veg.phases&&veg.phases.length>0;
-  if(isAdmin){aiBanner.innerHTML=`<div class="ai-banner-text">${hasRM?'ロードマップ・基礎情報が生成済みです。再生成で上書きできます。':'ロードマップと基礎情報がありません。AIで自動生成できます。'}</div><button class="btn-ai" id="btn-ai-gen"><i class="ti ti-sparkles"></i>${hasRM?'再生成':'AIで生成'}</button>`;aiBanner.querySelector('#btn-ai-gen').addEventListener('click',()=>aiGenerate(veg.id));scroll.append(hdr,aiBanner);}else{scroll.appendChild(hdr);}
-  if(!hasRM){const emp=document.createElement('div');emp.style.cssText='font-size:var(--fs-xs);color:#9c9a93;padding:12px 0;text-align:center';emp.textContent='ロードマップを生成すると編集できます';scroll.appendChild(emp);renderMasterSaveBar(col,veg);return;}
+  if(isAdmin){aiBanner.innerHTML=`<div class="ai-banner-text">${hasRM?'工程表・基礎情報が生成済みです。再生成で上書きできます。':'工程表と基礎情報がありません。AIで自動生成できます。'}</div><button class="btn-ai" id="btn-ai-gen"><i class="ti ti-sparkles"></i>${hasRM?'再生成':'AIで生成'}</button>`;aiBanner.querySelector('#btn-ai-gen').addEventListener('click',()=>aiGenerate(veg.id));scroll.append(hdr,aiBanner);}else{scroll.appendChild(hdr);}
+  if(!hasRM){const emp=document.createElement('div');emp.style.cssText='font-size:var(--fs-xs);color:#9c9a93;padding:12px 0;text-align:center';emp.textContent='工程表を生成すると編集できます';scroll.appendChild(emp);renderMasterSaveBar(col,veg);return;}
   veg.phases.forEach((phase,pi)=>{
     const pb=document.createElement('div');pb.className='master-phase-block';const ph=document.createElement('div');ph.className='master-phase-header';ph.innerHTML=`<div class="phase-radio active" style="flex-shrink:0"></div><span class="master-phase-label">${phase.name}（${phase.period}）</span><span style="font-size:var(--fs-xs);color:#b0ada6;margin-left:auto">日数は目安</span>`;pb.appendChild(ph);
     phase.tasks.forEach((task,ti)=>{
@@ -1675,7 +1675,7 @@ const SUPABASE_FUNCTION_URL='https://rkubnugczjlsxskomknm.supabase.co/functions/
 async function aiGenerate(vegId){
   const veg=vegMaster[vegId];if(!veg)return;
   const inUse=Object.values(cells).some(c=>c.crop===vegId);
-  if(inUse&&!confirm(`「${veg.name}」は区画に登録されています。\nロードマップを再生成するとタスクの記録（チェック済み）がリセットされます。続けますか？`))return;
+  if(inUse&&!confirm(`「${veg.name}」は区画に登録されています。\n工程表を再生成するとタスクの記録（チェック済み）がリセットされます。続けますか？`))return;
   const btn=document.getElementById('btn-ai-gen');
   if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2"></i>生成中...';}
   try{
@@ -1693,7 +1693,7 @@ async function aiGenerate(vegId){
     });
     if(!res.ok){const e=await res.json();throw new Error(e.error||'生成に失敗しました');}
     const data=await res.json();
-    if(!data.phases||!data.phases.length)throw new Error('ロードマップデータが空です');
+    if(!data.phases||!data.phases.length)throw new Error('工程表データが空です');
     // idを確実にユニーク化
     data.phases.forEach((p,pi)=>{
       p.id=`p${pi+1}`;
@@ -1702,7 +1702,7 @@ async function aiGenerate(vegId){
     vegMaster[vegId].phases=data.phases;
     if(data.basicInfo)vegMaster[vegId].basicInfo=data.basicInfo;
     saveLS();renderMasterDetail();
-    alert(`「${veg.name}」のロードマップと基礎知識をAIで生成しました！`);
+    alert(`「${veg.name}」の工程表と基礎知識をAIで生成しました！`);
   }catch(e){
     alert(`生成エラー：${e.message}`);
   }finally{
@@ -1729,7 +1729,7 @@ function renderBasicTab(el,veg){
   if(!bi){
     const empty=document.createElement('div');
     empty.style.cssText='text-align:center;padding:40px 20px;color:var(--color-text-tertiary);font-size:var(--fs-base)';
-    empty.innerHTML='<i class="ti ti-plant" style="font-size:32px;display:block;margin-bottom:8px"></i>野菜マスタでAI生成すると<br>基礎知識が表示されます';
+    empty.innerHTML='<i class="ti ti-plant" style="font-size:32px;display:block;margin-bottom:8px"></i>栽培計画でAI生成すると<br>基礎知識が表示されます';
     wrap.appendChild(empty);el.appendChild(wrap);return;
   }
 
