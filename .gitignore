@@ -1,0 +1,11 @@
+.env
+node_modules/
+.DS_Store
+playwright-report/
+test-results/
+old/
+unpacked_spec/
+vegi_icon_files.zip
+vegi_icon_extracted/
+icon_b64_new.js
+youtube_insights/

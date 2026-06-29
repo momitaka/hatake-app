@@ -1,0 +1,17 @@
+{
+  "name": "hatake-app-tests",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "playwright test",
+    "test:chromium": "playwright test --project=chromium",
+    "test:webkit": "playwright test --project=webkit",
+    "test:headed": "playwright test --headed",
+    "test:report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0"
+  },
+  "dependencies": {
+    "docx": "^9.7.1"
+  }
+}
