@@ -1,5 +1,5 @@
 # 畑管理アプリ プロジェクト現状メモ
-最終更新: 2026-06-29
+最終更新: 2026-06-30
 
 ---
 
@@ -9,8 +9,8 @@
 |---|---|---|
 | **GitHub** | コード管理・中継 | https://github.com/momitaka/hatake-app |
 | **Supabase** | DB・Auth・Edge Function | https://rkubnugczjlsxskomknm.supabase.co |
-| **Vercel** | ホスティング・公開 | 未設定（次のステップ） |
-| **Stripe** | サブスク決済 | 未設定（次のステップ） |
+| **Vercel** | ホスティング・公開 | https://hatake-app-nu.vercel.app/hatake_v25.html ✅ |
+| **Stripe** | サブスク決済 | 未設定（将来） |
 
 ---
 
@@ -73,9 +73,9 @@ http://localhost:8080/hatake_v25.html?config=kagaku-jikyu
 
 ## 残タスク（優先順）
 
-- [ ] GitHub に git push（remote を設定する）
-- [ ] Vercel にデプロイ・実機確認
 - [ ] Supabase Dashboard設定（SQL実行・リダイレクトURL）
+- [ ] 3ロール化（admin / member / guest）※コラボ版
+- [ ] 工程表AI生成プロンプトの精度改善
 - [ ] Stripe連携（サブスク決済）
 - [ ] 利用規約・プライバシーポリシー（別チャットで）
 - [ ] YouTuberとの契約書（別チャットで）
@@ -91,9 +91,30 @@ http://localhost:8080/hatake_v25.html?config=kagaku-jikyu
 
 ---
 
+## 開発ログ
+
+### 2026-06-29
+- GitHub → Vercel デプロイ環境構築（push自動デプロイ）
+- 管理画面レイアウト変更（タイトル→グリーンベルト→タブ→コンテンツ）
+- 収穫の追加・削除を全ユーザー可能に・削除確認ダイアログ追加
+- スプラッシュ2秒自動スキップ
+- 用語統一：ロードマップ→工程表、収量→収穫、野菜マスタ→栽培レシピ
+
+### 2026-06-30
+- グリッドセルに作業開始日表示（タスク完了日フォールバック含む）
+- リストに収穫量「計 19本」表示
+- 作業開始日の編集をヘッダーから作業ログタブ「作業期間」に移動
+- 作業期間を「06/25〜（5日経過）」表示に変更
+- 作業ログに種まき→発芽→定植→収穫のマイルストーン日数表示
+- 工程表タスク日数を定植/種まきを0日とした相対表示（-N日・0日・+N日）
+- 工程表の基準日（0日）を太字強調
+- 栽培レシピ画面に目安日数の説明文追加
+
+---
+
 ## 次のチャットに渡すときのひと言
 
 「畑管理アプリv25の開発中。GitHubはmomitaka/hatake-app。
-Supabaseプロジェクトはrkubnugczjlsxskomknm。
+Vercelは https://hatake-app-nu.vercel.app/hatake_v25.html。
 ローカルは /Users/momi/claude/hatake_app/。
 PROJECT_STATUS.md に現状まとめてあります。」
