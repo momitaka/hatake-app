@@ -951,7 +951,7 @@ document.getElementById('btn-save-farm-name').addEventListener('click',()=>{farm
 document.querySelectorAll('input[name="farm-font"]').forEach(r=>{r.addEventListener('change',()=>{farmNameFont=r.value;saveLS();updateFarmNameDisplay();});});
 document.getElementById('btn-open-master').addEventListener('click',()=>{closeSettings();openMaster();});
 
-function buildSegs(){segs={};for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){const k=K(r,c),cell=cells[k];if(!cell)continue;const sid=cell.segId;if(!segs[sid])segs[sid]={id:sid,row:r,cols:[],crop:cell.crop||null,plantDate:cell.plantDate||null};segs[sid].cols.push(c);}}
+function buildSegs(){segs={};for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){const k=K(r,c),cell=cells[k];if(!cell)continue;const sid=cell.segId;if(!segs[sid])segs[sid]={id:sid,row:r,cols:[],crop:cell.crop||null,plantDate:cell.plantDate||null};else if(!segs[sid].plantDate&&cell.plantDate)segs[sid].plantDate=cell.plantDate;segs[sid].cols.push(c);}}
 function getVeg(id){return vegMaster[id]||null}
 function vegFamily(id){const v=getVeg(id);return v?v.family:null}
 function famStyle(fam){if(!fam)return null;return FAMILIES[fam]||FAMILIES['その他'];}
@@ -1573,8 +1573,9 @@ function renderSegList(){
     let startDateDisp='';
     {if(seg.plantDate){startDateDisp=seg.plantDate.slice(5).replace('-','/')+'〜';}else{let earliest='';allTasks.forEach(t=>{(getTaskState(seg.id,t.id).doneDates||[]).forEach(d=>{const iso=dispToISO(d);if(iso&&(!earliest||iso<earliest))earliest=iso;});});if(earliest)startDateDisp=earliest.slice(5).replace('-','/')+'〜';}}
     const item=document.createElement('div');item.className='seg-item';item.style.cssText='flex-direction:column;align-items:stretch;gap:0';
-    const harvestTotal=(harvestLogs[seg.id]||[]).reduce((s,h)=>s+(parseFloat(h.qty)||0),0);
-    const harvestDisp=harvestTotal>0?'🧺 '+harvestTotal.toFixed(harvestTotal%1===0?0:1)+(harvestLogs[seg.id]&&harvestLogs[seg.id][0]&&harvestLogs[seg.id][0].unit?harvestLogs[seg.id][0].unit:''):'';
+    const harvestTotal=(harvestLogs[seg.id]||[]).reduce((s,h)=>s+(parseFloat(h.amount)||0),0);
+    const harvestUnit=(harvestLogs[seg.id]||[]).find(h=>h.unit)?.unit||'';
+    const harvestDisp=harvestTotal>0?'🧺 '+harvestTotal.toFixed(harvestTotal%1===0?0:1)+harvestUnit:'';
     item.innerHTML=`<div style="display:flex;align-items:center;gap:7px;margin-bottom:4px"><span style="font-size:17px;line-height:1;flex-shrink:0">${veg?(vegIconHtml(veg,18)):'🌱'}</span><span style="font-size:var(--fs-base);font-weight:600;color:#1a1915;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${veg?veg.name:'—'}</span><span class="status-pill" style="background:${majorSt.bg};color:${majorSt.color};font-size:9px;padding:2px 7px;border-radius:99px;font-weight:500">${majorSt.name}</span></div><div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><div style="flex:1;height:3px;background:#d4edb8;border-radius:2px"><div style="height:3px;border-radius:2px;background:${majorSt.color};width:${pct}%"></div></div><span style="font-size:var(--fs-xs);font-weight:600;color:${majorSt.color};min-width:26px;text-align:right">${pct}%</span></div><div style="display:flex;align-items:center;gap:4px"><i class="ti ti-arrow-right" style="font-size:9px;color:#b4b2a9"></i><span style="font-size:var(--fs-xs);color:#9c9a93;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${nextTaskName||'—'}</span><span style="font-size:var(--fs-xs);color:#5aad4e;flex-shrink:0;font-weight:500">${harvestDisp}</span></div>`;
     item.addEventListener('click',()=>openManage(seg.id));list.appendChild(item);});
 }
