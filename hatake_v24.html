@@ -1,0 +1,1781 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>畑管理アプリ v24</title>
+<!-- 畑管理アプリ v24 / Crafted with care by momitaka -->
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@600&family=Kaisei+Opti:wght@700&family=Yuji+Syuku&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --font-sans:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --fs-xs:10px;--fs-sm:12px;--fs-base:14px;--fs-md:16px;--fs-lg:20px;
+  --border-radius-md:6px;--border-radius-lg:10px;
+  --color-background-primary:#ffffff;--color-background-secondary:#f5f5f0;--color-background-tertiary:#e8e6df;
+  --color-text-primary:#1a1915;--color-text-secondary:#5f5e5a;--color-text-tertiary:#9c9a93;
+  --color-border-primary:#1a1915;--color-border-secondary:#d0cfc8;--color-border-tertiary:#e8e6df;
+  --color-border-success:#5aad4e;--color-border-danger:#D85A30;--color-border-info:#378ADD;
+  --color-background-success:#d4f0b8;--color-background-danger:#FAECE7;
+  --color-text-success:#2e7a28;--color-text-danger:#993C1D;--color-text-info:#185FA5;
+}
+body{font-family:var(--font-sans);background:#f9f8f4;min-height:100vh;padding:0}
+.app{padding:0 0.5rem 0.5rem;user-select:none;font-size:var(--fs-base);max-width:680px;margin:0 auto}
+.screen{display:none}.screen.active{display:block}
+#screen-manage.active,#screen-master.active{background:#f5faed;margin:0 -0.5rem;padding:0 0.5rem}
+#screen-master.active{padding:0}
+#screen-master .toolbar{margin:0}
+#screen-master .master-list-col{margin:0;border-right:0.5px solid var(--color-border-tertiary)}
+#screen-master .master-detail-col{padding:10px 6px 0 0}
+#screen-manage.active,#screen-master.active{display:flex;flex-direction:column;height:100dvh}
+#master-content{flex:1;overflow-y:auto;padding:0 0 24px}
+#screen-manage .toolbar,#screen-master .toolbar{position:relative;top:auto;flex-shrink:0;margin:0 -0.5rem;background:#5aad4e;border-bottom:none;padding:10px 13px;border-bottom-right-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,0.13);z-index:1}
+#manage-static{flex-shrink:0;padding:10px 0.5rem 10px;background:#fff;margin:0 -0.5rem;box-shadow:0 4px 14px rgba(0,0,0,0.13);position:relative;z-index:1}
+#manage-content{flex:1;overflow-y:auto;padding:10px 0 24px}
+.toolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--color-background-primary);border-bottom:2px solid #5aad4e;padding:0 0.5rem;margin:0 -0.5rem 12px;position:sticky;top:0;z-index:20}
+.toolbar-grid{background:#f9f8f4;border-bottom:none;flex-direction:column;align-items:stretch;gap:0;padding:0;margin-bottom:10px}
+.header-card{background:#fff;border-radius:0 0 14px 14px;overflow:visible;box-shadow:0 4px 14px rgba(0,0,0,0.13)}
+.header-card-top{padding:12px 13px 10px;display:flex;justify-content:space-between;align-items:flex-start;position:relative;overflow:visible;min-height:54px}
+.header-card-bottom{background:#5aad4e;padding:10px 13px;display:flex;gap:6px;align-items:center;position:relative;z-index:1;border-bottom-right-radius:14px;border-top-left-radius:14px}
+.btn-grid-icon{width:28px;height:28px;border-radius:50%;background:#fff;border:1px solid #fff;color:#2e7a28;font-size:var(--fs-sm);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.btn-grid-icon:hover{background:#d4f0b8}
+.btn-grid-chip{background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:99px;padding:4px 11px;font-size:var(--fs-xs);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.btn-grid-chip:hover{background:rgba(255,255,255,0.3)}
+.btn-grid-chip.btn-undo{background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.2)}
+.btn-grid-chip.btn-undo:not(:disabled){background:#fff;border-color:#fff;color:#2e7a28;font-weight:600}
+.btn-grid-chip.btn-master{background:#fff;color:#2e7a28;border-color:#fff;font-weight:600}
+.btn-grid-chip.btn-master:hover{background:#d4f0b8}
+.btn-grid-chip:disabled{opacity:0.4;cursor:default}
+.btn{font-size:var(--fs-sm);padding:4px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px}
+.btn:hover{background:var(--color-background-secondary)}
+.btn-undo{font-size:var(--fs-sm);padding:4px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.btn-undo:disabled{opacity:0.4;cursor:default}
+.undo-count{font-size:var(--fs-xs);color:var(--color-text-tertiary)}
+.grid-wrap{margin-bottom:12px;width:100%;position:relative}
+.cell-empty-bg{background-repeat:no-repeat}
+.grid-table{position:relative;z-index:1}
+.grid-table{border-collapse:separate;border-spacing:3px;width:100%;table-layout:fixed}
+.grid-table td{position:relative;vertical-align:top;padding:0}
+.cell-inner{width:100%;height:100%;position:relative;display:flex;flex-direction:column;justify-content:space-between;align-items:stretch;padding:3px;overflow:hidden;box-sizing:border-box}
+.cell-label{font-size:var(--fs-xs);line-height:1.2;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100%;color:var(--color-text-primary);display:flex;align-items:center;gap:2px}
+.status-bar{position:absolute;bottom:0;left:0;right:0;height:4px}
+.row-num{font-size:7px;color:#2e7a28;vertical-align:middle;text-align:center;font-weight:400;cursor:default;white-space:nowrap;width:1%}
+.col-num{font-size:7px;color:#2e7a28;text-align:center;font-weight:400;cursor:default;padding:2px 0 3px;line-height:1}
+.col-num-corner{}
+.seg-list-wrap{margin-top:0}
+.seg-list-wrap h3{font-size:var(--fs-xs);font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:5px;letter-spacing:0.04em;color:#1a5c16}
+.hint{font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-bottom:8px}
+.seg-list{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.seg-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;border-radius:10px;background:var(--color-background-primary);cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.07)}
+.seg-item:hover{box-shadow:0 2px 6px rgba(0,0,0,0.1)}
+.legend{margin-top:10px;padding:8px 10px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary)}
+.legend-title{font-size:var(--fs-xs);color:var(--color-text-secondary);margin-bottom:5px;font-weight:500}
+.legend-grid{display:flex;flex-wrap:wrap;gap:5px 14px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:var(--fs-xs);color:var(--color-text-secondary)}
+.legend-dot{width:12px;height:10px;border-radius:2px;border-width:2px;border-style:solid;flex-shrink:0}
+.status-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:99px;font-size:var(--fs-xs);font-weight:500}
+.manage-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.manage-title{font-size:var(--fs-md);font-weight:500;color:var(--color-text-primary);flex:1}
+.manage-meta{font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-top:2px}
+.tab-bar{display:flex;margin-bottom:16px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);overflow:hidden}
+.tab-btn{flex:1;padding:11px 2px;font-size:var(--fs-sm);cursor:pointer;background:var(--color-background-primary);color:var(--color-text-secondary);border-right:0.5px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center;gap:3px;white-space:nowrap}
+.tab-btn:last-child{border-right:none}
+.tab-btn.active{background:#d4f0b8;color:#5aad4e;font-weight:500}
+.tab-btn:hover:not(.active){background:var(--color-background-secondary)}
+.progress-wrap{margin-bottom:16px}
+.progress-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.progress-title{font-size:var(--fs-base);font-weight:500;color:var(--color-text-primary);display:flex;align-items:center;gap:6px}
+.progress-pct{font-size:var(--fs-base);color:var(--color-text-secondary)}
+.progress-bar-outer{height:8px;background:var(--color-background-tertiary);border-radius:4px;overflow:hidden}
+.progress-bar-inner{height:100%;border-radius:4px;background:#5aad4e}
+.phase-block{margin-bottom:12px}
+.phase-heading{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.phase-radio{width:14px;height:14px;border-radius:50%;border:2px solid #B4B2A9;background:var(--color-background-primary);flex-shrink:0}
+.phase-radio.active{border-color:#5aad4e;background:#5aad4e}
+.phase-radio.done{border-color:#B4B2A9;background:#B4B2A9}
+.phase-name{font-size:var(--fs-sm);font-weight:500}
+.phase-period{font-size:var(--fs-xs);color:var(--color-text-tertiary)}
+.task-card{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);margin-bottom:6px;overflow:hidden;background:var(--color-background-primary)}
+.task-card.pest{border-left:3px solid #f59e0b;background:#fffef5}
+.task-pest-label{font-size:var(--fs-xs);color:#92400e;background:#fef3c7;border:0.5px solid #f59e0b;border-radius:3px;padding:1px 5px;display:inline-flex;align-items:center;gap:2px;margin-bottom:3px}
+.task-main{display:flex;align-items:flex-start}
+.task-cb-wrap{padding:10px 8px 10px 12px;flex-shrink:0}
+.task-cb{width:16px;height:16px;cursor:pointer;accent-color:#5aad4e;margin-top:1px}
+.task-clickable{flex:1;display:flex;align-items:center;gap:8px;padding:10px 12px 10px 0;cursor:pointer;min-width:0}
+.task-clickable:hover{background:var(--color-background-secondary)}
+.task-body{flex:1;min-width:0}
+.task-name{font-size:var(--fs-base);color:var(--color-text-primary);line-height:1.3}
+.task-name.done-text{text-decoration:line-through;color:var(--color-text-tertiary)}
+.task-desc{font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-top:2px}
+.task-dates{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.task-date-chip{font-size:var(--fs-xs);padding:1px 6px;border-radius:3px;background:#d4f0b8;color:#2e7a28;border:0.5px solid #a0d870}
+.task-day-badge{font-size:var(--fs-xs);color:var(--color-text-secondary);background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:2px 7px;white-space:nowrap;flex-shrink:0}
+.task-expand-icon{color:var(--color-text-tertiary);flex-shrink:0;font-size:var(--fs-base);padding:0 4px}
+.task-detail{display:none;padding:8px 12px 10px 38px;border-top:0.5px solid var(--color-border-tertiary)}
+.task-detail.open{display:block}
+.task-detail-memo{font-size:var(--fs-xs);color:var(--color-text-secondary);line-height:1.5;margin-bottom:6px}
+.task-detail-url{font-size:var(--fs-xs);color:#185FA5;text-decoration:none;display:inline-flex;align-items:center;gap:3px;margin-bottom:8px}
+.task-detail-url:hover{text-decoration:underline}
+.skip-row{display:flex;align-items:center;gap:6px;padding-top:6px;border-top:0.5px solid var(--color-border-tertiary)}
+.skip-cb{width:14px;height:14px;cursor:pointer;accent-color:#B4B2A9}
+.skip-label{font-size:var(--fs-xs);color:var(--color-text-tertiary)}
+.ai-banner{margin-bottom:14px;padding:10px 12px;border:0.5px dashed var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);display:flex;align-items:center;gap:10px}
+.ai-banner-text{font-size:var(--fs-xs);color:var(--color-text-secondary);flex:1;line-height:1.5}
+.complete-notice{margin-bottom:14px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);display:flex;align-items:flex-start;gap:8px;font-size:var(--fs-xs);color:var(--color-text-tertiary);line-height:1.6;transition:background 0.3s,border-color 0.3s,color 0.3s}
+.complete-notice.highlight{background:#FFF3E0;border-color:#EF9F27;color:#92600B}
+.btn-complete-final{width:100%;font-size:var(--fs-base);padding:10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-danger);background:var(--color-background-danger);color:var(--color-text-danger);cursor:pointer;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-complete-final:hover{filter:brightness(0.97)}
+.btn-ai{font-size:var(--fs-xs);padding:4px 10px;border-radius:var(--border-radius-md);border:0.5px solid #7F77DD;background:#EEEDFE;color:#3C3489;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+.placeholder-tab{padding:2rem 0;text-align:center;color:var(--color-text-tertiary);font-size:var(--fs-sm)}
+.summary-section{margin-bottom:20px;padding-bottom:18px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.summary-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.summary-stat{padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary)}
+.summary-stat-label{font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-bottom:4px}
+.summary-stat-val{font-size:var(--fs-sm);font-weight:500;color:var(--color-text-primary);line-height:1.4}
+.summary-stat-sub{font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-top:2px}
+.summary-memo-box{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);overflow:hidden}
+.summary-memo-header{padding:8px 12px;background:var(--color-background-secondary);font-size:var(--fs-xs);font-weight:500;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:5px}
+.summary-memo-body{padding:10px 12px}
+.summary-memo-ta{width:100%;font-size:var(--fs-sm);padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);resize:vertical;min-height:64px;line-height:1.6}
+.summary-save-btn{font-size:var(--fs-xs);padding:4px 12px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-success);background:var(--color-background-success);color:var(--color-text-success);cursor:pointer;margin-top:6px;font-weight:500;display:inline-flex;align-items:center;gap:4px}
+.log-section-title{font-size:var(--fs-sm);font-weight:500;color:var(--color-text-secondary);margin-bottom:10px;display:flex;align-items:center;gap:5px}
+.log-date-group{margin-bottom:14px}
+.log-date-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.log-date-label{font-size:var(--fs-sm);font-weight:500;color:var(--color-text-primary);white-space:nowrap}
+.log-date-line{flex:1;height:0.5px;background:var(--color-border-tertiary)}
+.log-entry{display:flex;align-items:center;gap:10px;padding:8px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);margin-bottom:5px}
+.log-entry-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:var(--fs-xs)}
+.log-entry-icon.task{background:var(--color-background-secondary);color:var(--color-text-secondary)}
+.log-entry-icon.harvest{background:#d4f0b8;color:#2e7a28}
+.log-entry-title{font-size:var(--fs-sm);color:var(--color-text-primary);flex:1}
+.log-entry-badge{font-size:var(--fs-xs);font-weight:500;color:#2e7a28;white-space:nowrap}
+.harvest-input-row{display:flex;gap:8px;align-items:flex-end;margin-bottom:16px;flex-wrap:wrap}
+.harvest-input-group{display:flex;flex-direction:column;gap:4px}
+.harvest-input-group label{font-size:var(--fs-xs);color:var(--color-text-secondary)}
+.harvest-input-group input[type=date]{font-size:var(--fs-sm);padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
+.harvest-input-group input[type=number]{width:72px;font-size:var(--fs-sm);padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
+.harvest-input-group select{font-size:var(--fs-sm);padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
+.harvest-add-btn{font-size:var(--fs-sm);padding:6px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-success);background:var(--color-background-success);color:var(--color-text-success);cursor:pointer;font-weight:500;white-space:nowrap;align-self:flex-end}
+.harvest-list{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.harvest-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary)}
+.harvest-row-date{font-size:var(--fs-sm);color:var(--color-text-secondary);white-space:nowrap}
+.harvest-row-amount{font-size:var(--fs-base);font-weight:500;color:var(--color-text-primary);flex:1}
+.harvest-del-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-tertiary);cursor:pointer;flex-shrink:0}
+.harvest-del-btn:hover{color:var(--color-text-danger)}
+.harvest-total{padding:12px 14px;border-radius:var(--border-radius-md);background:#d4f0b8;border:0.5px solid #a0d870;display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.harvest-total-label{font-size:var(--fs-sm);color:#2e7a28;font-weight:500}
+.harvest-total-val{font-size:var(--fs-md);font-weight:500;color:#2e7a28}
+.harvest-empty{font-size:var(--fs-xs);color:var(--color-text-tertiary);padding:8px 0}
+.btn-primary{font-size:var(--fs-sm);padding:5px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-success);background:var(--color-background-success);color:var(--color-text-success);cursor:pointer;font-weight:500}
+.btn-primary:disabled{opacity:0.4;cursor:default}
+.btn-danger-outline{font-size:var(--fs-sm);padding:5px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-danger);background:var(--color-background-primary);color:var(--color-text-danger);cursor:pointer}
+.divider{border:none;border-top:0.5px solid var(--color-border-tertiary);margin:14px 0}
+.settings-panel{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem;margin-bottom:12px}
+.settings-section-label{font-size:var(--fs-xs);color:var(--color-text-secondary);font-weight:500;margin-bottom:8px}
+.settings-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.settings-row input[type=number]{width:56px;font-size:var(--fs-sm);padding:4px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
+.settings-label{font-size:var(--fs-xs);color:var(--color-text-secondary)}
+.master-layout{display:flex;gap:6px;min-height:100%}
+.master-list-col{width:130px;flex-shrink:0;display:flex;flex-direction:column;gap:4px;background:#fff;margin:0 -0.5rem 0 -0.5rem;padding:8px 8px 8px 0.5rem}
+.master-list-header{font-size:var(--fs-xs);font-weight:500;color:var(--color-text-secondary);padding:4px 0 6px;border-bottom:0.5px solid var(--color-border-tertiary);margin-bottom:4px}
+.master-list-item{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:var(--border-radius-md);cursor:pointer;font-size:var(--fs-sm);color:var(--color-text-primary);border:0.5px solid transparent}
+.master-list-item:hover{background:var(--color-background-secondary)}
+.master-list-item.active{background:var(--color-background-secondary);border-color:var(--color-border-secondary);font-weight:500}
+.master-list-item-badge{font-size:9px;padding:1px 5px;border-radius:3px;background:#d4f0b8;color:#2e7a28;margin-left:auto;white-space:nowrap;flex-shrink:0}
+.master-list-item-badge.empty{background:var(--color-background-tertiary);color:var(--color-text-tertiary)}
+.master-add-btn{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:var(--border-radius-md);cursor:pointer;font-size:var(--fs-sm);color:var(--color-text-tertiary);border:0.5px dashed var(--color-border-secondary);margin-top:4px;background:transparent}
+.master-add-btn:hover{color:var(--color-text-primary)}
+.master-detail-col{flex:1;min-width:0;padding-left:14px;overflow-y:auto}
+.master-detail-scroll{padding-bottom:8px}
+.master-detail-empty{display:flex;align-items:center;justify-content:center;height:200px;color:var(--color-text-tertiary);font-size:var(--fs-sm);flex-direction:column;gap:8px}
+.master-detail-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.master-detail-icon{font-size:24px;display:flex;align-items:center}
+.master-detail-name{font-size:15px;font-weight:500;color:var(--color-text-primary)}
+.master-detail-sub{font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-top:2px}
+.master-phase-block{margin-bottom:12px}
+.master-phase-header{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.master-phase-label{font-size:var(--fs-xs);font-weight:500;color:var(--color-text-secondary)}
+.master-task-row{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);margin-bottom:6px;overflow:hidden;background:var(--color-background-primary)}
+.master-task-header{display:flex;align-items:center;gap:6px;padding:7px 10px;background:var(--color-background-secondary)}
+.master-task-name-input{flex:1;min-width:0;font-size:var(--fs-sm);padding:3px 6px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
+.master-task-day-input{width:40px;flex-shrink:0;font-size:var(--fs-xs);padding:3px 5px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);text-align:center}
+.master-task-del{width:22px;height:22px;display:flex;align-items:center;justify-content:center;border:none;background:none;color:var(--color-text-tertiary);cursor:pointer;border-radius:var(--border-radius-md);flex-shrink:0}
+.master-task-del:hover{color:var(--color-text-danger)}
+.master-task-body{padding:6px 10px 8px}
+.master-task-label{font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-bottom:3px;margin-top:5px}
+.master-task-memo{width:100%;font-size:var(--fs-xs);padding:4px 6px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);resize:vertical;min-height:36px;line-height:1.5}
+.master-task-url{width:100%;font-size:var(--fs-xs);padding:4px 6px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
+.master-add-task-btn{font-size:var(--fs-xs);padding:3px 10px;border-radius:var(--border-radius-md);border:0.5px dashed var(--color-border-secondary);background:transparent;color:var(--color-text-tertiary);cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin-top:2px}
+.master-add-task-btn:hover{color:var(--color-text-primary)}
+.master-save-bar{margin-top:14px;padding-top:12px;border-top:0.5px solid var(--color-border-tertiary);display:flex;gap:8px;justify-content:space-between;align-items:center}
+.btn-save-master{font-size:var(--fs-sm);padding:6px 16px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-success);background:var(--color-background-success);color:var(--color-text-success);cursor:pointer;font-weight:500;display:inline-flex;align-items:center;gap:5px}
+.btn-delete-master{font-size:var(--fs-xs);padding:5px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-danger);background:var(--color-background-primary);color:var(--color-text-danger);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.emoji-grid{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.emoji-opt{width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:17px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);cursor:pointer;background:var(--color-background-primary)}
+.emoji-opt:hover{border-color:var(--color-border-primary)}
+.emoji-opt.selected{border:2px solid #5aad4e;background:#d4f0b8}
+.dlg-field{margin-bottom:11px}
+.dlg-field label{font-size:var(--fs-xs);color:var(--color-text-secondary);display:block;margin-bottom:4px}
+.dlg-field select,.dlg-field input[type=text],.dlg-field input[type=url]{width:100%;font-size:var(--fs-base);padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
+.dlg-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+.archive-sort-bar{display:flex;gap:6px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.archive-sort-label{font-size:var(--fs-xs);color:var(--color-text-tertiary)}
+.archive-sort-btn{font-size:var(--fs-xs);padding:3px 10px;border-radius:99px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer;display:inline-flex;align-items:center;gap:3px}
+.archive-sort-btn.active{background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-primary);font-weight:500}
+.archive-card{padding:12px 14px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);margin-bottom:8px;cursor:pointer}
+.archive-card:hover{border-color:var(--color-border-secondary)}
+.archive-card-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.archive-card-name{font-size:var(--fs-base);font-weight:500;color:var(--color-text-primary);flex:1}
+.archive-card-date{font-size:var(--fs-xs);color:var(--color-text-tertiary)}
+.archive-card-meta{display:flex;gap:12px;flex-wrap:wrap}
+.archive-card-stat{font-size:var(--fs-xs);color:var(--color-text-secondary);display:flex;align-items:center;gap:3px}
+.archive-detail-back{font-size:var(--fs-sm);color:var(--color-text-secondary);cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin-bottom:14px;padding:4px 0}
+.archive-detail-back:hover{color:var(--color-text-primary)}
+.archive-empty{font-size:var(--fs-sm);color:var(--color-text-tertiary);padding:24px 0;text-align:center}
+input,select,textarea{font-size:var(--fs-md) !important}
+body{
+  --color-background-primary:#ffffff;
+  --color-background-secondary:#f0f0f0;
+  --color-background-tertiary:#d8d8d8;
+  --color-text-primary:#000000;
+  --color-text-secondary:#1a1a1a;
+  --color-text-tertiary:#444444;
+  --color-border-secondary:#888888;
+  --color-border-tertiary:#aaaaaa;
+  font-size:15px !important;
+}
+.app{font-size:var(--fs-md)}
+.btn{font-size:var(--fs-base);border-width:1.5px;border-color:#555}
+.seg-item{border-width:1.5px;border-color:#888}
+.cell-label{font-size:var(--fs-sm);font-weight:700}
+.row-num,.col-num{font-size:7px;font-weight:400;color:#2e7a28}
+.status-pill{font-size:var(--fs-sm);padding:3px 10px;font-weight:700}
+
+.view-mode .admin-only{display:none !important}
+@keyframes pulse-fade{0%,100%{opacity:1}50%{opacity:0.25}}
+.tap-to-start{animation:pulse-fade 2.4s ease-in-out infinite}
+
+</style>
+</head>
+<body>
+<div id="dev-banner" style="display:none;position:sticky;top:0;z-index:9999;background:#e53e3e;color:#fff;text-align:center;font-size:var(--fs-sm);padding:3px;font-weight:bold">🛠 DEV MODE — 本番データに影響しません</div>
+
+<div id="splash-screen" style="position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--color-background-secondary);transition:opacity 0.6s ease;padding-bottom:48px">
+  <div id="splash-img-wrap" style="width:240px;height:240px;border-radius:20px;overflow:hidden;margin-bottom:24px;display:flex;align-items:center;justify-content:center">
+    <img id="splash-img" src="" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;display:none">
+    <div id="splash-placeholder" style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px">
+      <div id="splash-month-emoji" style="font-size:72px"></div>
+      <div id="splash-month-label" style="font-size:var(--fs-base);color:var(--color-text-secondary);font-weight:500"></div>
+    </div>
+  </div>
+  <div id="splash-farm-name" style="font-size:22px;font-weight:600;color:var(--color-text-primary);margin-bottom:12px;font-family:'Noto Serif JP',serif"></div>
+  <div id="splash-quote" style="font-size:var(--fs-base);color:var(--color-text-secondary);text-align:center;max-width:280px;line-height:1.7;padding:0 20px"></div>
+  <div style="margin-top:32px;font-size:var(--fs-base);color:var(--color-text-tertiary);text-align:center;line-height:1.8">今日も楽しく頑張ろう 😊<br><span class="tap-to-start">タップして開始</span></div>
+  <div style="position:absolute;bottom:24px;left:0;right:0;text-align:center;font-size:var(--fs-xs);color:var(--color-text-tertiary);letter-spacing:0.04em">Crafted with care by momitaka</div>
+</div>
+<div class="app" id="app">
+  <div class="screen active" id="screen-register">
+    <div class="toolbar toolbar-grid">
+      <div class="header-card">
+        <div class="header-card-top">
+          <img style="position:absolute;right:20px;top:0;height:80px;z-index:0;width:auto;pointer-events:none;" src="images/header_illust.png" />
+          <div style="display:flex;align-items:center;gap:8px;min-width:0">
+            <span id="farm-icon-display" style="font-size:26px;line-height:1;display:none;flex-shrink:0"></span>
+            <div style="min-width:0">
+              <div id="farm-name-display" style="font-size:17px;font-weight:600;color:#1a1915;letter-spacing:0.02em;display:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Noto Serif JP',serif;line-height:1.2"></div>
+              <div id="farm-seg-count" style="font-size:9px;color:#9c9a93;margin-top:2px;display:none"></div>
+            </div>
+          </div>
+        </div>
+        <div class="header-card-bottom">
+          <button class="btn-grid-chip btn-undo" id="undo-btn" disabled><i class="ti ti-arrow-back-up" style="font-size:var(--fs-xs)"></i>取り消し</button>
+          <span class="undo-count" id="undo-count" style="color:rgba(255,255,255,0.7)"></span>
+          <div style="flex:1"></div>
+          <button class="btn-grid-chip btn-master" id="btn-open-master"><i class="ti ti-plant-2" style="font-size:var(--fs-xs)"></i>野菜マスタ</button>
+          <button class="btn-grid-icon" id="btn-open-archive" title="過去データ"><i class="ti ti-archive"></i></button>
+          <button class="btn-grid-icon" id="btn-settings" title="設定"><i class="ti ti-settings"></i></button>
+        </div>
+      </div>
+    </div>
+    <div id="dlg-undo-confirm" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:300;align-items:center;justify-content:center">
+      <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);padding:20px 24px;width:min(320px,90vw);box-shadow:0 8px 32px rgba(0,0,0,0.18)">
+        <div style="font-size:var(--fs-base);font-weight:600;margin-bottom:6px;color:var(--color-text-primary)">操作を取り消しますか？</div>
+        <div style="font-size:var(--fs-sm);color:var(--color-text-secondary);margin-bottom:18px">直前の変更を元に戻します。この操作は取り消せません。</div>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button class="btn" id="btn-undo-cancel">キャンセル</button>
+          <button class="btn" id="btn-undo-ok" style="background:var(--color-text-danger);border-color:var(--color-text-danger);color:#fff">取り消す</button>
+        </div>
+      </div>
+    </div>
+    <div id="dlg-settings" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;align-items:flex-start;justify-content:center;padding-top:56px">
+      <div class="settings-panel" style="width:min(400px,92vw);max-height:80vh;overflow-y:auto;margin:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><span style="font-size:var(--fs-base);font-weight:600;color:var(--color-text-primary)">設定</span><button class="btn" id="btn-close-settings"><i class="ti ti-x"></i>閉じる</button></div>
+        <div class="settings-section-label">管理者モード</div>
+        <div class="settings-row"><input type="password" id="s-admin-pw" placeholder="管理者パスワード" style="flex:1;padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)"><button class="btn" id="btn-admin-login">ログイン</button></div>
+        <div id="admin-status" style="font-size:var(--fs-xs);margin-bottom:8px;color:var(--color-text-tertiary)">閲覧モード</div>
+        <hr class="divider" style="margin:10px 0">
+        <div class="settings-section-label admin-only">農園名</div>
+        <div class="settings-row admin-only"><input type="text" id="s-farm-name" placeholder="例：我が家の畑" style="flex:1;font-size:var(--fs-base);padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)"><button class="btn" id="btn-save-farm-name">保存</button></div>
+        <div class="settings-row admin-only" style="flex-direction:column;align-items:stretch;gap:6px;margin-top:8px">
+          <span class="settings-label">フォント</span>
+          <div style="display:flex;flex-direction:column;gap:5px" id="font-options">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:7px 10px;border-radius:8px;border:1px solid var(--color-border-secondary);background:var(--color-background-primary)">
+              <input type="radio" name="farm-font" value="Kaisei Opti" style="accent-color:#2e7a28">
+              <span style="font-family:'Kaisei Opti',serif;font-size:15px;font-weight:700;flex:1">Kaisei Opti — モダン×伝統</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:7px 10px;border-radius:8px;border:1px solid var(--color-border-secondary);background:var(--color-background-primary)">
+              <input type="radio" name="farm-font" value="Yuji Syuku" style="accent-color:#2e7a28">
+              <span style="font-family:'Yuji Syuku',serif;font-size:15px;flex:1">Yuji Syuku — 筆書き風</span>
+            </label>
+          </div>
+        </div>
+        <div class="settings-row admin-only" style="flex-direction:column;align-items:stretch;gap:6px;margin-top:8px">
+          <span class="settings-label">農園アイコン</span>
+          <div id="farm-icon-picker" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+          <div style="font-size:var(--fs-xs);color:var(--color-text-tertiary)">野菜マスタに登録されているアイコンから選択。もう一度タップで解除。</div>
+        </div>
+        <hr class="divider admin-only" style="margin:10px 0">
+        <div class="settings-section-label admin-only">グリッドサイズ</div>
+        <div class="settings-row admin-only">
+          <span class="settings-label">列</span><input type="number" id="s-cols" value="8" min="2" max="20">
+          <span class="settings-label">行</span><input type="number" id="s-rows" value="6" min="2" max="20">
+          <button class="btn" onclick="applyGrid()"><i class="ti ti-refresh"></i>適用</button>
+        </div>
+        <div class="settings-section-label admin-only">通路の設定</div>
+        <div class="settings-row admin-only" style="flex-direction:column;align-items:stretch;gap:6px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="settings-label" style="min-width:60px">通路の行</span>
+            <input type="text" id="s-aisle-rows" placeholder="例: 4, 6" style="flex:1;font-size:var(--fs-base);padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)">
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="settings-label" style="min-width:60px">通路の列</span>
+            <input type="text" id="s-aisle-cols" placeholder="例: 3, 5" style="flex:1;font-size:var(--fs-base);padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)">
+          </div>
+          <div style="font-size:var(--fs-xs);color:var(--color-text-tertiary)">行はA=1、B=2…として番号で入力。列は左から1, 2…。カンマ区切りで複数指定可。</div>
+          <button class="btn admin-only" onclick="applyAisles()" style="align-self:flex-start"><i class="ti ti-refresh"></i>適用</button>
+        </div>
+        <hr class="divider" style="margin:10px 0">
+        <div style="font-size:var(--fs-xs);color:var(--color-text-secondary);margin-bottom:8px" class="admin-only">全区画データを削除します。元に戻せません。</div>
+        <button class="btn-danger-outline admin-only" onclick="resetAll()"><i class="ti ti-trash"></i>全データをリセット</button>
+      </div>
+    </div>
+    <div style="background:#fff;padding:8px 0.5rem 10px;margin:0 -0.5rem">
+      <div class="grid-wrap" id="grid-wrap"><table class="grid-table" id="grid-table"></table></div>
+    </div>
+    <div class="seg-list-wrap" style="background:#f5faed;margin:0 -0.5rem;padding:8px 0.5rem 12px">
+      <h3><i class="ti ti-leaf" style="color:#1a5c16;font-size:var(--fs-base)"></i>管理中の作物<span id="seg-count" style="font-size:var(--fs-xs);color:#2e7a28;font-weight:400;margin-left:4px"></span></h3>
+      <div class="seg-list" id="seg-list"></div>
+    </div>
+    <div class="legend"><div class="legend-title">野菜の科 — 枠線の色</div><div class="legend-grid" id="family-legend"></div></div>
+  </div>
+
+  <div class="screen" id="screen-manage">
+    <div class="toolbar"><button class="btn-grid-chip btn-master" onclick="goBack()"><i class="ti ti-arrow-left" style="font-size:var(--fs-xs)"></i>グリッドへ戻る</button><div style="flex:1"></div><button class="btn-grid-chip admin-only" id="btn-complete-manage" onclick="currentTab='log';renderManage();setTimeout(()=>{const n=document.getElementById('complete-notice');if(n){n.classList.add('highlight');setTimeout(()=>n.classList.remove('highlight'),2500);}},50);" style="background:#fff;border-color:#fff;color:#c62828;font-weight:600"><i class="ti ti-flag-check" style="font-size:var(--fs-xs)"></i>管理の完了</button></div>
+    <div id="manage-static"></div>
+    <div id="manage-content"></div>
+  </div>
+
+  <div class="screen" id="screen-archive">
+    <div class="toolbar">
+      <button class="btn" onclick="closeArchive()"><i class="ti ti-arrow-left"></i>グリッドへ戻る</button>
+      <span style="font-size:var(--fs-base);font-weight:500;color:var(--color-text-primary);margin-left:4px">過去データ</span>
+    </div>
+    <div id="archive-content"></div>
+  </div>
+
+  <div class="screen" id="screen-master">
+    <div class="toolbar">
+      <button class="btn-grid-chip btn-master" onclick="closeMaster()"><i class="ti ti-arrow-left" style="font-size:var(--fs-xs)"></i>グリッドへ戻る</button>
+      <span style="font-size:var(--fs-base);font-weight:600;color:#fff;margin-left:4px;flex:1">野菜マスタ</span>
+      <div id="master-toolbar-btns" style="display:none;gap:6px;align-items:center"></div>
+    </div>
+    <div id="master-content">
+      <div class="master-layout">
+        <div class="master-list-col">
+          <div class="master-list-header">登録済み野菜</div>
+          <div id="master-list-items"></div>
+          <button class="master-add-btn admin-only" id="btn-add-veg"><i class="ti ti-plus" style="font-size:var(--fs-base)"></i>野菜を追加</button>
+        </div>
+        <div class="master-detail-col" id="master-detail-col">
+          <div class="master-detail-scroll" id="master-detail-scroll">
+            <div class="master-detail-empty"><i class="ti ti-plant-2" style="font-size:24px;color:var(--color-text-tertiary)"></i>左のリストから野菜を選択</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="dlg-register" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:99;background:rgba(0,0,0,0.4)">
+  <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.25rem;min-width:260px;max-width:320px;width:90%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-size:var(--fs-base);font-weight:500;display:flex;align-items:center;gap:6px"><i class="ti ti-plant-2" style="color:#5aad4e"></i>区画を登録</div>
+      <button id="btn-dlg-cancel" style="background:none;border:none;padding:2px 4px;cursor:pointer;color:var(--color-text-tertiary);font-size:18px;line-height:1;flex-shrink:0">✕</button>
+    </div>
+    <div id="dlg-preview" style="font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-bottom:12px"></div>
+    <div id="dlg-no-veg" style="display:none;margin-bottom:14px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);font-size:var(--fs-sm);color:var(--color-text-secondary);line-height:1.6">登録できる野菜がありません。<br>先に野菜マスタで野菜を追加してください。<br><button id="dlg-go-master" class="btn-primary" style="margin-top:8px;font-size:var(--fs-sm);padding:5px 14px">野菜マスタで追加する</button></div>
+    <div id="dlg-crop-field" class="dlg-field"><label>作物</label><select id="dlg-crop"><option value="">— 選択してください —</option></select><div style="margin-top:5px"><button id="dlg-add-new-veg" style="font-size:var(--fs-xs);color:var(--color-text-secondary);background:none;border:none;cursor:pointer;padding:0;display:inline-flex;align-items:center;gap:3px"><i class="ti ti-plus" style="font-size:var(--fs-xs)"></i>新しい野菜を追加する</button></div></div>
+    <div id="dlg-date-field" class="dlg-field"><label>作業開始日</label><div style="display:flex;gap:8px;align-items:center"><input type="date" id="dlg-date-input" style="flex:1;min-width:0;padding:8px 10px;border-radius:var(--border-radius-md);border:1px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:var(--fs-base);box-sizing:border-box"><button class="btn-primary" id="dlg-save" disabled style="flex-shrink:0;white-space:nowrap">登録</button></div></div>
+    <div id="dlg-rotation-warn" style="display:none;margin-bottom:12px;padding:9px 11px;border-radius:var(--border-radius-md);background:#FAEEDA;border:1px solid #EF9F27;font-size:var(--fs-xs);color:#92600B;line-height:1.6"></div>
+  </div>
+</div>
+
+<div id="dlg-add-veg" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:99;background:rgba(0,0,0,0.4)">
+  <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.25rem;min-width:260px;max-width:340px;width:90%;max-height:90vh;overflow-y:auto">
+    <div style="font-size:var(--fs-base);font-weight:500;margin-bottom:14px;display:flex;align-items:center;gap:6px"><i class="ti ti-plant" style="color:#5aad4e"></i>野菜を追加</div>
+    <div class="dlg-field"><label>プリセットから選ぶ</label><select id="av-preset"><option value="">— プリセット野菜 —</option></select></div>
+    <div style="font-size:var(--fs-xs);color:var(--color-text-tertiary);text-align:center;margin:2px 0 6px">または</div>
+    <div class="dlg-field"><label>野菜名（自由入力）</label><input type="text" id="av-name" placeholder="例：パプリカ"></div>
+    <div class="dlg-field"><label>品種・メモ（任意）</label><input type="text" id="av-variety" placeholder="例：ミニ、大玉など"></div>
+    <div class="dlg-field"><label>アイコン</label><div class="emoji-grid" id="av-emoji-grid"></div><div style="margin-top:6px;display:flex;align-items:center;gap:8px"><button type="button" class="btn" id="btn-upload-icon" style="font-size:var(--fs-xs)"><i class="ti ti-upload"></i>画像をアップロード</button><span id="upload-icon-hint" style="font-size:var(--fs-xs);color:var(--color-text-tertiary)">JPEG・PNG・WebP／2MB以内</span></div><input type="file" id="av-icon-upload" accept="image/jpeg,image/png,image/webp" style="display:none"><div id="upload-icon-error" style="display:none;font-size:var(--fs-xs);color:var(--color-text-danger);margin-top:4px"></div></div><div class="dlg-field"><label>育成方法</label><select id="av-grow-method" style="width:100%;font-size:var(--fs-base);padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)"><option value="seedling">苗から</option><option value="seed_pot">種（ポット）から</option><option value="seed_ground">種（地植え）から</option></select></div><div class="dlg-field"><label>作期（任意）</label><select id="av-season" style="width:100%;font-size:var(--fs-base);padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)"><option value="">— 指定なし —</option><option value="spring">春まき</option><option value="summer">夏まき</option><option value="autumn">秋まき</option><option value="winter">冬まき</option><option value="year_round">通年</option></select></div><div class="dlg-field"><label>地域（任意）</label><select id="av-region" style="width:100%;font-size:var(--fs-base);padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)"><option value="">— 指定なし —</option><option value="cool">冷涼地</option><option value="middle">中間地</option><option value="warm">暖地</option></select></div><div class="dlg-field"><label>参考URL（任意）</label><input type="url" id="av-ref-url" placeholder="https://..." style="width:100%;font-size:var(--fs-base);padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)"></div>
+    <div class="dlg-btns">
+      <button class="btn" id="btn-add-veg-cancel">キャンセル</button>
+      <button class="btn-primary" id="av-next" disabled>次へ（ロードマップ生成）</button>
+    </div>
+  </div>
+</div>
+
+
+
+<div id="task-chip-menu" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:120;background:rgba(0,0,0,0.25)" onclick="this.style.display='none'">
+  <div style="background:var(--color-background-primary);border-radius:12px;padding:16px 18px;width:80%;max-width:280px;box-shadow:0 8px 32px rgba(0,0,0,0.18)" onclick="event.stopPropagation()">
+    <div style="font-size:var(--fs-sm);color:var(--color-text-tertiary);text-align:center;margin-bottom:12px" id="task-chip-menu-label"></div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn" style="width:100%;justify-content:center;font-size:var(--fs-base)" onclick="if(window._chipEdit)window._chipEdit()"><i class="ti ti-pencil"></i>日付を変更</button>
+      <button class="btn" style="width:100%;justify-content:center;font-size:var(--fs-base);color:var(--color-text-danger);border-color:var(--color-border-danger)" onclick="if(window._chipDelete)window._chipDelete()"><i class="ti ti-trash"></i>この記録を削除</button>
+    </div>
+  </div>
+</div>
+
+
+<div id="dlg-milestone" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:115;background:rgba(0,0,0,0.4)" onclick="this.style.display='none'">
+  <div style="background:var(--color-background-primary);border-radius:16px;padding:28px 20px;width:88%;max-width:320px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.2)" onclick="event.stopPropagation()">
+    <img id="dlg-milestone-img" src="data:," style="width:182px;height:182px;object-fit:contain;margin-bottom:12px">
+    <div id="dlg-milestone-title" style="font-size:var(--fs-md);font-weight:700;color:var(--color-text-primary);margin-bottom:6px"></div>
+    <div id="dlg-milestone-msg" style="font-size:var(--fs-base);color:var(--color-text-secondary);line-height:1.6;margin-bottom:18px"></div>
+    <button class="btn-primary" onclick="document.getElementById('dlg-milestone').style.display='none'">ありがとう！</button>
+  </div>
+</div>
+
+<div id="dlg-task-date" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:110;background:rgba(0,0,0,0.35)" onclick="this.style.display='none';if(window._taskDateCancel)window._taskDateCancel();">
+  <div style="background:var(--color-background-primary);border-radius:12px;padding:16px 16px 18px;width:88%;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,0.18)" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2px">
+      <div>
+        <div style="font-size:var(--fs-base);font-weight:600;color:var(--color-text-primary)" id="dlg-task-date-title">実施日を選択</div>
+        <div style="font-size:var(--fs-sm);color:var(--color-text-secondary);margin-top:2px" id="dlg-task-date-name"></div>
+      </div>
+      <button onclick="document.getElementById('dlg-task-date').style.display='none';if(window._taskDateCancel)window._taskDateCancel();" style="background:none;border:none;padding:2px 4px;cursor:pointer;color:var(--color-text-tertiary);font-size:18px;line-height:1;flex-shrink:0">✕</button>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:14px">
+      <input type="date" id="dlg-task-date-input" style="flex:1;min-width:0;padding:10px 8px;border-radius:8px;border:1px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:var(--fs-md);box-sizing:border-box">
+      <button class="btn-primary" style="flex-shrink:0;white-space:nowrap" onclick="document.getElementById('dlg-task-date').style.display='none';if(window._taskDateConfirm)window._taskDateConfirm(document.getElementById('dlg-task-date-input').value);">記録</button>
+    </div>
+  </div>
+</div>
+
+<div id="dlg-archive-done" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:110;background:rgba(0,0,0,0.35)" onclick="this.style.display='none'">
+  <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.5rem 1.25rem;min-width:260px;max-width:320px;width:88%;text-align:center" onclick="event.stopPropagation()">
+    <div style="font-size:32px;margin-bottom:10px">🌱</div>
+    <div style="font-size:var(--fs-base);font-weight:600;color:var(--color-text-primary);margin-bottom:10px">アーカイブが完了しました</div>
+    <div style="font-size:var(--fs-sm);color:var(--color-text-secondary);line-height:1.7;margin-bottom:16px">以後、過去データからこの内容が確認できます。<br>よく頑張りましたね。お疲れ様でした！</div>
+    <button class="btn-primary" style="width:100%;font-size:var(--fs-base);padding:9px" onclick="document.getElementById('dlg-archive-done').style.display='none'">閉じる</button>
+  </div>
+</div>
+<div id="dlg-complete-confirm" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:100;background:rgba(0,0,0,0.4)">
+  <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.25rem;min-width:260px;max-width:340px;width:90%;max-height:90vh;overflow-y:auto">
+    <div style="font-size:var(--fs-base);font-weight:500;margin-bottom:12px;display:flex;align-items:center;gap:6px;color:var(--color-text-danger)"><i class="ti ti-alert-triangle"></i>この野菜の管理を完了しますか？</div>
+    <div id="dlg-complete-target" style="font-size:var(--fs-base);font-weight:500;margin-bottom:10px"></div>
+    <ul style="font-size:var(--fs-sm);color:var(--color-text-secondary);line-height:1.7;margin:0 0 4px 18px;padding:0">
+      <li>この操作は<b style="color:var(--color-text-danger)">取り消せません</b></li>
+      <li>この区画は<b>グリッドから消えます</b>（枠は未登録状態に戻ります）</li>
+      <li>作業ログ・収量・全体メモは<b>アーカイブに保存され</b>、削除されません</li>
+    </ul>
+    <div class="dlg-btns">
+      <button class="btn" id="btn-complete-cancel">キャンセル</button>
+      <button class="btn-primary" id="btn-complete-execute" style="background:var(--color-text-danger);border-color:var(--color-text-danger);color:#fff">実行</button>
+    </div>
+  </div>
+</div>
+
+<script src="data/icons_b64.js"></script>
+<script src="data/preset_vegs.js"></script>
+<script>
+
+// アイコン表示ヘルパー: iconFileがあれば<img>、なければ絵文字にフォールバック
+function vegIconHtml(veg, size) {
+  size = size || 18;
+  if (!veg) return '';
+  var preset = PRESET_VEGS.find(function(p){return p.id===veg.id;});
+  var iconFile = veg.iconFile || (preset ? preset.iconFile : null) || null;
+  var src = iconFile ? (ICON_B64[iconFile] || customIcons[iconFile] || null) : null;
+  if (src) {
+    return '<img src="'+src+'" width="'+size+'" height="'+size+'" style="object-fit:contain;vertical-align:middle;flex-shrink:0;mix-blend-mode:multiply">';
+  }
+  return '<span style="font-size:'+(Math.round(size*0.9))+'px;line-height:1">'+(veg.emoji||'')+'</span>';
+}
+
+const FAMILIES={'ナス科':{border:'#D85A30',bg:'#FAECE7'},'ウリ科':{border:'#639922',bg:'#EAF3DE'},'マメ科':{border:'#378ADD',bg:'#E6F1FB'},'アブラナ科':{border:'#EF9F27',bg:'#FAEEDA'},'ヒガンバナ科':{border:'#7F77DD',bg:'#EEEDFE'},'セリ科':{border:'#BA7517',bg:'#F5EAD8'},'キク科':{border:'#D4537E',bg:'#FBEAF0'},'シソ科':{border:'#1A9988',bg:'#E3F4F2'},'アオイ科':{border:'#C0873F',bg:'#F8EFDF'},'その他':{border:'#9C9A93',bg:'#F1EFE8'}};
+const MAJOR_STATUS=[{id:'ready',name:'準備中',color:'#854F0B',bg:'#FAEEDA'},{id:'growing',name:'生育中',color:'#27500A',bg:'#d4f0b8'},{id:'harvesting',name:'収穫中',color:'#633806',bg:'#fdf5b0'},{id:'done',name:'完了',color:'#444441',bg:'#F1EFE8'}];
+const UNITS=['個','g','kg','袋','束','本'];
+
+
+const ALL_ICONS=PRESET_VEGS.map(p=>({emoji:p.emoji,iconFile:p.iconFile||null})).concat([{emoji:'🌱',iconFile:null},{emoji:'🍀',iconFile:null},{emoji:'🌾',iconFile:null},{emoji:'🥜',iconFile:null},{emoji:'🍄',iconFile:null},{emoji:'🌰',iconFile:null}]);
+
+const TOMATO_SAMPLE={
+  id:'tomato',name:'トマト',emoji:'🍅',family:'ナス科',variety:'',
+  phases:[
+    {id:'p0',majorStatus:'ready',name:'準備期',period:'〜14日',tasks:[
+      {id:'t1',name:'土づくり・堆肥投入',desc:'植付け2週間前',day:0,memo:'完熟堆肥を20L/㎡程度投入し深く耕す',url:''},
+      {id:'t2',name:'支柱の準備',desc:'長さ1.5m以上推奨',day:7,memo:'210cm以上の支柱が理想',url:''},
+      {id:'t3',name:'苗の購入・選定',desc:'本葉4〜5枚が目安',day:12,memo:'根張りが良く茎が太いものを選ぶ',url:''},
+    ]},
+    {id:'p1',majorStatus:'growing',name:'定植・活着期',period:'15〜30日',tasks:[
+      {id:'t4',name:'定植（植付け）',desc:'株間50cm確保',day:14,memo:'深植えにせず根鉢を崩さないよう注意',url:'',milestone:'planting'},
+      {id:'t5',name:'仮支柱立て',desc:'風で倒れないよう',day:15,memo:'主茎を8の字結びで固定',url:''},
+      {id:'t6',name:'活着確認・水やり',desc:'土が乾いたら充分に',day:21,memo:'新葉が展開していれば活着成功',url:'',milestone:'germination'},
+    ]},
+    {id:'p2',majorStatus:'growing',name:'生育・誘引期',period:'31〜70日',tasks:[
+      {id:'t7',name:'わき芽かき',desc:'週1回、第1花房下まで',day:28,memo:'第1花房より下のわき芽は全て除去',url:''},
+      {id:'t8',name:'誘引（茎を支柱へ）',desc:'伸びたら都度固定',day:35,memo:'8の字結びで余裕を持たせて固定',url:''},
+      {id:'t9',name:'追肥（1回目）',desc:'定植2週間後から開始',day:42,memo:'化成肥料を株元から15cm離して施す',url:''},
+      {id:'t10',name:'受粉補助',desc:'花を軽く揺らす',day:50,memo:'午前中に花房を軽く叩いて振動を与える',url:''},
+    ]},
+    {id:'p3',majorStatus:'harvesting',name:'着果・収穫期',period:'71〜100日',tasks:[
+      {id:'t11',name:'着色確認',desc:'赤くなったら収穫サイン',day:70,memo:'全体の8割が赤くなったら収穫適期',url:''},
+      {id:'t12',name:'収穫',desc:'ヘタ上でカット',day:75,memo:'ヘタの少し上をハサミでカット',url:'',milestone:'harvest_start'},
+      {id:'t13',name:'収量記録',desc:'個数・重量をメモ',day:75,memo:'',url:''},
+    ]},
+    {id:'p4',majorStatus:'done',name:'撤収',period:'101日〜',tasks:[
+      {id:'t14',name:'株の撤去',desc:'根ごと引き抜く',day:100,memo:'病気の株は畑に残さず処分',url:''},
+      {id:'t15',name:'支柱・マルチ片付け',desc:'洗浄して保管',day:101,memo:'',url:''},
+      {id:'t16',name:'土づくり（次作準備）',desc:'堆肥・石灰を投入',day:105,memo:'次作まで2週間以上空ける',url:''},
+    ]},
+  ]
+};
+
+const SUPABASE_URL='https://rkubnugczjlsxskomknm.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrdWJudWdjempsc3hza29ta25tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5NjEzODgsImV4cCI6MjA5NzUzNzM4OH0.JaLpL82VNtoBMXXjJXIdv0k8ZJH2yOIeKGg4s8vU310';
+const ADMIN_PASSWORD='hatake2026';
+const IS_DEV=new URLSearchParams(location.search).get('dev')==='1';
+const LS_KEY=IS_DEV?'hatake_v21_dev':'hatake_v21';
+const DB_ID=IS_DEV?'dev':'main';
+if(IS_DEV)document.addEventListener('DOMContentLoaded',()=>{
+  const b=document.getElementById('dev-banner');
+  b.style.display='block';
+  const h=b.offsetHeight;
+  document.querySelectorAll('.toolbar').forEach(t=>{if(getComputedStyle(t).position==='sticky')t.style.top=h+'px';});
+});
+let isAdmin=false;
+const MAX_UNDO=30;
+let COLS=8,ROWS=6,cells={},segs={},segTasks={},actionLogs={},harvestLogs={},segSummaryMemo={},vegMaster={},archivedSegs={},customIcons={},undoStack=[];
+let aisleRows=[],aisleCols=[];
+let farmNameFont='Kaisei Opti';
+let farmIcon='';
+let dragging=false,dragRow=-1,dragStartCol=-1,dragEndCol=-1,pendingRow=-1,pendingStart=-1,pendingEnd=-1;
+let currentSeg=null,currentTab='roadmap',selectedMasterVeg=null,addVegEmoji='🌱',addVegIconFile=null,fromRegDlg=false,farmName='';
+let settingsOpen=false;
+
+const K=(r,c)=>`${r},${c}`;
+const todayISO=()=>new Date().toISOString().slice(0,10);
+function initDateSelects(yId,mId,dId,isoVal){
+  const now=isoVal?new Date(isoVal):new Date();
+  const curY=now.getFullYear(),curM=now.getMonth()+1,curD=now.getDate();
+  const yEl=document.getElementById(yId);
+  const mEl=document.getElementById(mId);
+  const dEl=document.getElementById(dId);
+  if(!yEl||!mEl||!dEl)return;
+  yEl.innerHTML='';for(let y=curY-2;y<=curY+2;y++){const o=document.createElement('option');o.value=y;o.textContent=y+'年';if(y===curY)o.selected=true;yEl.appendChild(o);}
+  mEl.innerHTML='';for(let m=1;m<=12;m++){const o=document.createElement('option');o.value=String(m).padStart(2,'0');o.textContent=m+'月';if(m===curM)o.selected=true;mEl.appendChild(o);}
+  dEl.innerHTML='';for(let d=1;d<=31;d++){const o=document.createElement('option');o.value=String(d).padStart(2,'0');o.textContent=d+'日';if(d===curD)o.selected=true;dEl.appendChild(o);}
+}
+function getDateFromSelects(yId,mId,dId){
+  const y=document.getElementById(yId)?.value;
+  const m=document.getElementById(mId)?.value;
+  const d=document.getElementById(dId)?.value;
+  return(y&&m&&d)?`${y}-${m}-${d}`:'';
+}
+const todayDisp=()=>{const d=new Date();return `${d.getMonth()+1}/${d.getDate()}`};
+const isoFull=s=>{if(!s)return '';const[y,m,d]=s.split('-');return `${y}年${parseInt(m)}月${parseInt(d)}日`};
+const isoShort=s=>{if(!s)return '';const[y,m,d]=s.split('-');return `${y}/${parseInt(m)}/${parseInt(d)}`};
+const daysBetween=(a,b)=>Math.round((new Date(b)-new Date(a))/86400000);
+
+async function saveToDB(data){
+  try{
+    await fetch(SUPABASE_URL+'/rest/v1/app_data?id=eq.'+DB_ID,{
+      method:'PATCH',
+      headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify({data,updated_at:new Date().toISOString()})
+    });
+  }catch(e){console.error('DB save error',e);}
+}
+async function loadFromDB(){
+  try{
+    const res=await fetch(SUPABASE_URL+'/rest/v1/app_data?id=eq.'+DB_ID+'&select=data',{
+      headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY}
+    });
+    const rows=await res.json();
+    const d=rows[0]?.data;
+    if(d&&d.cells&&Object.keys(d.cells).length>0){
+      cells=d.cells;COLS=d.COLS||8;ROWS=d.ROWS||6;
+      segTasks=d.segTasks||{};actionLogs=d.actionLogs||{};harvestLogs=d.harvestLogs||{};
+      segSummaryMemo=d.segSummaryMemo||{};vegMaster=d.vegMaster||{};
+      archivedSegs=d.archivedSegs||{};farmName=d.farmName||'';aisleRows=d.aisleRows||[];aisleCols=d.aisleCols||[];farmIcon=d.farmIcon||'';
+      return true;
+    }
+  }catch(e){console.error('DB load error',e);}
+  return false;
+}
+function dispToISO(disp){
+  if(!disp)return null;
+  const year=new Date().getFullYear();
+  const parts=disp.split('/');
+  if(parts.length!==2)return null;
+  return `${year}-${parts[0].padStart(2,'0')}-${parts[1].padStart(2,'0')}`;
+}
+function showMilestoneDialog(type){
+  const dlg=document.getElementById('dlg-milestone');
+  const img=document.getElementById('dlg-milestone-img');
+  const title=document.getElementById('dlg-milestone-title');
+  const msg=document.getElementById('dlg-milestone-msg');
+  if(type==='germination'){
+    img.src='images/milestone_germination.png';
+    title.textContent='🌱 発芽しました！';
+    msg.textContent='小さな命が土から顔を出しましたね。ここからが本番です。大切に育てていきましょう！';
+  }else if(type==='firstHarvest'){
+    img.src='images/milestone_firstharvest.png';
+    title.textContent='🎉 初収穫おめでとうございます！';
+    msg.textContent='ここまで育ててきた努力が実を結びました。よく頑張りましたね。お疲れ様でした！';
+  }
+  dlg.style.display='flex';
+}
+function showTaskDateDialog(title, taskName, onConfirm, onCancel){
+  const dlg=document.getElementById('dlg-task-date');
+  document.getElementById('dlg-task-date-title').textContent=title;
+  document.getElementById('dlg-task-date-name').textContent=taskName;
+  document.getElementById('dlg-task-date-input').value=todayISO();
+  window._taskDateConfirm=onConfirm;
+  window._taskDateCancel=onCancel||null;
+  dlg.style.display='flex';
+}
+function saveLS(){try{const d={cells,COLS,ROWS,segTasks,actionLogs,harvestLogs,segSummaryMemo,vegMaster,archivedSegs,farmName,aisleRows,aisleCols,farmNameFont,farmIcon};localStorage.setItem(LS_KEY,JSON.stringify(d));localStorage.setItem(LS_KEY+'_icons',JSON.stringify(customIcons));saveToDB(d);}catch(e){}}
+function updateFarmNameDisplay(){const el=document.getElementById('farm-name-display');const sc=document.getElementById('farm-seg-count');const splashEl=document.getElementById('splash-farm-name');const iconEl=document.getElementById('farm-icon-display');const fontFamily=`'${farmNameFont}',serif`;if(el)el.style.fontFamily=fontFamily;if(splashEl)splashEl.style.fontFamily=fontFamily;if(iconEl){const iconId=farmIcon||'tomato';if(iconId&&vegMaster[iconId]){iconEl.innerHTML=vegIconHtml(vegMaster[iconId],28);iconEl.style.display='inline-flex';}else{iconEl.innerHTML='🍅';iconEl.style.display='inline-flex';}}if(el){el.textContent=farmName||'私の畑';el.style.display='block';}if(sc){buildSegs();const cnt=Object.keys(segs).length;sc.textContent=cnt+'区画 管理中';sc.style.display='block';}}
+function loadLS(){
+  try{const d=JSON.parse(localStorage.getItem(LS_KEY)||'null');if(d&&d.cells){cells=d.cells;COLS=d.COLS||8;ROWS=d.ROWS||6;segTasks=d.segTasks||{};actionLogs=d.actionLogs||{};harvestLogs=d.harvestLogs||{};segSummaryMemo=d.segSummaryMemo||{};vegMaster=d.vegMaster||{};archivedSegs=d.archivedSegs||{};farmName=d.farmName||'';aisleRows=d.aisleRows||[];aisleCols=d.aisleCols||[];farmNameFont=d.farmNameFont||'Kaisei Opti';farmIcon=d.farmIcon||'';}}catch(e){}
+  try{const ic=JSON.parse(localStorage.getItem(LS_KEY+'_icons')||'null');if(ic)customIcons=ic;}catch(e){}
+  if(!vegMaster['tomato'])vegMaster['tomato']=JSON.parse(JSON.stringify(TOMATO_SAMPLE));
+  document.getElementById('s-cols').value=COLS;document.getElementById('s-rows').value=ROWS;
+  document.getElementById('s-farm-name').value=farmName;
+  document.querySelectorAll('input[name="farm-font"]').forEach(r=>{r.checked=(r.value===farmNameFont);});
+  renderFarmIconPicker();
+  updateFarmNameDisplay();
+}
+function pushUndo(){undoStack.push(JSON.stringify({cells,COLS,ROWS,segTasks,actionLogs,harvestLogs,segSummaryMemo,vegMaster,archivedSegs,aisleRows,aisleCols}));if(undoStack.length>MAX_UNDO)undoStack.shift();updUndoBtn()}
+function doUndo(){if(!undoStack.length)return;const s=JSON.parse(undoStack.pop());cells=s.cells;COLS=s.COLS;ROWS=s.ROWS;segTasks=s.segTasks||{};actionLogs=s.actionLogs||{};harvestLogs=s.harvestLogs||{};segSummaryMemo=s.segSummaryMemo||{};vegMaster=s.vegMaster||{};archivedSegs=s.archivedSegs||{};aisleRows=s.aisleRows||[];aisleCols=s.aisleCols||[];buildSegs();renderGrid();if(currentSeg&&document.getElementById('screen-manage').classList.contains('active'))renderManage();saveLS();updUndoBtn()}
+function updUndoBtn(){const b=document.getElementById('undo-btn'),c=document.getElementById('undo-count');b.disabled=!undoStack.length;c.textContent=undoStack.length?`(${undoStack.length})`:''}
+document.getElementById('undo-btn').addEventListener('click',()=>{if(!undoStack.length)return;document.getElementById('dlg-undo-confirm').style.display='flex';});
+document.getElementById('btn-undo-cancel').addEventListener('click',()=>{document.getElementById('dlg-undo-confirm').style.display='none';});
+document.getElementById('btn-undo-ok').addEventListener('click',()=>{document.getElementById('dlg-undo-confirm').style.display='none';doUndo();});
+document.getElementById('dlg-undo-confirm').addEventListener('mousedown',e=>{if(e.target===e.currentTarget)document.getElementById('dlg-undo-confirm').style.display='none';});
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();if(!undoStack.length)return;document.getElementById('dlg-undo-confirm').style.display='flex';}});
+
+document.getElementById('btn-open-archive').addEventListener('click',()=>{openArchive();});
+function openSettings(){document.getElementById('dlg-settings').style.display='flex';syncAisleInputs();}
+function closeSettings(){document.getElementById('dlg-settings').style.display='none';}
+document.getElementById('btn-settings').addEventListener('click',openSettings);
+document.getElementById('btn-close-settings').addEventListener('click',closeSettings);
+document.getElementById('dlg-settings').addEventListener('mousedown',e=>{if(e.target===e.currentTarget)closeSettings();});
+// ── 権限定義 ──────────────────────────────────────────────
+// 全ユーザー可: タスク記録・収穫追加・全体メモ・画面閲覧
+// 管理者のみ  : 区画登録/編集、野菜マスタ追加/編集/削除、
+//               AI生成、設定変更、収穫削除、管理完了
+// ────────────────────────────────────────────────────────
+function requireAdmin(){return isAdmin;}
+function applyPermissions(){
+  const st=document.getElementById('admin-status');
+  if(isAdmin){
+    document.body.classList.remove('view-mode');
+    if(st){st.textContent='管理者モードで操作中';st.style.color='#2e7a28';}
+  }else{
+    document.body.classList.add('view-mode');
+    if(st){st.textContent='閲覧モード（閲覧・作業記録のみ）';st.style.color='var(--color-text-tertiary)';}
+  }
+  // 動的に描画済みのマスタ詳細があれば再描画して権限を反映
+  if(document.getElementById('screen-master').classList.contains('active')&&selectedMasterVeg){renderMasterDetail();}
+}
+document.getElementById('btn-admin-login').addEventListener('click',()=>{const pw=document.getElementById('s-admin-pw').value;if(pw===ADMIN_PASSWORD){isAdmin=true;localStorage.setItem('hatake_admin','1');applyPermissions();document.getElementById('s-admin-pw').value='';alert('管理者モードになりました');}else if(pw===''){isAdmin=false;localStorage.removeItem('hatake_admin');applyPermissions();}else{alert('パスワードが違います');}});
+if(localStorage.getItem('hatake_admin')==='1'){isAdmin=true;}else{document.body.classList.add('view-mode');}
+document.getElementById('btn-save-farm-name').addEventListener('click',()=>{farmName=document.getElementById('s-farm-name').value.trim();saveLS();updateFarmNameDisplay();const btn=document.getElementById('btn-save-farm-name');btn.textContent='保存しました';setTimeout(()=>{btn.textContent='保存';},1200);});
+document.querySelectorAll('input[name="farm-font"]').forEach(r=>{r.addEventListener('change',()=>{farmNameFont=r.value;saveLS();updateFarmNameDisplay();});});
+document.getElementById('btn-open-master').addEventListener('click',()=>{closeSettings();openMaster();});
+
+function buildSegs(){segs={};for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){const k=K(r,c),cell=cells[k];if(!cell)continue;const sid=cell.segId;if(!segs[sid])segs[sid]={id:sid,row:r,cols:[],crop:cell.crop||null,plantDate:cell.plantDate||null};segs[sid].cols.push(c);}}
+function getVeg(id){return vegMaster[id]||null}
+function vegFamily(id){const v=getVeg(id);return v?v.family:null}
+function famStyle(fam){if(!fam)return null;return FAMILIES[fam]||FAMILIES['その他'];}
+const ROTATION_FAMILIES=new Set(['ナス科','ウリ科','マメ科','アブラナ科','ヒガンバナ科','セリ科','キク科','シソ科','アオイ科']);
+function checkRotation(row,cols){
+  return Object.values(archivedSegs)
+    .filter(a=>ROTATION_FAMILIES.has(a.family)&&a.row===row&&cols.some(c=>a.cols.includes(c)))
+    .sort((a,b)=>b.completedDate.localeCompare(a.completedDate));
+}
+function segIsRegistered(sid){return !!(segs[sid]&&segs[sid].crop)}
+function getTaskState(sid,tid){return Object.assign({done:false,skip:false,doneDates:[]},(segTasks[sid]||{})[tid]||{})}
+function setTaskState(sid,tid,patch){if(!segTasks[sid])segTasks[sid]={};segTasks[sid][tid]=Object.assign(getTaskState(sid,tid),patch);saveLS()}
+function getMilestoneDate(sid,cropId,ms){const v=getVeg(cropId);if(!v)return null;const tasks=v.phases.flatMap(p=>p.tasks).filter(t=>t.milestone===ms);for(const t of tasks){const state=getTaskState(sid,t.id);if(state.doneDates&&state.doneDates.length){const iso=dispToISO(state.doneDates[0]);if(iso)return iso;}}return null}
+function getHarvestSummary(sid){const logs=harvestLogs[sid]||[];const tot={};logs.forEach(h=>{if(!tot[h.unit])tot[h.unit]=0;tot[h.unit]+=Number(h.amount);});return tot}
+function harvestTotalStr(sid){const t=getHarvestSummary(sid);const e=Object.entries(t);if(!e.length)return null;return e.map(([u,a])=>`${a}${u}`).join(' / ')}
+function getMergedLogsByDate(sid){
+  const byDate={};
+  function add(date,item){if(!date)return;if(!byDate[date])byDate[date]=[];byDate[date].push(item);}
+  // segTasks の doneDates からタスクログを生成
+  const seg=segs[sid];if(seg){const veg=getVeg(seg.crop);if(veg&&veg.phases){veg.phases.forEach(ph=>{ph.tasks.forEach(t=>{const state=getTaskState(sid,t.id);(state.doneDates||[]).forEach(d=>{const iso=dispToISO(d);add(iso,{_type:'task',date:iso,task:t.name});});});});}}
+  // harvestLogs
+  (harvestLogs[sid]||[]).forEach(h=>add(h.date,{...h,_type:'harvest'}));
+  Object.keys(byDate).forEach(date=>{byDate[date].sort((a,b)=>a._type===b._type?0:a._type==='task'?-1:1);});
+  return byDate;
+}
+function getNextTask(sid,cropId){const v=getVeg(cropId);if(!v||!v.phases.length)return null;const all=v.phases.flatMap(p=>p.tasks);let lastCheckedIdx=-1;all.forEach((t,i)=>{if(getTaskState(sid,t.id).done)lastCheckedIdx=i;});const nextIdx=lastCheckedIdx+1;return nextIdx<all.length?all[nextIdx]:null;}
+function calcProgress(sid,cropId){const v=getVeg(cropId);if(!v)return{pct:0,phaseIdx:0};const all=v.phases.flatMap(p=>p.tasks);let lastCheckedIdx=-1;all.forEach((t,i)=>{if(getTaskState(sid,t.id).done)lastCheckedIdx=i;});const pct=all.length?Math.round((lastCheckedIdx+1)/all.length*100):0;let phaseIdx=0;if(lastCheckedIdx>=0){let count=0;for(let i=0;i<v.phases.length;i++){count+=v.phases[i].tasks.length;if(lastCheckedIdx<count){phaseIdx=i;break;}phaseIdx=i;}}return{pct,phaseIdx}}
+function calcMajorStatus(sid,cropId){const v=getVeg(cropId);if(!v||!v.phases.length)return MAJOR_STATUS[0];const{phaseIdx}=calcProgress(sid,cropId);return MAJOR_STATUS.find(m=>m.id===v.phases[phaseIdx].majorStatus)||MAJOR_STATUS[0]}
+function addDays(dateStr,days){if(!dateStr)return null;const d=new Date(dateStr);d.setDate(d.getDate()+days);return `${d.getMonth()+1}/${d.getDate()}`}
+const AISLE_W=10,AISLE_H=10;
+function calcCellSize(){const wrap=document.getElementById('grid-wrap');const W=wrap.offsetWidth||600;const normalCols=COLS-aisleCols.length;const normalRows=ROWS-aisleRows.length;const usedW=12+3*(COLS+1)+aisleCols.length*AISLE_W;const cellW=Math.floor((W-usedW)/Math.max(1,normalCols));const cellH=Math.max(36,Math.min(58,Math.floor(cellW*0.94)));return{cellW,cellH,normalCols,normalRows}}
+
+function populateCropSelect(){
+  const sel=document.getElementById('dlg-crop');sel.innerHTML='<option value="">— 選択してください —</option>';
+  Object.values(vegMaster).sort((a,b)=>a.name.localeCompare(b.name,'ja')).forEach(v=>{const op=document.createElement('option');op.value=v.id;op.textContent=v.name+(v.variety?' ('+v.variety+')':'');sel.appendChild(op);});
+}
+
+function renderGrid(){
+  buildSegs();const{cellW,cellH}=calcCellSize();const tbl=document.getElementById('grid-table');tbl.innerHTML='';
+  // 列番号ヘッダ行
+  const htr=document.createElement('tr');
+  const corner=document.createElement('td');corner.className='col-num col-num-corner';corner.style.cssText=`width:10px;`;htr.appendChild(corner);
+  for(let c=0;c<COLS;c++){
+    const isAisleC=aisleCols.includes(c);
+    const ch=document.createElement('td');ch.className='col-num';
+    ch.textContent=isAisleC?'':c+1;
+    ch.style.cssText=`width:${isAisleC?AISLE_W:cellW}px;`;
+    htr.appendChild(ch);
+  }
+  tbl.appendChild(htr);
+  for(let r=0;r<ROWS;r++){
+    const isAisleR=aisleRows.includes(r);
+    const rowH=isAisleR?AISLE_H:cellH;
+    const tr=document.createElement('tr');
+    const rn=document.createElement('td');rn.className='row-num';
+    rn.textContent=isAisleR?'':String.fromCharCode(65+r);
+    rn.style.cssText=`width:10px;height:${rowH}px;vertical-align:middle`;
+    tr.appendChild(rn);
+    for(let c=0;c<COLS;c++){
+      const isAisleC=aisleCols.includes(c);
+      // 通路セル
+      if(isAisleR||isAisleC){
+        const td=document.createElement('td');td.dataset.r=r;td.dataset.c=c;
+        td.style.cssText=`width:${isAisleC?AISLE_W:cellW}px;height:${rowH}px;min-width:0;padding:0;box-sizing:border-box;`;
+        const inner=document.createElement('div');
+        inner.style.cssText=`width:100%;height:100%;background:#f0efe9;border-radius:3px;`;
+        td.appendChild(inner);tr.appendChild(td);continue;
+      }
+      const k=K(r,c),cell=cells[k];const sid=cell?cell.segId:null,seg=sid?segs[sid]:null;
+      const registered=seg?segIsRegistered(sid):false;
+      if(registered&&seg&&c>Math.min(...seg.cols))continue;
+      // colspanはアイル列を跨がない範囲に制限
+      let span=registered&&seg?seg.cols.length:1;
+      if(span>1){const cols=seg.cols.slice().sort((a,b)=>a-b);span=0;for(const sc of cols){if(aisleCols.includes(sc))break;span++;}if(span===0)span=1;}
+      const selecting=dragging&&r===dragRow&&c>=Math.min(dragStartCol,dragEndCol)&&c<=Math.max(dragStartCol,dragEndCol);
+      const fs=famStyle(vegFamily(seg?seg.crop:null));const majorSt=registered?calcMajorStatus(sid,seg.crop):null;
+      const td=document.createElement('td');td.dataset.r=r;td.dataset.c=c;
+      if(span>1)td.setAttribute('colspan',span);
+      const isActive=selecting||(registered&&fs);
+      td.style.cssText=`width:${cellW*span}px;height:${cellH}px;min-width:0;border:0.5px solid ${isActive?'#e8e6df':'#ede9e1'};padding:${isActive?'2':'0'}px;box-sizing:border-box`;
+      const inner=document.createElement('div');inner.className='cell-inner';
+      inner.style.height='100%';inner.style.boxSizing='border-box';inner.style.borderRadius='5px';
+      if(selecting){
+        inner.style.background='#E6F1FB';inner.style.border='2px solid #378ADD';
+      } else if(registered&&fs){
+        inner.style.background=fs.bg;inner.style.borderTop=`3px solid ${fs.border}`;inner.style.boxShadow='0 1px 4px rgba(0,0,0,0.08)';
+      } else {
+        inner.style.backgroundColor='transparent';inner.style.borderRadius='3px';inner.classList.add('cell-empty-bg');inner.dataset.row=r;
+      }
+      if(selecting)inner.style.backgroundImage='repeating-linear-gradient(45deg,transparent,transparent 5px,rgba(55,138,221,0.2) 5px,rgba(55,138,221,0.2) 7px)';
+      else if(cell&&!registered)inner.style.backgroundImage='repeating-linear-gradient(45deg,transparent,transparent 5px,rgba(0,0,0,0.10) 5px,rgba(0,0,0,0.10) 7px)';
+      if(registered&&seg){
+        const veg=getVeg(seg.crop);
+        const lbl=document.createElement('div');lbl.className='cell-label';
+        lbl.innerHTML=veg?(vegIconHtml(veg,14)+'<span style="margin-left:2px">'+veg.name+'</span>'):'';
+        inner.appendChild(lbl);
+        if(majorSt){const stLbl=document.createElement('div');stLbl.style.cssText=`font-size:8px;font-weight:500;color:${majorSt.color};line-height:1.2`;stLbl.textContent=majorSt.name;inner.appendChild(stLbl);}
+      }
+      td.appendChild(inner);
+      if(registered){td.style.cursor='pointer';td.addEventListener('click',()=>openManage(sid));}
+      else{td.style.cursor='crosshair';td.addEventListener('mousedown',e=>{if(e.button!==0)return;onDown(r,c,e)});td.addEventListener('mouseenter',()=>{if(dragging&&r===dragRow)onEnter(c)});td.addEventListener('touchstart',e=>{e.preventDefault();onDown(r,c,e)},{passive:false});td.addEventListener('touchmove',e=>{e.preventDefault();const t=e.touches[0];if(Math.abs(t.clientX-_touchStartX)<10&&Math.abs(t.clientY-_touchStartY)<10)return;const el2=document.elementFromPoint(t.clientX,t.clientY);const td2=el2&&el2.closest('td');if(td2)td2.dispatchEvent(new MouseEvent('mouseenter'));},{passive:false});}
+      tr.appendChild(td);
+    }
+    tbl.appendChild(tr);
+  }
+  renderSegList();
+  updateFarmNameDisplay();
+  requestAnimationFrame(applyGridBg);
+}
+let _touchStartX=0,_touchStartY=0;
+function onDown(r,c,e){e.preventDefault();if(!requireAdmin())return;if(aisleRows.includes(r)||aisleCols.includes(c))return;const k=K(r,c);if(cells[k]&&cells[k].crop)return;dragging=true;dragRow=r;dragStartCol=c;dragEndCol=c;if(e.touches&&e.touches[0]){_touchStartX=e.touches[0].clientX;_touchStartY=e.touches[0].clientY;}document.addEventListener('mouseup',onUp,{once:true});document.addEventListener('touchend',onUp,{once:true});window.addEventListener('touchend',onUp,{once:true});
+  // DOM再構築せず直接ハイライト（iOS touchend対策）
+  const tds=document.querySelectorAll('#grid-table td');tds.forEach(td=>{if(td.dataset.r==r&&td.dataset.c==c)td.style.background='var(--color-background-tertiary)';});
+}
+function onEnter(c){const dir=c>=dragStartCol?1:-1;let end=dragStartCol;for(let ci=dragStartCol;ci!==c+dir;ci+=dir){if(ci<0||ci>=COLS)break;const k=K(dragRow,ci);if(cells[k]&&cells[k].crop)break;end=ci;}if(end===dragEndCol)return;dragEndCol=end;const s=Math.min(dragStartCol,dragEndCol),e2=Math.max(dragStartCol,dragEndCol);document.querySelectorAll('#grid-table td[data-r]').forEach(td=>{const r2=+td.dataset.r,c2=+td.dataset.c;if(r2===dragRow&&c2>=s&&c2<=e2){td.style.outline='2px solid #4A90E2';td.style.background='rgba(74,144,226,0.12)';}else if(!cells[K(r2,c2)]?.crop){td.style.outline='';td.style.background='';}});} 
+function onUp(){if(!dragging){dragging=false;return;}dragging=false;const s=Math.min(dragStartCol,dragEndCol),e2=Math.max(dragStartCol,dragEndCol);if(dragRow>=0&&s<=e2){pendingRow=dragRow;pendingStart=s;pendingEnd=e2;showRegDlg();}renderGrid();}
+
+function showRegDlg(){
+  populateCropSelect();
+  document.getElementById('dlg-preview').textContent=`${pendingRow+1}行 / ${pendingStart+1}〜${pendingEnd+1}列（${pendingEnd-pendingStart+1}マス）`;
+  document.getElementById('dlg-crop').value='';
+  document.getElementById('dlg-date-input').value=todayISO();
+  document.getElementById('dlg-save').disabled=true;
+  const rw=document.getElementById('dlg-rotation-warn');rw.style.display='none';rw.innerHTML='';
+  const noVeg=!Object.keys(vegMaster).length;
+  document.getElementById('dlg-crop-field').style.display=noVeg?'none':'';
+  document.getElementById('dlg-date-field').style.display=noVeg?'none':'';
+  document.getElementById('dlg-save').style.display=noVeg?'none':'';
+  document.getElementById('dlg-no-veg').style.display=noVeg?'block':'none';
+  document.getElementById('dlg-register').style.display='flex';
+  window._regDlgOpenTime=Date.now();
+}
+document.getElementById('dlg-crop').addEventListener('change',()=>{
+  const cropId=document.getElementById('dlg-crop').value;
+  document.getElementById('dlg-save').disabled=!cropId;
+  const warn=document.getElementById('dlg-rotation-warn');
+  warn.style.display='none';warn.innerHTML='';
+  if(!cropId||pendingRow<0)return;
+  const veg=getVeg(cropId);if(!veg||!ROTATION_FAMILIES.has(veg.family))return;
+  const cols=Array.from({length:pendingEnd-pendingStart+1},(_,i)=>pendingStart+i);
+  const hits=checkRotation(pendingRow,cols).filter(a=>a.family===veg.family);
+  if(!hits.length)return;
+  const h=hits[0];const months=Math.round(daysBetween(h.completedDate,todayISO())/30);
+  warn.innerHTML=`<i class="ti ti-alert-triangle" style="font-size:var(--fs-xs);margin-right:3px"></i>このエリアでは<strong>${months}ヶ月前</strong>に${h.family}（${h.cropName}）を栽培していました。連作障害に注意してください。`;
+  warn.style.display='block';
+});
+document.getElementById('btn-dlg-cancel').addEventListener('click',()=>{document.getElementById('dlg-register').style.display='none';pendingRow=-1;pendingStart=-1;pendingEnd=-1;renderGrid();});
+document.getElementById('dlg-go-master').addEventListener('click',()=>{document.getElementById('dlg-register').style.display='none';pendingRow=-1;pendingStart=-1;pendingEnd=-1;openMaster();});
+document.getElementById('dlg-add-new-veg').addEventListener('click',()=>{document.getElementById('dlg-register').style.display='none';fromRegDlg=true;openMaster();document.getElementById('btn-add-veg').click();});
+document.getElementById('dlg-register').addEventListener('mousedown',e=>{if(e.target===e.currentTarget&&Date.now()-(window._regDlgOpenTime||0)>500){document.getElementById('dlg-register').style.display='none';pendingRow=-1;pendingStart=-1;pendingEnd=-1;renderGrid();}});
+document.getElementById('dlg-save').addEventListener('click',()=>{
+  const cropId=document.getElementById('dlg-crop').value,date=document.getElementById('dlg-date-input').value;if(!cropId)return;
+  document.getElementById('dlg-register').style.display='none';pushUndo();
+  const sid=`s_${pendingRow}_${pendingStart}_${Date.now()}`;
+  for(let c=pendingStart;c<=pendingEnd;c++){const k=K(pendingRow,c);if(!cells[k]||!cells[k].crop)cells[k]={segId:sid,crop:cropId,plantDate:date};}
+  pendingRow=-1;pendingStart=-1;pendingEnd=-1;buildSegs();renderGrid();saveLS();
+});
+
+let archiveSortKey='completedDate',archiveSortDir='desc',archiveDetailSeg=null,currentSnapshotIdx=0;
+
+function openArchive(){archiveDetailSeg=null;currentSnapshotIdx=0;document.getElementById('screen-register').classList.remove('active');document.getElementById('screen-archive').classList.add('active');renderArchive();}
+function closeArchive(){document.getElementById('screen-archive').classList.remove('active');document.getElementById('screen-register').classList.add('active');}
+
+
+function getSnapshots(){
+  // completedDate でグループ化し、最後のエントリのスナップショットを採用
+  const byDate={};
+  Object.values(archivedSegs).forEach(a=>{
+    if(a.gridSnapshot&&a.gridSnapshot.length){
+      if(!byDate[a.completedDate]||a.completedDate>=byDate[a.completedDate].completedDate){
+        byDate[a.completedDate]=a;
+      }
+    }
+  });
+  return Object.values(byDate).sort((a,b)=>b.completedDate.localeCompare(a.completedDate));
+}
+
+function renderSnapshotViewer(el){
+  const snaps=getSnapshots();
+  const wrap=document.createElement('div');
+  wrap.style.cssText='background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);padding:12px 14px';
+  const secTitle1=document.createElement('div');secTitle1.style.cssText='font-size:var(--fs-xs);font-weight:600;color:var(--color-text-secondary);letter-spacing:0.04em;margin-bottom:10px;display:flex;align-items:center;gap:5px';secTitle1.innerHTML='<i class="ti ti-layout-grid" style="font-size:var(--fs-xs)"></i>畑レイアウト履歴';wrap.appendChild(secTitle1);
+
+  if(!snaps.length){
+    const note=document.createElement('div');
+    note.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary);text-align:center;padding:8px 0';
+    note.textContent='スナップショットはまだありません（作物完了時に自動記録されます）';
+    wrap.appendChild(note);el.appendChild(wrap);return;
+  }
+
+  if(currentSnapshotIdx>=snaps.length)currentSnapshotIdx=snaps.length-1;
+  if(currentSnapshotIdx<0)currentSnapshotIdx=0;
+  const snap=snaps[currentSnapshotIdx];
+  const gCols=snap.gridCOLS||8;const gRows=snap.gridROWS||6;
+  const cellMap={};
+  (snap.gridSnapshot||[]).forEach(s=>{const leftCol=Math.min(...s.cols);s.cols.forEach(c=>{
+    cellMap[s.row+','+c]={cropName:s.cropName,family:s.family,isSelf:s.isSelf,cropId:s.cropId,isLeft:c===leftCol};
+  });});
+
+  // ミニグリッド
+  const gridWrap=document.createElement('div');gridWrap.style.cssText='margin-bottom:8px';
+  const grid=document.createElement('div');
+  grid.style.cssText=`display:grid;grid-template-columns:repeat(${gCols},1fr);gap:2px`;
+  for(let r=0;r<gRows;r++){
+    for(let col=0;col<gCols;col++){
+      const cell=document.createElement('div');
+      cell.style.cssText='height:24px;border-radius:2px;overflow:hidden;position:relative;';
+      const info=cellMap[r+','+col];
+      if(info){
+        const fs=famStyle(info.family);
+        cell.style.background=fs?fs.bg:'#e5e5e3';
+        cell.style.border=`${info.isSelf?'2':'1'}px solid ${fs?fs.border:'#ccc'}`;
+        cell.title=info.cropName;
+        if(info.isLeft){const lbl=document.createElement('span');lbl.textContent=info.cropName;lbl.style.cssText='position:absolute;inset:0;font-size:8px;line-height:24px;padding-left:2px;white-space:nowrap;overflow:hidden;color:rgba(0,0,0,0.55);pointer-events:none';cell.appendChild(lbl);}
+      }else{
+        cell.style.background='var(--color-background-secondary)';
+        cell.style.border='1px solid var(--color-border-tertiary)';
+      }
+      grid.appendChild(cell);
+    }
+  }
+  gridWrap.appendChild(grid);
+
+  // 凡例
+  const families=[...new Set((snap.gridSnapshot||[]).map(s=>s.family).filter(Boolean))];
+  if(families.length){
+    const legend=document.createElement('div');legend.style.cssText='display:flex;flex-wrap:wrap;gap:6px;margin-top:6px';
+    families.forEach(fam=>{
+      const fs=famStyle(fam);if(!fs)return;
+      const chip=document.createElement('div');chip.style.cssText='display:flex;align-items:center;gap:3px;font-size:var(--fs-xs);color:var(--color-text-secondary)';
+      chip.innerHTML=`<div style="width:9px;height:9px;border-radius:2px;background:${fs.bg};border:1px solid ${fs.border}"></div>${fam}`;
+      legend.appendChild(chip);
+    });
+    gridWrap.appendChild(legend);
+  }
+  wrap.appendChild(gridWrap);
+
+  // ナビゲーションバー（← 日付▾ →）
+  const nav=document.createElement('div');nav.style.cssText='display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px';
+  const prevBtn=document.createElement('button');
+  prevBtn.style.cssText='width:28px;height:28px;border-radius:50%;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:var(--fs-base);color:var(--color-text-primary)';
+  prevBtn.innerHTML='<i class="ti ti-chevron-left"></i>';
+  prevBtn.disabled=currentSnapshotIdx>=snaps.length-1;
+  prevBtn.style.opacity=prevBtn.disabled?'0.3':'1';
+  prevBtn.addEventListener('click',()=>{currentSnapshotIdx++;renderArchive();});
+
+  const nextBtn=document.createElement('button');
+  nextBtn.style.cssText='width:28px;height:28px;border-radius:50%;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:var(--fs-base);color:var(--color-text-primary)';
+  nextBtn.innerHTML='<i class="ti ti-chevron-right"></i>';
+  nextBtn.disabled=currentSnapshotIdx<=0;
+  nextBtn.style.opacity=nextBtn.disabled?'0.3':'1';
+  nextBtn.addEventListener('click',()=>{currentSnapshotIdx--;renderArchive();});
+
+  const dateBtn=document.createElement('button');
+  dateBtn.style.cssText='font-size:var(--fs-sm);font-weight:500;color:var(--color-text-primary);background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:4px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:4px';
+  dateBtn.innerHTML=`${isoShort(snap.completedDate)}<i class="ti ti-calendar" style="font-size:var(--fs-xs);color:var(--color-text-tertiary)"></i>`;
+  dateBtn.addEventListener('click',()=>openSnapshotCalendar(snaps));
+
+  const counter=document.createElement('span');
+  counter.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary);position:absolute;right:14px';
+  counter.textContent=`${snaps.length-currentSnapshotIdx}/${snaps.length}`;
+
+  nav.style.position='relative';
+  nav.append(prevBtn,dateBtn,nextBtn,counter);
+  wrap.appendChild(nav);
+  el.appendChild(wrap);
+}
+
+function openSnapshotCalendar(snaps){
+  const availDates=new Set(snaps.map(s=>s.completedDate));
+  let displayDate=snaps[currentSnapshotIdx].completedDate;
+  let calYear=parseInt(displayDate.slice(0,4));let calMonth=parseInt(displayDate.slice(5,7))-1;
+
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:300;display:flex;align-items:flex-end;justify-content:center';
+
+  function renderCal(){
+    overlay.innerHTML='';
+    const panel=document.createElement('div');
+    panel.style.cssText='background:var(--color-background-primary);border-radius:12px 12px 0 0;padding:16px;width:100%;max-width:420px;box-sizing:border-box';
+
+    // ヘッダ
+    const hdr=document.createElement('div');hdr.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:12px';
+    const mPrev=document.createElement('button');mPrev.innerHTML='<i class="ti ti-chevron-left"></i>';mPrev.style.cssText='background:none;border:none;cursor:pointer;font-size:var(--fs-md);color:var(--color-text-primary);padding:4px';
+    mPrev.addEventListener('click',()=>{calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCal();});
+    const mNext=document.createElement('button');mNext.innerHTML='<i class="ti ti-chevron-right"></i>';mNext.style.cssText='background:none;border:none;cursor:pointer;font-size:var(--fs-md);color:var(--color-text-primary);padding:4px';
+    mNext.addEventListener('click',()=>{calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCal();});
+    const mLabel=document.createElement('span');mLabel.style.cssText='font-size:var(--fs-base);font-weight:500';mLabel.textContent=`${calYear}年${calMonth+1}月`;
+    const closeBtn=document.createElement('button');closeBtn.innerHTML='<i class="ti ti-x"></i>';closeBtn.style.cssText='background:none;border:none;cursor:pointer;font-size:var(--fs-md);color:var(--color-text-secondary);padding:4px';
+    closeBtn.addEventListener('click',()=>overlay.remove());
+    hdr.append(mPrev,mLabel,mNext,closeBtn);panel.appendChild(hdr);
+
+    // 曜日ヘッダ
+    const dayNames=['日','月','火','水','木','金','土'];
+    const dayHdr=document.createElement('div');dayHdr.style.cssText='display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px';
+    dayNames.forEach((d,i)=>{const dh=document.createElement('div');dh.style.cssText=`text-align:center;font-size:var(--fs-xs);color:${i===0?'#D85A30':i===6?'#378ADD':'var(--color-text-tertiary)'}`;dh.textContent=d;dayHdr.appendChild(dh);});
+    panel.appendChild(dayHdr);
+
+    // カレンダーグリッド
+    const calGrid=document.createElement('div');calGrid.style.cssText='display:grid;grid-template-columns:repeat(7,1fr);gap:3px';
+    const firstDay=new Date(calYear,calMonth,1).getDay();
+    const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+    for(let i=0;i<firstDay;i++){const blank=document.createElement('div');calGrid.appendChild(blank);}
+    for(let d=1;d<=daysInMonth;d++){
+      const dateStr=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const hasSnap=availDates.has(dateStr);
+      const isSelected=snaps[currentSnapshotIdx].completedDate===dateStr;
+      const cell=document.createElement('div');
+      cell.style.cssText=`text-align:center;padding:6px 2px;border-radius:6px;font-size:var(--fs-base);cursor:${hasSnap?'pointer':'default'};color:${hasSnap?(isSelected?'#fff':'var(--color-text-primary)'):'var(--color-border-secondary)'};background:${isSelected?'#5aad4e':hasSnap?'var(--color-background-secondary)':'transparent'};font-weight:${hasSnap?'500':'400'}`;
+      cell.textContent=d;
+      if(hasSnap){
+        if(!isSelected){
+          const dot=document.createElement('div');dot.style.cssText='width:4px;height:4px;border-radius:50%;background:#5aad4e;margin:1px auto 0';cell.appendChild(dot);
+        }
+        cell.addEventListener('click',()=>{
+          const idx=snaps.findIndex(s=>s.completedDate===dateStr);
+          if(idx>=0){currentSnapshotIdx=idx;overlay.remove();renderArchive();}
+        });
+      }
+      calGrid.appendChild(cell);
+    }
+    panel.appendChild(calGrid);
+    overlay.appendChild(panel);
+  }
+  renderCal();
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
+  document.body.appendChild(overlay);
+}
+
+function renderArchive(){
+  const el=document.getElementById('archive-content');el.innerHTML='';
+  if(archiveDetailSeg){renderArchiveDetail(el,archiveDetailSeg);return;}
+  renderSnapshotViewer(el);
+  const entries=Object.values(archivedSegs);
+  if(!entries.length){const emp=document.createElement('div');emp.className='archive-empty';emp.innerHTML='<i class="ti ti-database" style="font-size:24px;display:block;margin-bottom:8px;opacity:0.3"></i>過去データはまだありません';el.appendChild(emp);return;}
+
+  // 栽培履歴 見出し
+  const secTitle2=document.createElement('div');secTitle2.style.cssText='font-size:var(--fs-xs);font-weight:600;color:var(--color-text-secondary);letter-spacing:0.04em;margin:14px 0 8px;display:flex;align-items:center;gap:5px;padding:0 2px';secTitle2.innerHTML='<i class="ti ti-plant-2" style="font-size:var(--fs-xs)"></i>栽培履歴';el.appendChild(secTitle2);
+
+  // ソートバー
+  const sortBar=document.createElement('div');sortBar.className='archive-sort-bar';
+  sortBar.innerHTML='<span class="archive-sort-label">並び替え：</span>';
+  const sortDefs=[{key:'cropName',label:'作物名'},{key:'plantDate',label:'作業開始日'},{key:'completedDate',label:'完了日'}];
+  sortDefs.forEach(def=>{
+    const btn=document.createElement('button');btn.className='archive-sort-btn'+(archiveSortKey===def.key?' active':'');
+    const arrow=archiveSortKey===def.key?(archiveSortDir==='asc'?' ↑':' ↓'):'';
+    btn.textContent=def.label+arrow;
+    btn.addEventListener('click',()=>{if(archiveSortKey===def.key){archiveSortDir=archiveSortDir==='asc'?'desc':'asc';}else{archiveSortKey=def.key;archiveSortDir='asc';}renderArchive();});
+    sortBar.appendChild(btn);
+  });
+  el.appendChild(sortBar);
+
+  // ソート実行
+  const sorted=[...entries].sort((a,b)=>{
+    const va=a[archiveSortKey]||'';const vb=b[archiveSortKey]||'';
+    const cmp=va.localeCompare(vb,'ja');return archiveSortDir==='asc'?cmp:-cmp;
+  });
+
+  sorted.forEach(arch=>{
+    const veg=vegMaster[arch.cropId];
+    const card=document.createElement('div');card.className='archive-card';
+    const hdr=document.createElement('div');hdr.className='archive-card-header';
+    hdr.innerHTML=`<span style="display:inline-flex;align-items:center;font-size:20px">${veg?vegIconHtml(veg,24):arch.cropName.slice(0,1)}</span><span class="archive-card-name">${arch.cropName}${arch.variety?' ('+arch.variety+')':''}</span><span class="archive-card-date">完了 ${isoShort(arch.completedDate)}</span>`;
+    const meta=document.createElement('div');meta.className='archive-card-meta';
+    const startVal=arch.plantDate?isoShort(arch.plantDate):'—';
+    const harvestVal=arch.harvestTotal||'未記録';
+    const isSeedArch=arch.growMethod==='seed_pot'||arch.growMethod==='seed_ground';
+    const midLabel=isSeedArch?'種まき':'定植';
+    const midVal=isSeedArch?(arch.sowingDate?isoShort(arch.sowingDate):'—'):(arch.plantingDate?isoShort(arch.plantingDate):'—');
+    const areaLabel=`${arch.row+1}行 ${Math.min(...arch.cols)+1}〜${Math.max(...arch.cols)+1}列`;
+    meta.innerHTML=`<span class="archive-card-stat"><i class="ti ti-calendar" style="font-size:var(--fs-xs)"></i>開始：${startVal}</span><span class="archive-card-stat"><i class="ti ti-plant-2" style="font-size:var(--fs-xs)"></i>${midLabel}：${midVal}</span><span class="archive-card-stat"><i class="ti ti-layout-grid" style="font-size:var(--fs-xs)"></i>${areaLabel}</span><span class="archive-card-stat"><i class="ti ti-basket" style="font-size:var(--fs-xs);color:#2e7a28"></i><span style="color:#2e7a28">${harvestVal}</span></span>`;
+    card.append(hdr,meta);
+    card.addEventListener('click',()=>{archiveDetailSeg=arch.segId;renderArchive();});
+    el.appendChild(card);
+  });
+}
+
+function renderArchiveDetail(el,segId){
+  const arch=archivedSegs[segId];if(!arch)return;
+  const veg=vegMaster[arch.cropId];
+
+  // 戻るリンク
+  const backBtn=document.createElement('div');backBtn.className='archive-detail-back';backBtn.innerHTML='<i class="ti ti-arrow-left" style="font-size:var(--fs-sm)"></i>リストへ戻る';backBtn.addEventListener('click',()=>{archiveDetailSeg=null;renderArchive();});el.appendChild(backBtn);
+
+  // ヘッダー
+  const hdr=document.createElement('div');hdr.className='manage-header';
+  hdr.innerHTML=`<span style="display:inline-flex;align-items:center;font-size:22px">${veg?vegIconHtml(veg,28):''}</span><div style="flex:1"><div class="manage-title">${arch.cropName}${arch.variety?' ('+arch.variety+')':''}</div><div class="manage-meta">完了日：${isoShort(arch.completedDate)}${arch.plantDate?' ／ 開始：'+isoShort(arch.plantDate):''}</div></div>`;
+  el.appendChild(hdr);
+
+  // サマリー統計（読み取り専用）
+  const taskLogs=actionLogs[segId]||[];
+  const allLogDates=taskLogs.map(l=>l.date).sort();
+  const lastLogDate=arch.lastLogDate||allLogDates[allLogDates.length-1]||null;
+  let workPeriodVal='—',workPeriodSub='';
+  if(arch.plantDate&&lastLogDate){const days=daysBetween(arch.plantDate,lastLogDate);workPeriodVal=`${isoShort(arch.plantDate)} 〜 ${isoShort(lastLogDate)}`;workPeriodSub=`${days}日間`;}
+  else if(arch.plantDate)workPeriodVal=`${isoShort(arch.plantDate)} 〜`;
+
+  const summary=document.createElement('div');summary.className='summary-section';
+  const stats=document.createElement('div');stats.className='summary-stats';
+  const isSeedArch2=arch.growMethod==='seed_pot'||arch.growMethod==='seed_ground';
+  let archSeedHtml='';
+  if(!isSeedArch2){archSeedHtml=`<div class="summary-stat"><div class="summary-stat-label">種まき情報</div><div class="summary-stat-val" style="color:var(--color-text-tertiary)">なし（苗から）</div></div>`;}
+  else{const sv2=arch.sowingDate?isoShort(arch.sowingDate):'—';const gv2=arch.germinationDate?isoShort(arch.germinationDate):'—';const gd2=(arch.sowingDate&&arch.germinationDate)?`発芽まで${daysBetween(arch.sowingDate,arch.germinationDate)}日`:'';archSeedHtml=`<div class="summary-stat"><div class="summary-stat-label">種まき情報</div><div class="summary-stat-val">種まき：${sv2}</div><div class="summary-stat-sub">発芽確認：${gv2}${gd2?' ／ '+gd2:''}</div></div>`;}
+  const archTransplantHtml=`<div class="summary-stat"><div class="summary-stat-label">定植 ／ 収穫開始</div><div class="summary-stat-val">${arch.plantingDate?isoShort(arch.plantingDate):'—'}</div><div class="summary-stat-sub">収穫開始：${arch.harvestStartDate?isoShort(arch.harvestStartDate):'—'}</div></div>`;
+  stats.innerHTML=`<div class="summary-stat"><div class="summary-stat-label">作業期間</div><div class="summary-stat-val">${workPeriodVal}</div>${workPeriodSub?`<div class="summary-stat-sub">${workPeriodSub}</div>`:''}</div>${archSeedHtml}${archTransplantHtml}<div class="summary-stat"><div class="summary-stat-label">合計収量</div><div class="summary-stat-val" style="color:#2e7a28">${arch.harvestTotal||'未記録'}</div></div><div class="summary-stat"><div class="summary-stat-label">完了日</div><div class="summary-stat-val">${isoShort(arch.completedDate)}</div></div>`;
+  summary.appendChild(stats);
+
+  // 栽培エリア ミニグリッド
+  const miniGridWrap=document.createElement('div');
+  miniGridWrap.style.cssText='margin-bottom:10px';
+  const miniGridLabel=document.createElement('div');
+  miniGridLabel.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-bottom:6px';
+  miniGridLabel.textContent='栽培エリア（完了時のグリッド状態）';
+  miniGridWrap.appendChild(miniGridLabel);
+  const gs=arch.gridSnapshot||[];
+  const gCols=arch.gridCOLS||COLS;const gRows=arch.gridROWS||ROWS;
+  const cellMap={};
+  gs.forEach(s=>s.cols.forEach(c=>{cellMap[s.row+','+c]={cropName:s.cropName,family:s.family,isSelf:s.isSelf};}));
+  const selfFs=famStyle(arch.family);
+  const grid=document.createElement('div');
+  grid.style.cssText=`display:grid;grid-template-columns:repeat(${gCols},1fr);gap:2px;max-width:320px`;
+  for(let r=0;r<gRows;r++){
+    for(let c=0;c<gCols;c++){
+      const cell=document.createElement('div');
+      cell.style.cssText='height:16px;border-radius:2px;';
+      const info=cellMap[r+','+c];
+      if(info){
+        if(info.isSelf){
+          cell.style.background=selfFs?selfFs.bg:'#B2DDD2';
+          cell.style.border=`2px solid ${selfFs?selfFs.border:'#5aad4e'}`;
+          cell.title=arch.cropName;
+        } else {
+          const ofs=famStyle(info.family);
+          cell.style.background=ofs?ofs.bg:'#e5e5e3';
+          cell.style.border=`1px solid ${ofs?ofs.border:'#ccc'}`;
+          cell.title=info.cropName;
+        }
+      } else {
+        cell.style.background='var(--color-background-secondary)';
+        cell.style.border='1px solid var(--color-border-tertiary)';
+      }
+      grid.appendChild(cell);
+    }
+  }
+  if(gs.length===0){
+    const note=document.createElement('div');note.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary)';note.textContent='（スナップショットなし — 完了時に自動記録されます）';miniGridWrap.appendChild(note);
+  } else {
+    const areaLabel=document.createElement('div');
+    areaLabel.style.cssText='font-size:var(--fs-xs);color:var(--color-text-secondary);margin-bottom:4px;font-weight:500';
+    areaLabel.textContent=`${arch.row+1}行 ${Math.min(...arch.cols)+1}〜${Math.max(...arch.cols)+1}列`;
+    miniGridWrap.appendChild(areaLabel);
+    miniGridWrap.appendChild(grid);
+    // 凡例
+    const selfSegs=gs.filter(s=>!s.isSelf);const families=[...new Set(selfSegs.map(s=>s.family).filter(Boolean))];
+    if(families.length){
+      const legend=document.createElement('div');legend.style.cssText='display:flex;flex-wrap:wrap;gap:6px;margin-top:6px';
+      [{family:arch.family,isSelf:true},...families.map(f=>({family:f,isSelf:false}))].forEach(({family,isSelf})=>{
+        const fs2=famStyle(family);if(!fs2)return;
+        const chip=document.createElement('div');chip.style.cssText='display:flex;align-items:center;gap:3px;font-size:var(--fs-xs);color:var(--color-text-secondary)';
+        chip.innerHTML=`<div style="width:10px;height:10px;border-radius:2px;background:${fs2.bg};border:${isSelf?'2':'1'}px solid ${fs2.border}"></div>${family}${isSelf?' (本作)':''}`;
+        legend.appendChild(chip);
+      });
+      miniGridWrap.appendChild(legend);
+    }
+  }
+  summary.appendChild(miniGridWrap);
+
+  // 全体メモ（読み取り専用）
+  const memo=segSummaryMemo[segId]||'';
+  if(memo){const memoBox=document.createElement('div');memoBox.className='summary-memo-box';memoBox.innerHTML=`<div class="summary-memo-header"><i class="ti ti-notes" style="color:#9c9a93"></i>全体メモ</div><div class="summary-memo-body" style="font-size:var(--fs-sm);line-height:1.6;color:var(--color-text-primary);white-space:pre-wrap">${memo}</div>`;summary.appendChild(memoBox);}
+  el.appendChild(summary);
+
+  // 作業履歴
+  const logTitle=document.createElement('div');logTitle.className='log-section-title';logTitle.innerHTML='<i class="ti ti-clock" style="font-size:var(--fs-base)"></i>作業履歴';el.appendChild(logTitle);
+  const byDate=getMergedLogsByDate(segId);const sortedDates=Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
+  if(!sortedDates.length){const p=document.createElement('p');p.style.cssText='font-size:var(--fs-xs);color:#9c9a93;padding:4px 0';p.textContent='作業記録がありません。';el.appendChild(p);}
+  else{sortedDates.forEach(date=>{const group=document.createElement('div');group.className='log-date-group';const ghdr=document.createElement('div');ghdr.className='log-date-header';ghdr.innerHTML=`<span class="log-date-label">${isoFull(date)}</span><div class="log-date-line"></div>`;group.appendChild(ghdr);byDate[date].forEach(item=>{const isHarvest=item._type==='harvest';const entry=document.createElement('div');entry.className='log-entry';const icon=document.createElement('div');icon.className=`log-entry-icon ${isHarvest?'harvest':'task'}`;icon.innerHTML=`<i class="ti ${isHarvest?'ti-basket':'ti-check'}" aria-hidden="true"></i>`;const title=document.createElement('div');title.className='log-entry-title';title.textContent=isHarvest?'収穫':item.task;entry.append(icon,title);if(isHarvest){const badge=document.createElement('div');badge.className='log-entry-badge';badge.textContent=`${item.amount} ${item.unit}`;entry.appendChild(badge);}group.appendChild(entry);});el.appendChild(group);});}
+}
+
+function openManage(sid){currentSeg=sid;currentTab='roadmap';document.getElementById('screen-register').classList.remove('active');document.getElementById('screen-manage').classList.add('active');renderManage();}
+function goBack(){document.getElementById('screen-manage').classList.remove('active');document.getElementById('screen-register').classList.add('active');currentSeg=null;renderGrid();}
+
+function renderManage(){
+  buildSegs();const seg=segs[currentSeg];if(!seg)return;const veg=getVeg(seg.crop);const majorSt=calcMajorStatus(currentSeg,seg.crop);
+  const st=document.getElementById('manage-static');
+  const el=document.getElementById('manage-content');
+  const existingIframe=el.querySelector('iframe');if(existingIframe)existingIframe.src='';
+  st.innerHTML='';el.innerHTML='';
+  const hdr=document.createElement('div');hdr.className='manage-header';
+  const plantDisp=seg.plantDate?seg.plantDate.slice(5).replace('-','/'):null;
+  const startChipHtml=isAdmin?`<span id="manage-start-chip" class="task-date-chip" style="cursor:pointer;margin-left:6px">${plantDisp?plantDisp+'〜':'＋開始日'}</span>`:(plantDisp?` ／ ${plantDisp}開始`:'');
+  hdr.innerHTML=`<span style="display:inline-flex;align-items:center;font-size:22px">${veg?vegIconHtml(veg,28):''}</span><div style="flex:1"><div class="manage-title">${veg?veg.name+(veg.variety?' ('+veg.variety+')':''):'不明'}</div><div class="manage-meta" style="display:flex;align-items:center;flex-wrap:wrap;gap:2px">${seg.row+1}行 ${Math.min(...seg.cols)+1}〜${Math.max(...seg.cols)+1}列 ${seg.cols.length}マス${startChipHtml}</div></div><div class="status-pill" style="background:${majorSt.bg};color:${majorSt.color}">${majorSt.name}</div>`;
+  if(isAdmin){const chip=hdr.querySelector('#manage-start-chip');if(chip)chip.addEventListener('click',()=>{if(seg.plantDate){const menu=document.getElementById('task-chip-menu');menu.style.display='flex';document.getElementById('task-chip-menu-label').textContent=plantDisp+'〜 作業開始';window._chipEdit=()=>{menu.style.display='none';showTaskDateDialog('作業開始日を変更','作業開始日',(dateVal)=>{if(!dateVal)return;pushUndo();Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===currentSeg)cells[k].plantDate=dateVal;});buildSegs();saveLS();renderManage();renderGrid();});};window._chipDelete=()=>{menu.style.display='none';pushUndo();Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===currentSeg)cells[k].plantDate=null;});buildSegs();saveLS();renderManage();renderGrid();};}else{showTaskDateDialog('作業開始日を設定','作業開始日',(dateVal)=>{if(!dateVal)return;pushUndo();Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===currentSeg)cells[k].plantDate=dateVal;});buildSegs();saveLS();renderManage();renderGrid();});}});}
+  st.appendChild(hdr);
+  const tabs=[{id:'basic',icon:'ti-plant',label:'基礎知識'},{id:'roadmap',icon:'ti-road',label:'ロードマップ'},{id:'harvest',icon:'ti-basket',label:'収量'},{id:'log',icon:'ti-clipboard-list',label:'作業ログ'}];
+  const tabBar=document.createElement('div');tabBar.className='tab-bar';tabBar.style.margin='0 0 0';
+  tabs.forEach(tab=>{const btn=document.createElement('div');btn.className='tab-btn'+(currentTab===tab.id?' active':'');btn.innerHTML=`<i class="ti ${tab.icon}" style="font-size:var(--fs-sm)"></i>${tab.label}`;btn.addEventListener('click',()=>{currentTab=tab.id;renderManage();});tabBar.appendChild(btn);});
+  st.appendChild(tabBar);
+  if(currentTab==='roadmap')renderRoadmapTab(el,seg,veg);
+  else if(currentTab==='log')renderLogTab(el,seg);
+  else if(currentTab==='harvest')renderHarvestTab(el,seg);
+  else if(currentTab==='basic')renderBasicTab(el,veg);
+  else{currentTab='roadmap';renderRoadmapTab(el,seg,veg);}
+}
+
+function renderRoadmapTab(el,seg,veg){
+  if(!veg||!veg.phases||!veg.phases.length){const b=document.createElement('div');b.className='ai-banner';b.innerHTML='<div class="ai-banner-text">ロードマップがありません。野菜マスタで生成してください。</div>';el.appendChild(b);return;}
+  const{pct,phaseIdx}=calcProgress(currentSeg,seg.crop);
+  const wrap=document.createElement('div');wrap.className='progress-wrap';wrap.innerHTML=`<div class="progress-label"><div class="progress-title">${vegIconHtml(veg,18)} ${veg.name} ロードマップ</div><div class="progress-pct">${pct}%</div></div><div class="progress-bar-outer"><div class="progress-bar-inner" style="width:${pct}%"></div></div>`;el.appendChild(wrap);
+  veg.phases.forEach((phase,pi)=>{
+    const isCurrent=pi===phaseIdx,isDone=pi<phaseIdx;
+    const block=document.createElement('div');block.className='phase-block';block.innerHTML=`<div class="phase-heading"><div class="phase-radio ${isDone?'done':isCurrent?'active':''}"></div><span class="phase-name" style="color:${isCurrent?'#1a1915':'#5f5e5a'}">${phase.name}</span><span class="phase-period">（${phase.period}）</span></div>`;
+    phase.tasks.forEach(task=>{
+      const state=getTaskState(currentSeg,task.id);const isPest=task.type==='pest';const card=document.createElement('div');card.className='task-card'+(isPest?' pest':'');
+      const scheduledDate=seg.plantDate?addDays(seg.plantDate,task.day):null;const dayLabel=`+${task.day}日${scheduledDate?' ('+scheduledDate+')':''}`;
+      const main=document.createElement('div');main.className='task-main';const cbWrap=document.createElement('div');cbWrap.className='task-cb-wrap';const cb=document.createElement('input');cb.type='checkbox';cb.className='task-cb';cb.checked=state.done;cbWrap.appendChild(cb);
+      const clickable=document.createElement('div');clickable.className='task-clickable';const body=document.createElement('div');body.className='task-body';if(isPest){const lbl=document.createElement('div');lbl.className='task-pest-label';lbl.innerHTML='<i class="ti ti-bug" style="font-size:10px"></i>病害虫チェック';body.appendChild(lbl);}const nameEl=document.createElement('div');nameEl.className='task-name'+(state.done?' done-text':'');nameEl.textContent=task.name;const descEl=document.createElement('div');descEl.className='task-desc';descEl.textContent=task.desc;const datesWrap=document.createElement('div');datesWrap.className='task-dates';(state.doneDates||[]).forEach((d,di)=>{const chip=document.createElement('div');chip.className='task-date-chip';chip.style.cursor='pointer';chip.textContent=d;chip.addEventListener('click',e=>{e.stopPropagation();const menu=document.getElementById('task-chip-menu');menu.style.display='flex';document.getElementById('task-chip-menu-label').textContent=d;window._chipEdit=()=>{menu.style.display='none';showTaskDateDialog('日付を変更',task.name,(dateVal)=>{if(!dateVal)return;pushUndo();const dates=[...(state.doneDates||[])];const disp=dateVal.slice(5).replace('-','/');dates[di]=disp;setTaskState(currentSeg,task.id,{done:dates.length>0,skip:false,doneDates:dates});renderManage();renderGrid();});};window._chipDelete=()=>{menu.style.display='none';pushUndo();const dates=[...(state.doneDates||[])];dates.splice(di,1);setTaskState(currentSeg,task.id,{done:dates.length>0,skip:false,doneDates:dates});renderManage();renderGrid();};});datesWrap.appendChild(chip);});const addChip=document.createElement('div');addChip.className='task-date-chip';addChip.style.cursor='pointer';addChip.textContent='＋追加';addChip.addEventListener('click',e=>{e.stopPropagation();showTaskDateDialog('追加の実施日',task.name,(dateVal)=>{if(!dateVal)return;pushUndo();const disp=dateVal.slice(5).replace('-','/');const dates=[...(state.doneDates||[]),disp];setTaskState(currentSeg,task.id,{done:true,skip:false,doneDates:dates});renderManage();renderGrid();if(task.milestone==='germination'||task.milestone==='firstHarvest')setTimeout(()=>showMilestoneDialog(task.milestone),300);});});datesWrap.appendChild(addChip);body.append(nameEl,descEl,datesWrap);const dayBadge=document.createElement('div');dayBadge.className='task-day-badge';dayBadge.textContent=dayLabel;const expandIcon=document.createElement('div');expandIcon.className='task-expand-icon';expandIcon.innerHTML='<i class="ti ti-chevron-down"></i>';clickable.append(body,dayBadge,expandIcon);main.append(cbWrap,clickable);
+      const detail=document.createElement('div');detail.className='task-detail';if(task.memo){const m=document.createElement('div');m.className='task-detail-memo';m.textContent=task.memo;detail.appendChild(m);}if(task.url){const a=document.createElement('a');a.className='task-detail-url';a.href=task.url;a.target='_blank';a.innerHTML='<i class="ti ti-brand-youtube" style="font-size:var(--fs-base)"></i>参考動画を見る';detail.appendChild(a);}card.append(main,detail);block.appendChild(card);
+      clickable.addEventListener('click',()=>{const isOpen=detail.classList.contains('open');detail.classList.toggle('open',!isOpen);expandIcon.querySelector('i').className=`ti ${isOpen?'ti-chevron-down':'ti-chevron-up'}`;});
+      cb.addEventListener('change',e=>{e.stopPropagation();if(cb.checked){showTaskDateDialog('実施日を選択',task.name,(dateVal)=>{if(!dateVal)return;pushUndo();const disp=dateVal.slice(5).replace('-','/');const dates=[...(state.doneDates||[]),disp];setTaskState(currentSeg,task.id,{done:true,skip:false,doneDates:dates});renderManage();renderGrid();if(task.milestone==='germination'||task.milestone==='firstHarvest')setTimeout(()=>showMilestoneDialog(task.milestone),300);},()=>{cb.checked=false;});}else{pushUndo();const dates=[...(state.doneDates||[])];dates.pop();setTaskState(currentSeg,task.id,{done:dates.length>0,skip:false,doneDates:dates});renderManage();renderGrid();}});
+    });
+    el.appendChild(block);
+  });
+}
+
+function renderLogTab(el,seg){
+  const notice=document.createElement('div');notice.className='complete-notice';notice.id='complete-notice';notice.innerHTML='<i class="ti ti-info-circle" style="font-size:var(--fs-base);flex-shrink:0;margin-top:1px"></i><span>管理を完了する場合は内容を確認して下部の「この野菜の管理を完了」を押下してください。</span>';el.appendChild(notice);
+  const summary=document.createElement('div');summary.className='summary-section';
+  // doneDates から全日付を収集して作業期間を計算
+  const allTaskDates=[];const _seg2=segs[currentSeg];if(_seg2){const _veg2=getVeg(_seg2.crop);if(_veg2&&_veg2.phases){_veg2.phases.forEach(ph=>{ph.tasks.forEach(t=>{(getTaskState(currentSeg,t.id).doneDates||[]).forEach(d=>{const iso=dispToISO(d);if(iso)allTaskDates.push(iso);});});});}}
+  allTaskDates.sort();const lastLogDate=allTaskDates[allTaskDates.length-1]||null;
+  let workPeriodVal='—',workPeriodSub='';if(seg.plantDate&&lastLogDate){const days=daysBetween(seg.plantDate,lastLogDate);workPeriodVal=`${isoShort(seg.plantDate)} 〜 ${isoShort(lastLogDate)}`;workPeriodSub=`${days}日間`;}else if(seg.plantDate)workPeriodVal=`${isoShort(seg.plantDate)} 〜 作業中`;
+  const veg=getVeg(seg.crop);const growMethod=veg?veg.growMethod||'seedling':'seedling';
+  const isSeed=growMethod==='seed_pot'||growMethod==='seed_ground';
+  const sowingDate=getMilestoneDate(currentSeg,seg.crop,'sowing');
+  const germinationDate=getMilestoneDate(currentSeg,seg.crop,'germination');
+  const plantingDate=getMilestoneDate(currentSeg,seg.crop,'planting');
+  const harvestStartDate=getMilestoneDate(currentSeg,seg.crop,'harvest_start');
+  let seedHtml='';
+  if(!isSeed){seedHtml=`<div class="summary-stat"><div class="summary-stat-label">種まき情報</div><div class="summary-stat-val" style="color:var(--color-text-tertiary)">なし（苗から）</div></div>`;}
+  else{const sv=sowingDate?isoShort(sowingDate):'—';const gv=germinationDate?isoShort(germinationDate):'—';const gdays=(sowingDate&&germinationDate)?`発芽まで${daysBetween(sowingDate,germinationDate)}日`:'';seedHtml=`<div class="summary-stat"><div class="summary-stat-label">種まき情報</div><div class="summary-stat-val">種まき：${sv}</div><div class="summary-stat-sub">発芽確認：${gv}${gdays?' ／ '+gdays:''}</div></div>`;}
+  const transplantHtml=`<div class="summary-stat"><div class="summary-stat-label">定植 ／ 収穫開始</div><div class="summary-stat-val">${plantingDate?isoShort(plantingDate):'—'}</div><div class="summary-stat-sub">収穫開始：${harvestStartDate?isoShort(harvestStartDate):'—'}</div></div>`;
+  const stats=document.createElement('div');stats.className='summary-stats';stats.innerHTML=`<div class="summary-stat"><div class="summary-stat-label">作業期間</div><div class="summary-stat-val">${workPeriodVal}</div>${workPeriodSub?`<div class="summary-stat-sub">${workPeriodSub}</div>`:''}</div>${seedHtml}${transplantHtml}<div class="summary-stat"><div class="summary-stat-label">合計収量</div><div class="summary-stat-val" style="color:#2e7a28">${harvestTotalStr(currentSeg)||'未記録'}</div></div>`;
+  summary.appendChild(stats);
+  const memoBox=document.createElement('div');memoBox.className='summary-memo-box';memoBox.innerHTML='<div class="summary-memo-header"><i class="ti ti-notes" style="color:#9c9a93"></i>全体メモ</div>';const memoBody=document.createElement('div');memoBody.className='summary-memo-body';const memoTa=document.createElement('textarea');memoTa.className='summary-memo-ta';memoTa.placeholder='この区画の栽培を振り返って...';memoTa.value=segSummaryMemo[currentSeg]||'';const memoSave=document.createElement('button');memoSave.className='summary-save-btn';memoSave.innerHTML='<i class="ti ti-device-floppy" style="font-size:var(--fs-xs)"></i>保存';memoSave.addEventListener('click',()=>{segSummaryMemo[currentSeg]=memoTa.value;saveLS();memoSave.textContent='保存しました';setTimeout(()=>{memoSave.innerHTML='<i class="ti ti-device-floppy" style="font-size:var(--fs-xs)"></i>保存';},1200);});memoBody.append(memoTa,memoSave);memoBox.appendChild(memoBody);summary.appendChild(memoBox);el.appendChild(summary);
+  const logTitle=document.createElement('div');logTitle.className='log-section-title';logTitle.innerHTML='<i class="ti ti-clock" style="font-size:var(--fs-base)"></i>作業履歴';el.appendChild(logTitle);
+  const byDate=getMergedLogsByDate(currentSeg);const sortedDates=Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
+  if(!sortedDates.length){const p=document.createElement('p');p.style.cssText='font-size:var(--fs-xs);color:#9c9a93;padding:4px 0';p.textContent='タスクを完了するか収穫を記録すると表示されます。';el.appendChild(p);}
+  else{sortedDates.forEach(date=>{const group=document.createElement('div');group.className='log-date-group';const hdr=document.createElement('div');hdr.className='log-date-header';hdr.innerHTML=`<span class="log-date-label">${isoFull(date)}</span><div class="log-date-line"></div>`;group.appendChild(hdr);byDate[date].forEach(item=>{const isHarvest=item._type==='harvest';const entry=document.createElement('div');entry.className='log-entry';const icon=document.createElement('div');icon.className=`log-entry-icon ${isHarvest?'harvest':'task'}`;icon.innerHTML=`<i class="ti ${isHarvest?'ti-basket':'ti-check'}" aria-hidden="true"></i>`;const title=document.createElement('div');title.className='log-entry-title';title.textContent=isHarvest?'収穫':item.task;entry.append(icon,title);if(isHarvest){const badge=document.createElement('div');badge.className='log-entry-badge';badge.textContent=`${item.amount} ${item.unit}`;entry.appendChild(badge);}group.appendChild(entry);});el.appendChild(group);});}
+  if(!requireAdmin())return;
+  const completeBar=document.createElement('div');completeBar.style.cssText='margin-top:20px;padding-top:14px;border-top:0.5px solid var(--color-border-tertiary)';
+  const completeBtn=document.createElement('button');completeBtn.className='btn-complete-final';completeBtn.innerHTML='<i class="ti ti-flag-check"></i>この野菜の管理を完了';
+  completeBtn.addEventListener('click',()=>openCompleteConfirm(currentSeg));
+  completeBar.appendChild(completeBtn);
+  const delDivider=document.createElement('hr');delDivider.style.cssText='border:none;border-top:0.5px solid var(--color-border-tertiary);margin:16px 0';completeBar.appendChild(delDivider);
+  const deleteBtn=document.createElement('button');deleteBtn.style.cssText='margin-top:0;width:100%;font-size:var(--fs-sm);padding:8px;border-radius:var(--border-radius-md);border:0.5px solid #e57373;background:#fff5f5;color:#c62828;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px';deleteBtn.innerHTML='<i class="ti ti-trash"></i>この区画の登録を削除';deleteBtn.addEventListener('click',()=>{if(!confirm('この区画の登録を削除します。\n作業記録や収穫記録も失われます。\nよろしいですか？'))return;pushUndo();const sid=currentSeg;Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===sid)delete cells[k];});delete segTasks[sid];delete actionLogs[sid];delete harvestLogs[sid];delete segSummaryMemo[sid];buildSegs();saveLS();goBack();renderGrid();});
+  completeBar.appendChild(deleteBtn);el.appendChild(completeBar);
+}
+
+function renderHarvestTab(el,seg){
+  const logs=harvestLogs[currentSeg]||[];const inputRow=document.createElement('div');inputRow.className='harvest-input-row';
+  const gDate=document.createElement('div');gDate.className='harvest-input-group';gDate.innerHTML='<label>収穫日</label>';const iDate=document.createElement('input');iDate.type='date';iDate.value=todayISO();gDate.appendChild(iDate);
+  const gAmt=document.createElement('div');gAmt.className='harvest-input-group';gAmt.innerHTML='<label>量</label>';const iAmt=document.createElement('input');iAmt.type='number';iAmt.min='0';iAmt.step='0.1';iAmt.value='1';gAmt.appendChild(iAmt);
+  const gUnit=document.createElement('div');gUnit.className='harvest-input-group';gUnit.innerHTML='<label>単位</label>';const iUnit=document.createElement('select');UNITS.forEach(u=>{const op=document.createElement('option');op.value=u;op.textContent=u;iUnit.appendChild(op);});
+  const cropId=seg.crop;const lastUnit=Object.entries(harvestLogs).flatMap(([sid,ls])=>(segs[sid]&&segs[sid].crop===cropId)?ls:[]).sort((a,b)=>b.date.localeCompare(a.date))[0]?.unit;
+  if(lastUnit)iUnit.value=lastUnit;
+  gUnit.appendChild(iUnit);
+  const addBtn=document.createElement('button');addBtn.className='harvest-add-btn';addBtn.textContent='追加';inputRow.append(gDate,gAmt,gUnit,addBtn);el.appendChild(inputRow);
+  addBtn.addEventListener('click',()=>{const date=iDate.value,amount=parseFloat(iAmt.value),unit=iUnit.value;if(!date||isNaN(amount)||amount<=0)return;pushUndo();if(!harvestLogs[currentSeg])harvestLogs[currentSeg]=[];harvestLogs[currentSeg].push({id:`h_${Date.now()}`,date,amount,unit});harvestLogs[currentSeg].sort((a,b)=>a.date.localeCompare(b.date));saveLS();renderManage();});
+  const listWrap=document.createElement('div');listWrap.className='harvest-list';
+  if(!logs.length){const emp=document.createElement('div');emp.className='harvest-empty';emp.textContent='まだ収穫記録がありません。';listWrap.appendChild(emp);}
+  else{[...logs].reverse().forEach(h=>{const row=document.createElement('div');row.className='harvest-row';const dateEl=document.createElement('div');dateEl.className='harvest-row-date';dateEl.textContent=h.date;const amtEl=document.createElement('div');amtEl.className='harvest-row-amount';amtEl.textContent=`${h.amount} ${h.unit}`;const delBtn=document.createElement('button');delBtn.className='harvest-del-btn';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>';delBtn.classList.add('admin-only');if(isAdmin)delBtn.addEventListener('click',()=>{pushUndo();harvestLogs[currentSeg]=harvestLogs[currentSeg].filter(x=>x.id!==h.id);saveLS();renderManage();});row.append(dateEl,amtEl,delBtn);listWrap.appendChild(row);});}
+  el.appendChild(listWrap);
+  Object.entries(getHarvestSummary(currentSeg)).forEach(([unit,amt])=>{const totalEl=document.createElement('div');totalEl.className='harvest-total';totalEl.innerHTML=`<span class="harvest-total-label"><i class="ti ti-calculator" style="font-size:var(--fs-sm);margin-right:4px"></i>合計（${unit}）</span><span class="harvest-total-val">${amt} ${unit}</span>`;el.appendChild(totalEl);});
+}
+
+const GRID_BG_SRC='images/grid_bg_farmer.png';
+function applyGridBg(){
+  const wrap=document.getElementById('grid-wrap');
+  if(!wrap)return;
+  const wr=wrap.getBoundingClientRect();
+  const _img=new Image();
+  _img.src=GRID_BG_SRC;
+  const imgW=_img.naturalWidth||840,imgH=_img.naturalHeight||400;
+  const zoom=1.2;
+  const scale=wr.width/imgW*zoom;
+  const dw=imgW*scale,dh=imgH*scale;
+  const cx=(dw-wr.width)/2;
+  const els=document.querySelectorAll('.cell-empty-bg');
+  let maxBottom=0,rowBTop=Infinity;
+  els.forEach(el=>{const r=el.getBoundingClientRect();maxBottom=Math.max(maxBottom,r.bottom-wr.top);if(parseInt(el.dataset.row)===1&&r.top-wr.top<rowBTop)rowBTop=r.top-wr.top;});
+  const imgTop=Math.max(rowBTop,maxBottom-dh+40);
+  els.forEach(el=>{
+    const r=el.getBoundingClientRect();
+    const ox=r.left-wr.left;
+    const oy=r.top-wr.top;
+    const bgY=-(oy-imgTop);
+    if(bgY>=r.height||bgY+dh<=0){el.style.backgroundImage='none';el.style.opacity='';return;}
+    el.style.backgroundImage=`url('${GRID_BG_SRC}')`;
+    el.style.backgroundSize=`${dw}px ${dh}px`;
+    el.style.backgroundPosition=`${-ox-cx}px ${bgY}px`;
+    el.style.backgroundRepeat='no-repeat';
+    el.style.opacity='0.22';
+  });
+}
+function renderSegList(){
+  buildSegs();const list=document.getElementById('seg-list');list.innerHTML='';
+  const arr=Object.values(segs).filter(s=>s.crop).sort((a,b)=>a.row-b.row||(Math.min(...a.cols)-Math.min(...b.cols)));
+  if(!arr.length){list.innerHTML='<p style="font-size:var(--fs-xs);color:#9c9a93;padding:6px 0">まだ登録された区画がありません</p>';return;}
+  const countEl=document.getElementById('seg-count');if(countEl)countEl.textContent=arr.length+'件';
+  arr.forEach(seg=>{const veg=getVeg(seg.crop);const majorSt=calcMajorStatus(seg.id,seg.crop);const{pct}=calcProgress(seg.id,seg.crop);
+    // 直近の完了タスクを取得
+    const allTasks=(veg&&veg.phases)?veg.phases.flatMap(p=>p.tasks):[];
+    let nextTaskName='';
+    {let lastDoneIdx=-1;for(let i=0;i<allTasks.length;i++){const st=getTaskState(seg.id,allTasks[i].id);if(st.done)lastDoneIdx=i;}
+    for(let i=lastDoneIdx+1;i<allTasks.length;i++){const t=allTasks[i];const st=getTaskState(seg.id,t.id);if(!st.skip){nextTaskName=t.name;break;}}}
+    let startDateDisp='';
+    {if(seg.plantDate){startDateDisp=seg.plantDate.slice(5).replace('-','/')+'〜';}else{let earliest='';allTasks.forEach(t=>{(getTaskState(seg.id,t.id).doneDates||[]).forEach(d=>{const iso=dispToISO(d);if(iso&&(!earliest||iso<earliest))earliest=iso;});});if(earliest)startDateDisp=earliest.slice(5).replace('-','/')+'〜';}}
+    const item=document.createElement('div');item.className='seg-item';item.style.cssText='flex-direction:column;align-items:stretch;gap:0';
+    item.innerHTML=`<div style="display:flex;align-items:center;gap:7px;margin-bottom:4px"><span style="font-size:17px;line-height:1;flex-shrink:0">${veg?(vegIconHtml(veg,18)):'🌱'}</span><span style="font-size:var(--fs-base);font-weight:600;color:#1a1915;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${veg?veg.name:'—'}</span><span class="status-pill" style="background:${majorSt.bg};color:${majorSt.color};font-size:9px;padding:2px 7px;border-radius:99px;font-weight:500">${majorSt.name}</span></div><div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><div style="flex:1;height:3px;background:#d4edb8;border-radius:2px"><div style="height:3px;border-radius:2px;background:${majorSt.color};width:${pct}%"></div></div><span style="font-size:var(--fs-xs);font-weight:600;color:${majorSt.color};min-width:26px;text-align:right">${pct}%</span></div><div style="display:flex;align-items:center;gap:4px"><i class="ti ti-arrow-right" style="font-size:9px;color:#b4b2a9"></i><span style="font-size:var(--fs-xs);color:#9c9a93;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${nextTaskName||'—'}</span><span style="font-size:var(--fs-xs);color:#b4b2a9;flex-shrink:0">${startDateDisp}</span></div>`;
+    item.addEventListener('click',()=>openManage(seg.id));list.appendChild(item);});
+}
+
+function renderLegend(){const el=document.getElementById('family-legend');el.innerHTML='';Object.entries(FAMILIES).forEach(([name,style])=>{const item=document.createElement('div');item.className='legend-item';item.innerHTML=`<div class="legend-dot" style="background:${style.bg};border-color:${style.border}"></div>${name}`;el.appendChild(item);});}
+
+function applyGrid(){const nc=Math.min(20,Math.max(2,parseInt(document.getElementById('s-cols').value)||8));const nr=Math.min(20,Math.max(2,parseInt(document.getElementById('s-rows').value)||6));COLS=nc;ROWS=nr;const nc2={};for(const k in cells){const[ri,ci]=k.split(',').map(Number);if(ri<ROWS&&ci<COLS)nc2[k]=cells[k];}cells=nc2;renderGrid();saveLS();}
+function parseAisleInput(str,max){return str.split(',').map(s=>parseInt(s.trim())-1).filter(n=>!isNaN(n)&&n>=0&&n<max);}
+function applyAisles(){
+  pushUndo();
+  aisleRows=parseAisleInput(document.getElementById('s-aisle-rows').value,ROWS);
+  aisleCols=parseAisleInput(document.getElementById('s-aisle-cols').value,COLS);
+  renderGrid();saveLS();
+}
+function renderFarmIconPicker(){
+  const picker=document.getElementById('farm-icon-picker');
+  if(!picker)return;
+  picker.innerHTML='';
+  const vegs=Object.values(vegMaster).filter(v=>v&&v.id);
+  vegs.forEach(veg=>{
+    const selected=(farmIcon===veg.id);
+    const btn=document.createElement('button');
+    btn.style.cssText=`width:44px;height:44px;border-radius:10px;border:2px solid ${selected?'#2e7a28':'transparent'};background:${selected?'#d4f0b8':'var(--color-background-secondary)'};cursor:pointer;display:flex;align-items:center;justify-content:center;padding:4px;`;
+    btn.innerHTML=vegIconHtml(veg,28);
+    btn.onclick=()=>{farmIcon=(farmIcon===veg.id)?'':veg.id;saveLS();updateFarmNameDisplay();renderFarmIconPicker();};
+    picker.appendChild(btn);
+  });
+}
+function syncAisleInputs(){
+  document.getElementById('s-aisle-rows').value=aisleRows.map(r=>r+1).join(', ');
+  document.getElementById('s-aisle-cols').value=aisleCols.map(c=>c+1).join(', ');
+}
+function resetAll(){if(!requireAdmin())return;if(!confirm('全データをリセットしますか？'))return;cells={};segs={};segTasks={};actionLogs={};harvestLogs={};segSummaryMemo={};archivedSegs={};undoStack=[];renderGrid();updUndoBtn();saveLS();}
+
+function openMaster(){document.getElementById('screen-register').classList.remove('active');document.getElementById('screen-master').classList.add('active');renderMasterList();if(selectedMasterVeg)renderMasterDetail();}
+function closeMaster(){document.getElementById('screen-master').classList.remove('active');document.getElementById('screen-register').classList.add('active');renderGrid();}
+
+function renderMasterList(){
+  const el=document.getElementById('master-list-items');el.innerHTML='';
+  Object.values(vegMaster).sort((a,b)=>a.name.localeCompare(b.name,'ja')).forEach(veg=>{
+    const item=document.createElement('div');item.className='master-list-item'+(selectedMasterVeg===veg.id?' active':'');const hasRM=veg.phases&&veg.phases.length>0;
+    item.innerHTML=`<span style="display:inline-flex;align-items:center">${vegIconHtml(veg,20)}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--fs-sm)">${veg.name}${veg.variety?'<br><span style="font-size:var(--fs-xs);color:#9c9a93">'+veg.variety+'</span>':''}</span><span class="master-list-item-badge ${hasRM?'':'empty'}">${hasRM?'有':'未'}</span>`;
+    item.addEventListener('click',()=>{selectedMasterVeg=veg.id;renderMasterList();renderMasterDetail();});el.appendChild(item);
+  });
+}
+
+function renderMasterDetail(){
+  const col=document.getElementById('master-detail-col');
+  col.innerHTML='<div class="master-detail-scroll" id="master-detail-scroll"></div>';
+  const scroll=document.getElementById('master-detail-scroll');
+  const veg=vegMaster[selectedMasterVeg];
+  if(!veg){scroll.innerHTML='<div class="master-detail-empty"><i class="ti ti-plant-2" style="font-size:24px;color:#9c9a93"></i>左のリストから野菜を選択</div>';const s=document.getElementById('master-toolbar-btns');if(s)s.style.display='none';return;}
+  const hdr=document.createElement('div');hdr.className='master-detail-header';hdr.innerHTML=`<span class="master-detail-icon">${vegIconHtml(veg,30)}</span><div><div class="master-detail-name">${veg.name}</div><div class="master-detail-sub">${veg.variety||'標準'} ／ ${veg.family||'科未設定'}</div></div>`;
+  const growBlock=document.createElement('div');growBlock.classList.add('admin-only');growBlock.style.cssText='margin-bottom:12px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary)';const growLabel=document.createElement('div');growLabel.style.cssText='font-size:var(--fs-xs);font-weight:500;color:var(--color-text-secondary);margin-bottom:8px';growLabel.textContent='栽培設定';const growRow=document.createElement('div');growRow.style.cssText='display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end';const growMethodWrap=document.createElement('div');growMethodWrap.style.cssText='display:flex;flex-direction:column;gap:3px;flex:1;min-width:120px';const growMethodLbl=document.createElement('div');growMethodLbl.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary)';growMethodLbl.textContent='育成方法';const growMethodSel=document.createElement('select');growMethodSel.style.cssText='font-size:var(--fs-sm);padding:5px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)';[{v:'seedling',l:'苗から'},{v:'seed_pot',l:'種（ポット）から'},{v:'seed_ground',l:'種（地植え）から'}].forEach(opt=>{const o=document.createElement('option');o.value=opt.v;o.textContent=opt.l;if((veg.growMethod||'seedling')===opt.v)o.selected=true;growMethodSel.appendChild(o);});if(!requireAdmin())growMethodSel.disabled=true;else growMethodSel.addEventListener('change',()=>{vegMaster[veg.id].growMethod=growMethodSel.value;});growMethodWrap.append(growMethodLbl,growMethodSel);const refUrlWrap=document.createElement('div');refUrlWrap.style.cssText='display:flex;flex-direction:column;gap:3px;flex:2;min-width:160px';const refUrlLbl=document.createElement('div');refUrlLbl.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary)';refUrlLbl.innerHTML='<i class="ti ti-link" style="font-size:var(--fs-xs)"></i> 参考URL（AI生成に使用）';const refUrlIn=document.createElement('input');refUrlIn.type='url';refUrlIn.style.cssText='font-size:var(--fs-sm);padding:5px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);width:100%';refUrlIn.placeholder='https://...';refUrlIn.value=veg.referenceUrl||'';if(!requireAdmin())refUrlIn.readOnly=true;else refUrlIn.addEventListener('input',()=>{vegMaster[veg.id].referenceUrl=refUrlIn.value;});refUrlWrap.append(refUrlLbl,refUrlIn);growRow.append(growMethodWrap,refUrlWrap);growBlock.append(growLabel,growRow);scroll.appendChild(growBlock);const aiBanner=document.createElement('div');aiBanner.className='ai-banner';aiBanner.style.margin='0 0 12px';const hasRM=veg.phases&&veg.phases.length>0;
+  if(isAdmin){aiBanner.innerHTML=`<div class="ai-banner-text">${hasRM?'ロードマップ・基礎情報が生成済みです。再生成で上書きできます。':'ロードマップと基礎情報がありません。AIで自動生成できます。'}</div><button class="btn-ai" id="btn-ai-gen"><i class="ti ti-sparkles"></i>${hasRM?'再生成':'AIで生成'}</button>`;aiBanner.querySelector('#btn-ai-gen').addEventListener('click',()=>aiGenerate(veg.id));scroll.append(hdr,aiBanner);}else{scroll.appendChild(hdr);}
+  if(!hasRM){const emp=document.createElement('div');emp.style.cssText='font-size:var(--fs-xs);color:#9c9a93;padding:12px 0;text-align:center';emp.textContent='ロードマップを生成すると編集できます';scroll.appendChild(emp);renderMasterSaveBar(col,veg);return;}
+  veg.phases.forEach((phase,pi)=>{
+    const pb=document.createElement('div');pb.className='master-phase-block';const ph=document.createElement('div');ph.className='master-phase-header';ph.innerHTML=`<div class="phase-radio active" style="flex-shrink:0"></div><span class="master-phase-label">${phase.name}（${phase.period}）</span><span style="font-size:var(--fs-xs);color:#b0ada6;margin-left:auto">日数は目安</span>`;pb.appendChild(ph);
+    phase.tasks.forEach((task,ti)=>{
+      const tr=document.createElement('div');tr.className='master-task-row';const th=document.createElement('div');th.className='master-task-header';
+      const nameIn=document.createElement('input');nameIn.type='text';nameIn.className='master-task-name-input';nameIn.value=task.name;nameIn.placeholder='タスク名';
+      const dayIn=document.createElement('input');dayIn.type='number';dayIn.className='master-task-day-input';dayIn.value=task.day;const dayLbl=document.createElement('span');dayLbl.style.cssText='font-size:var(--fs-xs);color:#9c9a93';dayLbl.textContent='日';
+      const upBtn=document.createElement('button');upBtn.className='master-task-del';upBtn.innerHTML='<i class="ti ti-chevron-up" style="font-size:var(--fs-sm)"></i>';upBtn.title='上へ';
+      const downBtn=document.createElement('button');downBtn.className='master-task-del';downBtn.innerHTML='<i class="ti ti-chevron-down" style="font-size:var(--fs-sm)"></i>';downBtn.title='下へ';
+      const delBtn=document.createElement('button');delBtn.className='master-task-del';delBtn.innerHTML='<i class="ti ti-x" style="font-size:var(--fs-sm)"></i>';th.append(nameIn,dayIn,dayLbl,upBtn,downBtn,delBtn);
+      const tbody=document.createElement('div');tbody.className='master-task-body';const memoLbl=document.createElement('div');memoLbl.className='master-task-label';memoLbl.textContent='作業メモ';const memoIn=document.createElement('textarea');memoIn.className='master-task-memo';memoIn.placeholder='作業内容の補足';memoIn.value=task.memo||'';const urlLbl=document.createElement('div');urlLbl.className='master-task-label';urlLbl.innerHTML='<i class="ti ti-brand-youtube" style="font-size:var(--fs-xs);margin-right:2px"></i>参考動画URL';const urlIn=document.createElement('input');urlIn.type='url';urlIn.className='master-task-url';urlIn.placeholder='https://...';urlIn.value=task.url||'';
+      tbody.append(memoLbl,memoIn,urlLbl,urlIn);tr.append(th,tbody);pb.appendChild(tr);
+      if(!requireAdmin()){nameIn.readOnly=true;dayIn.readOnly=true;memoIn.readOnly=true;urlIn.readOnly=true;upBtn.style.display='none';downBtn.style.display='none';delBtn.style.display='none';}else{
+        const inUse=Object.values(cells).some(c=>c.crop===veg.id);
+        nameIn.addEventListener('input',()=>{vegMaster[veg.id].phases[pi].tasks[ti].name=nameIn.value;});
+        dayIn.addEventListener('input',()=>{vegMaster[veg.id].phases[pi].tasks[ti].day=parseInt(dayIn.value)||0;});
+        memoIn.addEventListener('input',()=>{vegMaster[veg.id].phases[pi].tasks[ti].memo=memoIn.value;});
+        urlIn.addEventListener('input',()=>{vegMaster[veg.id].phases[pi].tasks[ti].url=urlIn.value;});
+        upBtn.addEventListener('click',()=>{if(ti===0)return;const tasks=vegMaster[veg.id].phases[pi].tasks;[tasks[ti-1],tasks[ti]]=[tasks[ti],tasks[ti-1]];saveLS();renderMasterDetail();});
+        downBtn.addEventListener('click',()=>{const tasks=vegMaster[veg.id].phases[pi].tasks;if(ti>=tasks.length-1)return;[tasks[ti],tasks[ti+1]]=[tasks[ti+1],tasks[ti]];saveLS();renderMasterDetail();});
+        delBtn.addEventListener('click',()=>{
+          if(inUse&&!confirm(`このタスクを削除すると、この野菜を使用中の区画の記録が参照できなくなる場合があります。\n削除しますか？`))return;
+          vegMaster[veg.id].phases[pi].tasks.splice(ti,1);saveLS();renderMasterDetail();
+        });
+      }
+    });
+    const addTaskBtn=document.createElement('button');addTaskBtn.className='master-add-task-btn';addTaskBtn.innerHTML='<i class="ti ti-plus" style="font-size:var(--fs-xs)"></i>タスクを追加';addTaskBtn.classList.add('admin-only');if(isAdmin){addTaskBtn.addEventListener('click',()=>{vegMaster[veg.id].phases[pi].tasks.push({id:`t_${Date.now()}`,name:'',desc:'',day:0,memo:'',url:''});renderMasterDetail();});}
+    const addPestBtn=document.createElement('button');addPestBtn.className='master-add-task-btn';addPestBtn.style.cssText='color:#92400e;border-color:#f59e0b';addPestBtn.innerHTML='<i class="ti ti-bug" style="font-size:var(--fs-xs)"></i>病害虫チェックを追加';addPestBtn.classList.add('admin-only');if(isAdmin){addPestBtn.addEventListener('click',()=>{vegMaster[veg.id].phases[pi].tasks.push({id:`t_${Date.now()}`,name:'',desc:'',day:0,memo:'',url:'',type:'pest'});renderMasterDetail();});}
+    const btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:6px;flex-wrap:wrap';btnRow.append(addTaskBtn,addPestBtn);pb.appendChild(btnRow);scroll.appendChild(pb);
+  });
+  renderMasterSaveBar(col,veg);
+}
+
+function renderMasterSaveBar(col,veg){
+  const slot=document.getElementById('master-toolbar-btns');
+  if(!slot)return;
+  slot.innerHTML='';
+  if(!requireAdmin()){slot.style.display='none';return;}
+  const delBtn=document.createElement('button');delBtn.className='btn-delete-master';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>削除';delBtn.addEventListener('click',()=>{if(!confirm(`「${veg.name}」をマスタから削除しますか？`))return;delete vegMaster[veg.id];selectedMasterVeg=null;saveLS();renderMasterList();renderMasterDetail();});
+  const saveBtn=document.createElement('button');saveBtn.className='btn-save-master';saveBtn.innerHTML='<i class="ti ti-device-floppy"></i>保存';saveBtn.addEventListener('click',()=>{saveLS();if(fromRegDlg){fromRegDlg=false;saveBtn.textContent='完了';setTimeout(()=>{closeMaster();populateCropSelect();document.getElementById('dlg-crop').value=selectedMasterVeg||'';document.getElementById('dlg-save').disabled=!selectedMasterVeg;document.getElementById('dlg-register').style.display='flex';},1200);}else{saveBtn.textContent='完了';setTimeout(()=>closeMaster(),1200);}});
+  slot.append(delBtn,saveBtn);slot.style.display='flex';
+}
+
+const SUPABASE_FUNCTION_URL='https://rkubnugczjlsxskomknm.supabase.co/functions/v1/generate-roadmap';
+
+async function aiGenerate(vegId){
+  const veg=vegMaster[vegId];if(!veg)return;
+  const inUse=Object.values(cells).some(c=>c.crop===vegId);
+  if(inUse&&!confirm(`「${veg.name}」は区画に登録されています。\nロードマップを再生成するとタスクの記録（チェック済み）がリセットされます。続けますか？`))return;
+  const btn=document.getElementById('btn-ai-gen');
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2"></i>生成中...';}
+  try{
+    const res=await fetch(SUPABASE_FUNCTION_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        vegName:veg.name,
+        family:veg.family||'',
+        growMethod:veg.growMethod||'seedling',
+        season:veg.season||'',
+        region:veg.region||'',
+        referenceUrl:veg.referenceUrl||''
+      })
+    });
+    if(!res.ok){const e=await res.json();throw new Error(e.error||'生成に失敗しました');}
+    const data=await res.json();
+    if(!data.phases||!data.phases.length)throw new Error('ロードマップデータが空です');
+    // idを確実にユニーク化
+    data.phases.forEach((p,pi)=>{
+      p.id=`p${pi+1}`;
+      p.tasks.forEach((t,ti)=>{t.id=`t_${pi+1}_${ti+1}_${Math.random().toString(36).slice(2,5)}`;});
+    });
+    vegMaster[vegId].phases=data.phases;
+    if(data.basicInfo)vegMaster[vegId].basicInfo=data.basicInfo;
+    saveLS();renderMasterDetail();
+    alert(`「${veg.name}」のロードマップと基礎知識をAIで生成しました！`);
+  }catch(e){
+    alert(`生成エラー：${e.message}`);
+  }finally{
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-sparkles"></i>再生成';}
+  }
+}
+
+
+// ===== 基礎知識タブ =====
+function youtubeVideoId(url){
+  if(!url)return null;
+  const m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{11})/);
+  return m?m[1]:null;
+}
+function renderBasicTab(el,veg){
+  const wrap=document.createElement('div');wrap.style.cssText='padding:12px 10px';
+  const ytId=youtubeVideoId(veg&&veg.referenceUrl);
+  if(ytId){
+    const frame=document.createElement('div');frame.style.cssText='margin-bottom:16px;border-radius:10px;overflow:hidden;aspect-ratio:16/9;background:#000';
+    frame.innerHTML=`<iframe src="https://www.youtube.com/embed/${ytId}" style="width:100%;height:100%;border:none" allowfullscreen loading="lazy"></iframe>`;
+    wrap.appendChild(frame);
+  }
+  const bi=veg&&veg.basicInfo;
+  if(!bi){
+    const empty=document.createElement('div');
+    empty.style.cssText='text-align:center;padding:40px 20px;color:var(--color-text-tertiary);font-size:var(--fs-base)';
+    empty.innerHTML='<i class="ti ti-plant" style="font-size:32px;display:block;margin-bottom:8px"></i>野菜マスタでAI生成すると<br>基礎知識が表示されます';
+    wrap.appendChild(empty);el.appendChild(wrap);return;
+  }
+
+  function section(title,icon){
+    const s=document.createElement('div');s.style.cssText='margin-bottom:16px';
+    const h=document.createElement('div');h.style.cssText='font-size:var(--fs-sm);font-weight:700;color:var(--color-text-secondary);margin-bottom:8px;display:flex;align-items:center;gap:5px;border-bottom:1px solid var(--color-border-tertiary);padding-bottom:4px';
+    h.innerHTML=`<i class="ti ${icon}" style="font-size:var(--fs-base)"></i>${title}`;s.appendChild(h);return s;
+  }
+  function row(label,value){
+    const r=document.createElement('div');r.style.cssText='display:flex;gap:8px;margin-bottom:6px;font-size:var(--fs-sm);align-items:flex-start';
+    const l=document.createElement('div');l.style.cssText='min-width:100px;color:var(--color-text-tertiary);flex-shrink:0;font-size:var(--fs-xs);padding-top:1px';l.textContent=label;
+    const v=document.createElement('div');v.style.cssText='color:var(--color-text-primary);line-height:1.5;flex:1';v.textContent=value||'—';
+    r.append(l,v);return r;
+  }
+
+  // 基本情報
+  const s1=section('基本情報','ti-info-circle');
+  if(bi.size)s1.appendChild(row('サイズ',bi.size));
+  if(bi.yieldPerPlant)s1.appendChild(row('収穫目安',bi.yieldPerPlant));
+  if(bi.soilPH)s1.appendChild(row('適正pH',bi.soilPH));
+  if(bi.rootDepth)s1.appendChild(row('根の深さ',bi.rootDepth));
+  wrap.appendChild(s1);
+
+  // 育成時期
+  if(bi.seasons){
+    const s2=section('育成時期の目安','ti-calendar');
+    const seas=[['土づくり','soilPrep'],['蒔きどき','sowing'],['定植時期','planting'],['第一花','firstFlower'],['収穫時期','harvest']];
+    seas.forEach(([label,key])=>{if(bi.seasons[key])s2.appendChild(row(label,bi.seasons[key]));});
+    wrap.appendChild(s2);
+  }
+
+  // 発芽・生育特性
+  const s3=section('発芽・生育特性','ti-seedling');
+  if(bi.germinationTemp)s3.appendChild(row('発芽適温',bi.germinationTemp));
+  if(bi.germinationAccumulatedTemp)s3.appendChild(row('積算気温',bi.germinationAccumulatedTemp));
+  if(bi.lightPreference)s3.appendChild(row('光への反応',bi.lightPreference));
+  if(bi.oxygenNeeds)s3.appendChild(row('酸素の好み',bi.oxygenNeeds));
+  if(bi.dormancy)s3.appendChild(row('休眠',bi.dormancy));
+  if(bi.photoperiod)s3.appendChild(row('光周性',bi.photoperiod));
+  wrap.appendChild(s3);
+
+  // 耐性
+  const s4=section('環境への耐性','ti-thermometer');
+  if(bi.coldTolerance)s4.appendChild(row('耐寒性',bi.coldTolerance));
+  if(bi.heatTolerance)s4.appendChild(row('耐暑性',bi.heatTolerance));
+  if(bi.droughtTolerance)s4.appendChild(row('耐乾性',bi.droughtTolerance));
+  if(bi.wetTolerance)s4.appendChild(row('耐湿性',bi.wetTolerance));
+  if(bi.pestResistance)s4.appendChild(row('耐病虫性',bi.pestResistance));
+  wrap.appendChild(s4);
+
+  // 栽培ポイント
+  const s5=section('栽培ポイント','ti-tool');
+  if(bi.continuousCropping)s5.appendChild(row('連作障害',bi.continuousCropping));
+  if(bi.pollination)s5.appendChild(row('受粉',bi.pollination));
+  if(bi.methods&&bi.methods.length){
+    const mv=document.createElement('div');mv.style.cssText='display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px';
+    bi.methods.forEach(m=>{const chip=document.createElement('div');chip.style.cssText='font-size:var(--fs-xs);padding:2px 8px;border-radius:99px;background:var(--color-background-tertiary);color:var(--color-text-secondary)';chip.textContent=m;mv.appendChild(chip);});
+    const rr=document.createElement('div');rr.style.cssText='display:flex;gap:8px;margin-bottom:6px;font-size:var(--fs-sm);align-items:flex-start';
+    const ll=document.createElement('div');ll.style.cssText='min-width:100px;color:var(--color-text-tertiary);flex-shrink:0;font-size:var(--fs-xs);padding-top:2px';ll.textContent='育成方法';
+    rr.append(ll,mv);s5.appendChild(rr);
+  }
+  if(bi.materials&&bi.materials.length){
+    const mv=document.createElement('div');mv.style.cssText='display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px';
+    bi.materials.forEach(m=>{const chip=document.createElement('div');chip.style.cssText='font-size:var(--fs-xs);padding:2px 8px;border-radius:99px;background:#E8F4FE;color:#185FA5';chip.textContent=m;mv.appendChild(chip);});
+    const rr=document.createElement('div');rr.style.cssText='display:flex;gap:8px;margin-bottom:6px;font-size:var(--fs-sm);align-items:flex-start';
+    const ll=document.createElement('div');ll.style.cssText='min-width:100px;color:var(--color-text-tertiary);flex-shrink:0;font-size:var(--fs-xs);padding-top:2px';ll.textContent='必要資材';
+    rr.append(ll,mv);s5.appendChild(rr);
+  }
+  wrap.appendChild(s5);
+
+  // 病気・害虫
+  if((bi.diseases&&bi.diseases.length)||(bi.pests&&bi.pests.length)){
+    const s6=section('病気・害虫と対策','ti-bug');
+    function diseaseCard(item,typeLabel){
+      const card=document.createElement('div');card.style.cssText='border:1px solid var(--color-border-secondary);border-radius:8px;padding:8px 10px;margin-bottom:8px;background:var(--color-background-primary)';
+      const top=document.createElement('div');top.style.cssText='display:flex;align-items:center;gap:6px;margin-bottom:4px';
+      const badge=document.createElement('div');badge.style.cssText='font-size:var(--fs-xs);padding:1px 6px;border-radius:99px;'+(typeLabel==='病気'?'background:#FAECE7;color:#993C1D':'background:#FFF3E0;color:#92600B');badge.textContent=typeLabel;
+      const name=document.createElement('div');name.style.cssText='font-size:var(--fs-base);font-weight:600;color:var(--color-text-primary)';name.textContent=item.name;
+      top.append(badge,name);
+      const sym=document.createElement('div');sym.style.cssText='font-size:var(--fs-xs);color:var(--color-text-secondary);margin-bottom:3px';sym.textContent='症状：'+item.symptoms;
+      const treat=document.createElement('div');treat.style.cssText='font-size:var(--fs-xs);color:#2e7a28';treat.textContent='対策：'+item.treatment;
+      card.append(top,sym,treat);s6.appendChild(card);
+    }
+    (bi.diseases||[]).forEach(d=>diseaseCard(d,'病気'));
+    (bi.pests||[]).forEach(p=>diseaseCard(p,'害虫'));
+    wrap.appendChild(s6);
+  }
+
+  // 育成断面写真
+  if(bi.growthStages&&bi.growthStages.length){
+    const s7=section('育成断面（画像検索）','ti-photo');
+    const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px';
+    bi.growthStages.forEach(stage=>{
+      const card=document.createElement('a');
+      card.href='https://www.google.com/search?tbm=isch&q='+encodeURIComponent(stage.query);
+      card.target='_blank';card.rel='noopener';
+      card.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 8px;border:1px solid var(--color-border-secondary);border-radius:8px;background:var(--color-background-secondary);text-decoration:none;gap:6px';
+      const iconFiles={'発芽':'stage_germination.png','本葉出始め':'stage_firstleaf.png','開花':'stage_flower.png','収穫期（全体像）':'stage_harvest_plant.png','実（つき始め）':'stage_fruit_early.png','実（食べごろ）':'stage_fruit_ripe.png'};
+      const icon=document.createElement('div');
+      if(iconFiles[stage.label]){const img=document.createElement('img');img.src='images/'+iconFiles[stage.label];img.style.cssText='width:64px;height:64px;object-fit:contain';icon.appendChild(img);}else{icon.style.fontSize='22px';icon.textContent='📷';}
+      const lbl=document.createElement('div');lbl.style.cssText='font-size:var(--fs-xs);color:var(--color-text-secondary);text-align:center';lbl.textContent=stage.label;
+      const search=document.createElement('div');search.style.cssText='font-size:var(--fs-xs);color:#185FA5';search.textContent='画像を検索 →';
+      card.append(icon,lbl,search);grid.appendChild(card);
+    });
+    s7.appendChild(grid);wrap.appendChild(s7);
+  }
+
+  el.appendChild(wrap);
+}
+
+// ===== 完了機能（区画のアーカイブ化） =====
+let pendingCompleteSeg=null;
+function openCompleteConfirm(sid){
+  const seg=segs[sid];if(!seg)return;const veg=getVeg(seg.crop);
+  pendingCompleteSeg=sid;
+  const label=`${veg?vegIconHtml(veg,18)+' '+veg.name:'不明'}（${seg.row+1}行 ${Math.min(...seg.cols)+1}〜${Math.max(...seg.cols)+1}列）`;
+  document.getElementById('dlg-complete-target').innerHTML=label;
+  document.getElementById('dlg-complete-confirm').style.display='flex';
+}
+function showArchiveDone(){document.getElementById('dlg-archive-done').style.display='flex';}
+function closeCompleteConfirm(){pendingCompleteSeg=null;document.getElementById('dlg-complete-confirm').style.display='none';}
+function executeComplete(sid){
+  const seg=segs[sid];if(!seg)return;const veg=getVeg(seg.crop);
+  pushUndo();
+  const taskLogs=actionLogs[sid]||[];
+  const allLogDates=taskLogs.map(l=>l.date).sort();
+  const lastLogDate=allLogDates[allLogDates.length-1]||null;
+  archivedSegs[sid]={
+    segId:sid,
+    cropId:seg.crop,
+    cropName:veg?veg.name:'不明',
+    family:veg?veg.family:'',
+    variety:veg?(veg.variety||''):'',
+    plantDate:seg.plantDate||null,
+    completedDate:todayISO(),
+    lastLogDate,
+    workCount:taskLogs.length,
+    harvestTotal:harvestTotalStr(sid)||null,
+    growMethod:veg?veg.growMethod||'seedling':'seedling',
+    sowingDate:getMilestoneDate(sid,seg.crop,'sowing'),
+    germinationDate:getMilestoneDate(sid,seg.crop,'germination'),
+    plantingDate:getMilestoneDate(sid,seg.crop,'planting'),
+    harvestStartDate:getMilestoneDate(sid,seg.crop,'harvest_start'),
+    row:seg.row,
+    cols:[...seg.cols],
+    gridCOLS:COLS,
+    gridROWS:ROWS,
+    gridSnapshot:Object.values(segs).map(s=>{const sv=getVeg(s.crop);return{segId:s.id,row:s.row,cols:[...s.cols],cropId:s.crop,cropName:sv?sv.name:'',family:sv?sv.family:'',isSelf:s.id===sid};}),
+  };
+  // グリッドから解放（セルをcellsから削除）。actionLogs/harvestLogs/segSummaryMemo/segTasksはsegIdキーのまま保持し削除しない。
+  Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===sid)delete cells[k];});
+  saveLS();
+  closeCompleteConfirm();
+  goBack();
+  showArchiveDone();
+}
+document.getElementById('btn-complete-cancel').addEventListener('click',closeCompleteConfirm);
+document.getElementById('dlg-complete-confirm').addEventListener('mousedown',e=>{if(e.target===e.currentTarget)closeCompleteConfirm();});
+document.getElementById('btn-complete-execute').addEventListener('click',()=>{if(pendingCompleteSeg)executeComplete(pendingCompleteSeg);});
+
+document.getElementById('btn-add-veg').addEventListener('click',()=>{if(!requireAdmin())return;document.getElementById('av-preset').value='';document.getElementById('av-name').value='';document.getElementById('av-variety').value='';document.getElementById('av-ref-url').value='';document.getElementById('av-grow-method').value='seedling';document.getElementById('av-season').value='';document.getElementById('av-region').value='';addVegEmoji='🌱';addVegIconFile=null;renderEmojiGrid();document.getElementById('av-next').disabled=true;document.getElementById('dlg-add-veg').style.display='flex';});
+document.getElementById('btn-add-veg-cancel').addEventListener('click',()=>{document.getElementById('dlg-add-veg').style.display='none';});
+document.getElementById('dlg-add-veg').addEventListener('mousedown',e=>{if(e.target===e.currentTarget)document.getElementById('dlg-add-veg').style.display='none';});
+document.getElementById('av-preset').addEventListener('change',()=>{const val=document.getElementById('av-preset').value;const preset=PRESET_VEGS.find(v=>v.id===val);if(preset){document.getElementById('av-name').value=preset.name;addVegEmoji=preset.emoji;addVegIconFile=preset.iconFile||null;renderEmojiGrid();}checkAddVegValid();});
+document.getElementById('av-name').addEventListener('input',checkAddVegValid);
+function checkAddVegValid(){document.getElementById('av-next').disabled=!document.getElementById('av-name').value.trim();}
+document.getElementById('btn-upload-icon').addEventListener('click',()=>document.getElementById('av-icon-upload').click());
+document.getElementById('av-icon-upload').addEventListener('change',e=>{
+  const file=e.target.files[0];e.target.value='';const errEl=document.getElementById('upload-icon-error');errEl.style.display='none';
+  if(!file)return;
+  const allowed=['image/jpeg','image/png','image/webp'];
+  if(!allowed.includes(file.type)){errEl.textContent='JPEG・PNG・WebP 形式の画像を選択してください。';errEl.style.display='block';return;}
+  if(file.size>2*1024*1024){errEl.textContent='ファイルサイズは2MB以内にしてください。';errEl.style.display='block';return;}
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      const SIZE=128;const canvas=document.createElement('canvas');canvas.width=SIZE;canvas.height=SIZE;
+      const ctx=canvas.getContext('2d');
+      const scale=Math.min(SIZE/img.width,SIZE/img.height);
+      const w=Math.round(img.width*scale),h=Math.round(img.height*scale);
+      ctx.clearRect(0,0,SIZE,SIZE);ctx.drawImage(img,(SIZE-w)/2,(SIZE-h)/2,w,h);
+      const b64=canvas.toDataURL('image/png');
+      const key='custom_'+Date.now();customIcons[key]=b64;saveLS();
+      addVegIconFile=key;addVegEmoji='';renderEmojiGrid();
+    };img.src=ev.target.result;
+  };reader.readAsDataURL(file);
+});
+function renderEmojiGrid(){const grid=document.getElementById('av-emoji-grid');grid.innerHTML='';const customEntries=Object.keys(customIcons).map(k=>({emoji:'',iconFile:k,isCustom:true}));[...ALL_ICONS,...customEntries].forEach(icon=>{const isSelected=icon.iconFile?icon.iconFile===addVegIconFile:(!addVegIconFile&&icon.emoji===addVegEmoji);const opt=document.createElement('div');opt.className='emoji-opt'+(isSelected?' selected':'');opt.style.position='relative';const src=icon.iconFile?(ICON_B64[icon.iconFile]||customIcons[icon.iconFile]||null):null;if(src){opt.innerHTML=`<img src="${src}" width="24" height="24" style="object-fit:contain">`;}else{opt.textContent=icon.emoji;}if(icon.isCustom){const del=document.createElement('div');del.innerHTML='<i class="ti ti-x"></i>';del.style.cssText='position:absolute;top:-5px;right:-5px;width:14px;height:14px;border-radius:50%;background:#e53;color:#fff;font-size:8px;display:flex;align-items:center;justify-content:center;cursor:pointer';del.addEventListener('click',e=>{e.stopPropagation();delete customIcons[icon.iconFile];if(addVegIconFile===icon.iconFile){addVegIconFile=null;addVegEmoji='🌱';}saveLS();renderEmojiGrid();});opt.appendChild(del);}opt.addEventListener('click',()=>{addVegEmoji=icon.emoji;addVegIconFile=icon.iconFile||null;renderEmojiGrid();});grid.appendChild(opt);});}
+document.getElementById('av-next').addEventListener('click',()=>{
+  if(!requireAdmin())return;
+  const name=document.getElementById('av-name').value.trim();const variety=document.getElementById('av-variety').value.trim();const presetId=document.getElementById('av-preset').value;const preset=PRESET_VEGS.find(v=>v.id===presetId);if(!name)return;
+  const id=presetId&&!vegMaster[presetId]?presetId:`veg_${Date.now()}`;const growMethod=document.getElementById('av-grow-method').value;const refUrl=document.getElementById('av-ref-url').value.trim();const season=document.getElementById('av-season').value;const region=document.getElementById('av-region').value;vegMaster[id]={id,name,emoji:addVegEmoji,iconFile:addVegIconFile||undefined,family:preset?preset.family:'',variety,growMethod,season,region,referenceUrl:refUrl,phases:[]};selectedMasterVeg=id;saveLS();document.getElementById('dlg-add-veg').style.display='none';renderMasterList();renderMasterDetail();
+});
+
+const presetSel=document.getElementById('av-preset');
+PRESET_VEGS.forEach(v=>{const op=document.createElement('option');op.value=v.id;op.textContent=`${v.emoji} ${v.name}`;presetSel.appendChild(op);});
+
+let resizeTimer;
+window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(document.getElementById('screen-register').classList.contains('active'))renderGrid();},100)});
+
+loadLS();renderLegend();renderGrid();
+// DB から最新データを読み込み（非管理者でも最新を表示）
+loadFromDB().then(loaded=>{
+  if(loaded){
+    if(!vegMaster['tomato'])vegMaster['tomato']=JSON.parse(JSON.stringify(TOMATO_SAMPLE));
+    document.getElementById('s-cols').value=COLS;
+    document.getElementById('s-rows').value=ROWS;
+    document.getElementById('s-farm-name').value=farmName;
+    updateFarmNameDisplay();
+    buildSegs();renderGrid();renderSegList();
+    const splashNameEl=document.getElementById('splash-farm-name');
+    if(splashNameEl)splashNameEl.textContent=farmName||'私の畑';
+  }
+});
+
+// ===== スプラッシュ画面 =====
+(function(){
+  const QUOTES = {
+    spring: [
+      '「種を蒔く者は、必ず刈り取る。」',
+      '「春の土は、夢を育てる。丁寧に耕せば、必ず答えてくれる。」',
+      '「一粒の種に、百の可能性が宿っている。」',
+      '「急いで育てようとするな。植物は人間より時間の使い方を知っている。」',
+    ],
+    summer: [
+      '「夏の汗は、秋の実りの肥やしになる。」',
+      '「草に負けるな。雑草も必死に生きている。だが、畑は渡さない。」',
+      '「水やりを怠れば、植物は問いかけてくる。声なき声を聞け。」',
+      '「太陽と土と、そして農家の愛情。それが野菜を育てる三つの力。」',
+    ],
+    autumn: [
+      '「収穫は結果ではなく、始まりである。」',
+      '「秋に学べ。実るほど頭を垂れる稲穂のように。」',
+      '「土に感謝を。今年も恵みをありがとう。」',
+      '「豊作の年も不作の年も、土は正直に教えてくれる。」',
+    ],
+    winter: [
+      '「冬の畑は眠っているのではない。次の春を準備している。」',
+      '「休む勇気が、翌年の豊作をつくる。」',
+      '「土を休ませることは、土地への投資である。」',
+      '「冬こそ、農家が賢くなる季節。」',
+    ],
+  };
+  const MONTH_INFO = [
+    {emoji:'❄️',label:'睦月（1月）',season:'winter'},
+    {emoji:'🌸',label:'如月（2月）',season:'winter'},
+    {emoji:'🌱',label:'弥生（3月）',season:'spring'},
+    {emoji:'🌷',label:'卯月（4月）',season:'spring'},
+    {emoji:'🍀',label:'皐月（5月）',season:'spring'},
+    {emoji:'☔',label:'水無月（6月）',season:'summer'},
+    {emoji:'🌻',label:'文月（7月）',season:'summer'},
+    {emoji:'🌞',label:'葉月（8月）',season:'summer'},
+    {emoji:'🍂',label:'長月（9月）',season:'autumn'},
+    {emoji:'🍁',label:'神無月（10月）',season:'autumn'},
+    {emoji:'🌾',label:'霜月（11月）',season:'autumn'},
+    {emoji:'⛄',label:'師走（12月）',season:'winter'},
+  ];
+  const month = new Date().getMonth();
+  const info = MONTH_INFO[month];
+  const quotes = QUOTES[info.season];
+  const quote = quotes[Math.floor(Math.random()*quotes.length)];
+
+  document.getElementById('splash-month-emoji').textContent = info.emoji;
+  document.getElementById('splash-month-label').textContent = info.label;
+  document.getElementById('splash-quote').textContent = quote;
+
+  // 月別画像を試みる（なければプレースホルダー表示）
+  const img = document.getElementById('splash-img');
+  const ph = document.getElementById('splash-placeholder');
+  const monthStr = String(month+1).padStart(2,'0');
+  img.src = 'images/splash_'+monthStr+'.png';
+  img.onload = ()=>{ img.style.display='block'; ph.style.display='none'; };
+  img.onerror = ()=>{ img.style.display='none'; ph.style.display='flex'; };
+
+  // 農園名
+  const nameEl = document.getElementById('splash-farm-name');
+  nameEl.textContent = farmName || '私の畑';
+
+  // タップでフェードアウト
+  const _splash=document.getElementById('splash-screen');
+  function _closeSplash(){_splash.style.opacity='0';setTimeout(()=>_splash.style.display='none',600);}
+  _splash.addEventListener('touchend',e=>{e.preventDefault();_closeSplash();},{once:true,passive:false});
+  _splash.addEventListener('click',_closeSplash,{once:true});
+})();
+
+</script>
+</body>
+</html>
