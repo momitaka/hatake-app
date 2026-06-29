@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>畑管理アプリ — デモ</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --fs-xs:10px;--fs-sm:12px;--fs-base:14px;--fs-md:16px;--fs-lg:20px;
+  --br:6px;--br-lg:10px;
+  --bg:#ffffff;--bg2:#f5f5f0;--bg3:#e8e6df;
+  --tx:#1a1915;--tx2:#5f5e5a;--tx3:#9c9a93;
+  --bd:#d0cfc8;--bd3:#e8e6df;
+  --green:#5aad4e;--green-dark:#2e7a28;--green-bg:#d4f0b8;
+  --red:#D85A30;--red-bg:#FAECE7;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f9f8f4;min-height:100vh;font-size:15px}
+.app{max-width:520px;margin:0 auto;padding:0 0.5rem 2rem}
+
+/* ── Demo banner ── */
+#demo-banner{position:sticky;top:0;z-index:999;background:#1a1915;color:#fff;text-align:center;font-size:var(--fs-xs);padding:4px;letter-spacing:0.08em;font-weight:500}
+
+/* ── Toolbar / Header ── */
+.header-card{background:#fff;border-radius:0 0 14px 14px;box-shadow:0 4px 14px rgba(0,0,0,0.13);margin:0 -0.5rem;overflow:hidden}
+.header-top{padding:10px 14px 8px;display:flex;align-items:center;gap:8px}
+.farm-name{font-size:17px;font-weight:600;font-family:'Noto Serif JP',serif;color:var(--tx)}
+.header-bottom{background:var(--green);padding:10px 13px;display:flex;gap:6px;align-items:center;border-bottom-right-radius:14px}
+.chip{background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:99px;padding:4px 11px;font-size:var(--fs-xs);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.chip-white{background:#fff;color:var(--green-dark);border-color:#fff;font-weight:600}
+.chip-white:hover{background:var(--green-bg)}
+
+/* ── Grid ── */
+.grid-section{background:#fff;padding:10px 0.5rem;margin:0 -0.5rem}
+.grid-wrap{width:100%}
+table.grid{border-collapse:separate;border-spacing:3px;width:100%;table-layout:fixed}
+table.grid td{position:relative;vertical-align:top;padding:0}
+.row-lbl{font-size:7px;color:var(--green-dark);text-align:center;width:12px;vertical-align:middle}
+.col-lbl{font-size:7px;color:var(--green-dark);text-align:center;padding:2px 0 3px}
+.cell{border-radius:5px;padding:3px;display:flex;flex-direction:column;justify-content:space-between;height:52px;cursor:pointer;transition:filter 0.1s}
+.cell:hover{filter:brightness(0.95)}
+.cell-empty{background:#f7f6f1;border:0.5px solid #ede9e1;cursor:crosshair}
+.cell-name{font-size:10px;font-weight:700;line-height:1.2;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;display:flex;align-items:center;gap:2px}
+.cell-status{font-size:8px;font-weight:500;line-height:1.2}
+/* family colors */
+.fam-nasu{background:#FAECE7;border-top:3px solid #D85A30;box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+.fam-uri{background:#EAF3DE;border-top:3px solid #639922;box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+.fam-mame{background:#E6F1FB;border-top:3px solid #378ADD;box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+.fam-abura{background:#FAEEDA;border-top:3px solid #EF9F27;box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+.fam-seri{background:#F5EAD8;border-top:3px solid #BA7517;box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+
+/* ── Seg list ── */
+.seg-section{background:#f5faed;margin:0 -0.5rem;padding:8px 0.5rem 12px}
+.seg-title{font-size:var(--fs-xs);font-weight:600;color:#1a5c16;margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.seg-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.seg-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;border-radius:10px;background:#fff;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.07)}
+.seg-item:hover{box-shadow:0 2px 6px rgba(0,0,0,0.1)}
+.seg-emoji{font-size:20px}
+.seg-info{}
+.seg-name{font-size:var(--fs-sm);font-weight:500;color:var(--tx)}
+.seg-sub{font-size:var(--fs-xs);color:var(--tx3)}
+
+/* ── Screens ── */
+.screen{display:none}
+.screen.active{display:block}
+
+/* ── Modal overlay ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:var(--br-lg);border:0.5px solid var(--bd3);padding:1.25rem;min-width:260px;max-width:320px;width:90%}
+.modal-title{font-size:var(--fs-base);font-weight:500;display:flex;align-items:center;gap:6px;margin-bottom:14px}
+.field{margin-bottom:11px}
+.field label{font-size:var(--fs-xs);color:var(--tx2);display:block;margin-bottom:4px}
+.field select,.field input[type=date]{width:100%;font-size:var(--fs-base);padding:6px 8px;border-radius:var(--br);border:0.5px solid var(--bd);background:#fff;color:var(--tx)}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.btn{font-size:var(--fs-sm);padding:5px 14px;border-radius:var(--br);border:0.5px solid var(--bd);background:#fff;color:var(--tx);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.btn:hover{background:var(--bg2)}
+.btn-green{border-color:var(--green);background:var(--green-bg);color:var(--green-dark);font-weight:500}
+.btn-green:hover{filter:brightness(0.97)}
+.btn-green:disabled{opacity:0.4;cursor:default}
+
+/* ── Manage screen ── */
+#screen-manage.active{display:flex;flex-direction:column;height:100dvh;margin:0 -0.5rem}
+.manage-toolbar{background:var(--green);padding:10px 13px;display:flex;align-items:center;gap:6px;border-bottom-right-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,0.13);flex-shrink:0}
+.manage-static{flex-shrink:0;padding:10px 1rem 0;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,0.08);position:relative;z-index:1}
+.manage-content{flex:1;overflow-y:auto;padding:14px 1rem 24px}
+.manage-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:0.5px solid var(--bd3)}
+.manage-title{font-size:var(--fs-md);font-weight:500;flex:1}
+.manage-meta{font-size:var(--fs-xs);color:var(--tx3);margin-top:2px}
+.status-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:99px;font-size:var(--fs-xs);font-weight:500}
+.tab-bar{display:flex;border:0.5px solid var(--bd);border-radius:var(--br);overflow:hidden;margin:0 0 12px}
+.tab{flex:1;padding:10px 2px;font-size:var(--fs-sm);cursor:pointer;background:#fff;color:var(--tx2);border-right:0.5px solid var(--bd);display:flex;align-items:center;justify-content:center;gap:3px;white-space:nowrap}
+.tab:last-child{border-right:none}
+.tab.active{background:var(--green-bg);color:var(--green);font-weight:500}
+.tab:hover:not(.active){background:var(--bg2)}
+
+/* ── Progress ── */
+.progress-wrap{margin-bottom:16px}
+.progress-label{display:flex;justify-content:space-between;margin-bottom:5px}
+.progress-title{font-size:var(--fs-base);font-weight:500;display:flex;align-items:center;gap:6px}
+.progress-pct{font-size:var(--fs-base);color:var(--tx2)}
+.progress-outer{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.progress-inner{height:100%;background:var(--green);border-radius:4px;transition:width 0.5s ease}
+
+/* ── Phase / Task ── */
+.phase-block{margin-bottom:14px}
+.phase-heading{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.phase-dot{width:14px;height:14px;border-radius:50%;border:2px solid #B4B2A9;background:#fff;flex-shrink:0}
+.phase-dot.active{border-color:var(--green);background:var(--green)}
+.phase-dot.done{border-color:#B4B2A9;background:#B4B2A9}
+.phase-name{font-size:var(--fs-sm);font-weight:500}
+.phase-period{font-size:var(--fs-xs);color:var(--tx3)}
+.task-card{border:0.5px solid var(--bd3);border-radius:var(--br);margin-bottom:6px;overflow:hidden;background:#fff}
+.task-main{display:flex;align-items:flex-start}
+.task-cb-wrap{padding:10px 8px 10px 12px;flex-shrink:0}
+.task-cb{width:16px;height:16px;cursor:pointer;accent-color:var(--green);margin-top:1px}
+.task-clickable{flex:1;display:flex;align-items:center;gap:8px;padding:10px 12px 10px 0;cursor:pointer;min-width:0}
+.task-clickable:hover{background:var(--bg2)}
+.task-name{font-size:var(--fs-base);color:var(--tx);line-height:1.3}
+.task-name.done{text-decoration:line-through;color:var(--tx3)}
+.task-desc{font-size:var(--fs-xs);color:var(--tx3);margin-top:2px}
+.task-expand{color:var(--tx3);font-size:var(--fs-base);padding:0 4px;flex-shrink:0}
+.task-detail{display:none;padding:8px 12px 12px 38px;border-top:0.5px solid var(--bd3)}
+.task-detail.open{display:block}
+.task-memo{font-size:var(--fs-xs);color:var(--tx2);line-height:1.5;margin-bottom:8px}
+.task-date-chip{font-size:var(--fs-xs);padding:1px 6px;border-radius:3px;background:var(--green-bg);color:var(--green-dark);border:0.5px solid #a0d870;margin-top:4px;display:inline-block}
+
+/* ── Video card ── */
+.video-card{border:0.5px solid #B0D0F5;border-radius:8px;overflow:hidden;margin-top:10px;background:#EBF4FF}
+.video-card-header{background:#2563EB;color:#fff;font-size:var(--fs-xs);font-weight:600;padding:6px 10px;display:flex;align-items:center;gap:5px}
+.video-thumb{width:100%;aspect-ratio:16/9;background:#000;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer}
+.video-thumb img{width:100%;height:100%;object-fit:cover}
+.play-btn{position:absolute;width:48px;height:48px;background:rgba(255,255,255,0.92);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(0,0,0,0.25);pointer-events:none}
+.play-btn i{font-size:22px;color:#D32F2F;margin-left:3px}
+.video-open-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;font-size:var(--fs-xs);color:#2563EB;background:#EBF4FF;text-decoration:none;font-weight:500}
+.video-open-btn:hover{background:#DBEAFE}
+iframe.video-embed{width:100%;aspect-ratio:16/9;border:none;display:block}
+
+/* ── Task date dialog ── */
+#dlg-task-date{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:200;align-items:center;justify-content:center}
+#dlg-task-date.open{display:flex}
+.date-modal{background:#fff;border-radius:12px;padding:16px 16px 18px;width:88%;max-width:300px;box-shadow:0 8px 32px rgba(0,0,0,0.18)}
+
+/* ── Confetti / Celebration ── */
+@keyframes pop-in{0%{transform:scale(0.5);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+@keyframes float-up{0%{transform:translateY(0);opacity:1}100%{transform:translateY(-60px);opacity:0}}
+.check-anim{animation:pop-in 0.3s ease forwards}
+.float-badge{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--green-bg);border:1.5px solid var(--green);color:var(--green-dark);padding:8px 20px;border-radius:99px;font-size:var(--fs-base);font-weight:600;pointer-events:none;animation:float-up 1.6s ease forwards;z-index:500;white-space:nowrap}
+
+/* ── Demo step guide ── */
+#demo-guide{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#1a1915cc;color:#fff;border-radius:10px;padding:8px 16px;font-size:var(--fs-xs);text-align:center;pointer-events:none;z-index:900;backdrop-filter:blur(4px);max-width:calc(100vw - 32px);line-height:1.6;transition:opacity 0.3s}
+</style>
+</head>
+<body>
+
+<div id="demo-banner">DEMO — 畑管理アプリ プレゼン用</div>
+<div id="demo-guide"></div>
+
+<div class="app">
+
+  <!-- ===== SCREEN: GRID ===== -->
+  <div class="screen active" id="screen-grid">
+    <div class="header-card">
+      <div class="header-top">
+        <span style="font-size:22px">🌿</span>
+        <div>
+          <div class="farm-name">みどり農園</div>
+          <div style="font-size:9px;color:var(--tx3);margin-top:1px">4区画 管理中</div>
+        </div>
+      </div>
+      <div class="header-bottom">
+        <div class="chip"><i class="ti ti-arrow-back-up" style="font-size:var(--fs-xs)"></i>取り消し</div>
+        <div style="flex:1"></div>
+        <div class="chip chip-white"><i class="ti ti-plant-2" style="font-size:var(--fs-xs)"></i>野菜マスタ</div>
+        <div class="chip" style="width:28px;height:28px;border-radius:50%;padding:0;justify-content:center"><i class="ti ti-settings"></i></div>
+      </div>
+    </div>
+
+    <div class="grid-section">
+      <div class="grid-wrap">
+        <table class="grid" id="grid-table"></table>
+      </div>
+    </div>
+
+    <div class="seg-section">
+      <div class="seg-title"><i class="ti ti-leaf" style="color:#1a5c16;font-size:14px"></i>管理中の作物<span style="font-size:var(--fs-xs);color:var(--green-dark);font-weight:400;margin-left:4px" id="seg-count"></span></div>
+      <div class="seg-grid" id="seg-list"></div>
+    </div>
+  </div>
+
+  <!-- ===== SCREEN: MANAGE ===== -->
+  <div class="screen" id="screen-manage">
+    <div class="manage-toolbar">
+      <button class="chip chip-white" onclick="goBack()"><i class="ti ti-arrow-left" style="font-size:var(--fs-xs)"></i>グリッドへ戻る</button>
+      <div style="flex:1"></div>
+      <button class="chip" style="background:#fff;border-color:#fff;color:#c62828;font-weight:600">
+        <i class="ti ti-flag-check" style="font-size:var(--fs-xs)"></i>管理の完了
+      </button>
+    </div>
+    <div class="manage-static" id="manage-static"></div>
+    <div class="manage-content" id="manage-content"></div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- ===== MODAL: 区画を登録 ===== -->
+<div class="overlay" id="overlay-register">
+  <div class="modal">
+    <div class="modal-title"><i class="ti ti-plant-2" style="color:var(--green)"></i>区画を登録</div>
+    <div style="font-size:var(--fs-xs);color:var(--tx3);margin-bottom:12px" id="reg-preview"></div>
+    <div class="field">
+      <label>作物</label>
+      <select id="reg-crop">
+        <option value="">— 選択してください —</option>
+        <option value="tomato">🍅 トマト</option>
+        <option value="cucumber">🥒 キュウリ</option>
+        <option value="eggplant">🍆 ナス</option>
+        <option value="carrot">🥕 ニンジン</option>
+        <option value="lettuce">🥬 レタス</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>作業開始日</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="date" id="reg-date" style="flex:1">
+        <button class="btn btn-green" id="reg-save" disabled>登録</button>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn" onclick="closeRegister()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: 実施日選択 ===== -->
+<div id="dlg-task-date">
+  <div class="date-modal">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2px">
+      <div>
+        <div style="font-size:var(--fs-base);font-weight:600;color:var(--tx)">実施日を選択</div>
+        <div style="font-size:var(--fs-sm);color:var(--tx2);margin-top:2px" id="dlg-task-name"></div>
+      </div>
+      <button onclick="cancelTaskDate()" style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:18px;line-height:1">✕</button>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:14px">
+      <input type="date" id="dlg-task-date-input" style="flex:1;padding:10px 8px;border-radius:8px;border:1px solid var(--bd);font-size:var(--fs-md)">
+      <button class="btn btn-green" style="flex-shrink:0" onclick="confirmTaskDate()">記録</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────
+
+const VEG_META = {
+  tomato:   { name:'トマト',   emoji:'🍅', family:'ナス科',  famClass:'fam-nasu', status:'生育中', statusColor:'#27500A', statusBg:'#d4f0b8' },
+  cucumber: { name:'キュウリ', emoji:'🥒', family:'ウリ科',  famClass:'fam-uri',  status:'生育中', statusColor:'#27500A', statusBg:'#d4f0b8' },
+  eggplant: { name:'ナス',     emoji:'🍆', family:'ナス科',  famClass:'fam-nasu', status:'収穫中', statusColor:'#633806', statusBg:'#fdf5b0' },
+  carrot:   { name:'ニンジン', emoji:'🥕', family:'セリ科',  famClass:'fam-seri', status:'生育中', statusColor:'#27500A', statusBg:'#d4f0b8' },
+  lettuce:  { name:'レタス',   emoji:'🥬', family:'キク科',  famClass:'fam-uri',  status:'収穫中', statusColor:'#633806', statusBg:'#fdf5b0' },
+};
+
+// Pre-populated segments (row, col, colspan, vegId)
+let gridCells = {
+  // Row A
+  '0,0': { vegId:'cucumber', segId:'s1' },
+  '0,1': { vegId:'cucumber', segId:'s1' },
+  '0,2': { vegId:'eggplant', segId:'s2' },
+  '0,3': { vegId:'eggplant', segId:'s2' },
+  // Row B
+  '1,4': { vegId:'carrot', segId:'s3' },
+  '1,5': { vegId:'carrot', segId:'s3' },
+  // Row C
+  '2,0': { vegId:'lettuce', segId:'s4' },
+  '2,1': { vegId:'lettuce', segId:'s4' },
+};
+
+let newSegId = null;
+let newSegCells = []; // [{row, col}]
+let pendingRow = -1, pendingCols = [];
+let taskDoneCallback = null;
+let doneTaskIds = new Set();
+let openDetailIds = new Set();
+
+const TOMATO_PHASES = [
+  { id:'p0', name:'準備期', period:'〜14日', dotState:'done', tasks:[
+    { id:'t1', name:'土づくり・堆肥投入', desc:'植付け2週間前', memo:'完熟堆肥を20L/㎡程度投入し深く耕す', url:'' },
+    { id:'t2', name:'支柱の準備', desc:'長さ1.5m以上推奨', memo:'210cm以上の支柱が理想', url:'' },
+    { id:'t3', name:'苗の購入・選定', desc:'本葉4〜5枚が目安', memo:'根張りが良く茎が太いものを選ぶ', url:'' },
+  ]},
+  { id:'p1', name:'定植・活着期', period:'15〜30日', dotState:'active', tasks:[
+    { id:'t4', name:'定植（植付け）', desc:'株間50cm確保', memo:'深植えにせず根鉢を崩さないよう注意', url:'https://www.youtube.com/watch?v=dQw4w9WgXcQ', videoId:'WkDxP5_Z06A' },
+    { id:'t5', name:'仮支柱立て', desc:'風で倒れないよう', memo:'主茎を8の字結びで固定', url:'' },
+    { id:'t6', name:'活着確認・水やり', desc:'土が乾いたら充分に', memo:'新葉が展開していれば活着成功', url:'' },
+  ]},
+  { id:'p2', name:'生育・誘引期', period:'31〜70日', dotState:'', tasks:[
+    { id:'t7', name:'わき芽かき', desc:'週1回、第1花房下まで', memo:'第1花房より下のわき芽は全て除去', url:'' },
+    { id:'t8', name:'誘引（茎を支柱へ）', desc:'伸びたら都度固定', memo:'8の字結びで余裕を持たせて固定', url:'' },
+    { id:'t9', name:'追肥（1回目）', desc:'定植2週間後から開始', memo:'化成肥料を株元から15cm離して施す', url:'' },
+  ]},
+  { id:'p3', name:'着果・収穫期', period:'71〜100日', dotState:'', tasks:[
+    { id:'t11', name:'着色確認', desc:'赤くなったら収穫サイン', memo:'全体の8割が赤くなったら収穫適期', url:'' },
+    { id:'t12', name:'収穫', desc:'ヘタ上でカット', memo:'ヘタの少し上をハサミでカット', url:'' },
+  ]},
+];
+
+// Pre-check some tasks to make progress bar non-empty
+doneTaskIds.add('t1');
+doneTaskIds.add('t2');
+doneTaskIds.add('t3');
+
+// ── Grid ─────────────────────────────────────────────────────────────────
+
+const COLS = 6, ROWS = 4;
+
+function renderGrid() {
+  const tbl = document.getElementById('grid-table');
+  tbl.innerHTML = '';
+
+  // Header row
+  const htr = document.createElement('tr');
+  const corner = document.createElement('td'); corner.style.width='12px'; htr.appendChild(corner);
+  for (let c = 0; c < COLS; c++) {
+    const th = document.createElement('td'); th.className='col-lbl'; th.textContent = c+1;
+    htr.appendChild(th);
+  }
+  tbl.appendChild(htr);
+
+  const rowLabels = ['A','B','C','D'];
+  for (let r = 0; r < ROWS; r++) {
+    const tr = document.createElement('tr');
+    const rn = document.createElement('td'); rn.className='row-lbl'; rn.textContent = rowLabels[r];
+    rn.style.cssText = 'width:12px;height:52px;vertical-align:middle';
+    tr.appendChild(rn);
+
+    let c = 0;
+    while (c < COLS) {
+      const key = `${r},${c}`;
+      const cellData = gridCells[key];
+
+      if (cellData) {
+        // Find colspan (consecutive cells with same segId)
+        let span = 0;
+        for (let cc = c; cc < COLS; cc++) {
+          if (gridCells[`${r},${cc}`]?.segId === cellData.segId) span++;
+          else break;
+        }
+        // Only render td for first cell
+        const td = document.createElement('td');
+        if (span > 1) td.setAttribute('colspan', span);
+        td.style.height = '52px';
+
+        const veg = VEG_META[cellData.vegId];
+        const cell = document.createElement('div');
+        cell.className = `cell ${veg.famClass}`;
+        cell.innerHTML = `
+          <div class="cell-name"><span style="font-size:13px">${veg.emoji}</span><span>${veg.name}</span></div>
+          <div class="cell-status" style="color:${veg.statusColor}">${veg.status}</div>
+        `;
+        // Click → manage screen
+        const sid = cellData.segId;
+        const vegId = cellData.vegId;
+        cell.addEventListener('click', () => openManage(sid, vegId, r, c, span));
+        td.appendChild(cell);
+        tr.appendChild(td);
+        c += span;
+      } else {
+        const td = document.createElement('td');
+        td.style.height = '52px';
+        const cell = document.createElement('div');
+        cell.className = 'cell cell-empty';
+        cell.dataset.r = r; cell.dataset.c = c;
+        const _r = r, _c = c; // capture for closure
+        cell.addEventListener('click', () => clickEmpty(_r, _c));
+        td.appendChild(cell);
+        tr.appendChild(td);
+        c++;
+      }
+    }
+    tbl.appendChild(tr);
+  }
+
+  renderSegList();
+}
+
+function renderSegList() {
+  const segs = {};
+  for (const [key, data] of Object.entries(gridCells)) {
+    if (!segs[data.segId]) segs[data.segId] = { vegId: data.vegId, segId: data.segId };
+  }
+  const list = document.getElementById('seg-list');
+  list.innerHTML = '';
+  const items = Object.values(segs);
+  document.getElementById('seg-count').textContent = items.length + '区画';
+  items.forEach(s => {
+    const veg = VEG_META[s.vegId];
+    const div = document.createElement('div');
+    div.className = 'seg-item';
+    div.innerHTML = `<span class="seg-emoji">${veg.emoji}</span><div class="seg-info"><div class="seg-name">${veg.name}</div><div class="seg-sub">${veg.family}</div></div>`;
+    div.addEventListener('click', () => {
+      // Find location
+      for (const [key, d] of Object.entries(gridCells)) {
+        if (d.segId === s.segId) {
+          const [r, c] = key.split(',').map(Number);
+          openManage(s.segId, s.vegId, r, c, 1);
+          return;
+        }
+      }
+    });
+    list.appendChild(div);
+  });
+}
+
+// ── Register flow ─────────────────────────────────────────────────────────
+
+let regPendingRow = -1, regPendingCol = -1;
+
+function clickEmpty(r, c) {
+  // For demo: select a 2-wide range starting at this cell if next is also empty
+  regPendingRow = r;
+  regPendingCol = c;
+  const rowLabels = ['A','B','C','D'];
+  document.getElementById('reg-preview').textContent =
+    `${rowLabels[r]}行 / ${c+1}列（1マス）`;
+  document.getElementById('reg-crop').value = '';
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById('reg-date').value = today;
+  document.getElementById('reg-save').disabled = true;
+  document.getElementById('overlay-register').classList.add('open');
+  updateDemoGuide('step-reg');
+}
+
+document.getElementById('reg-crop').addEventListener('change', function() {
+  document.getElementById('reg-save').disabled = !this.value;
+});
+
+document.getElementById('reg-save').addEventListener('click', () => {
+  const vegId = document.getElementById('reg-crop').value;
+  if (!vegId) return;
+  const date = document.getElementById('reg-date').value;
+  closeRegister();
+
+  // Add to grid
+  const sid = 'snew_' + Date.now();
+  gridCells[`${regPendingRow},${regPendingCol}`] = { vegId, segId: sid };
+  // Try to span 2 cells
+  const nextKey = `${regPendingRow},${regPendingCol+1}`;
+  if (!gridCells[nextKey] && regPendingCol+1 < COLS) {
+    gridCells[nextKey] = { vegId, segId: sid };
+  }
+  newSegId = sid;
+  renderGrid();
+  updateDemoGuide('step-registered');
+
+  // Pulse the new cell
+  setTimeout(() => {
+    document.querySelectorAll('.cell').forEach(el => {
+      if (el.dataset.sid === sid) el.style.animation = 'pop-in 0.4s ease';
+    });
+    updateDemoGuide('step-click-tomato');
+  }, 400);
+});
+
+function closeRegister() {
+  document.getElementById('overlay-register').classList.remove('open');
+}
+
+// ── Manage screen ─────────────────────────────────────────────────────────
+
+let currentVegId = null;
+
+function openManage(sid, vegId, row, col, span) {
+  currentVegId = vegId;
+  document.getElementById('screen-grid').classList.remove('active');
+  document.getElementById('screen-manage').classList.add('active');
+  renderManage(sid, vegId, row, col, span);
+  if (vegId === 'tomato') {
+    setTimeout(() => updateDemoGuide('step-manage'), 200);
+  }
+}
+
+function goBack() {
+  document.getElementById('screen-manage').classList.remove('active');
+  document.getElementById('screen-grid').classList.add('active');
+  renderGrid();
+  updateDemoGuide('done');
+}
+
+function renderManage(sid, vegId, row, col, span) {
+  const veg = VEG_META[vegId] || {};
+  const phases = vegId === 'tomato' ? TOMATO_PHASES : [];
+
+  // Static section
+  const st = document.getElementById('manage-static');
+  st.innerHTML = `
+    <div class="manage-header">
+      <span style="font-size:22px">${veg.emoji||'🌱'}</span>
+      <div style="flex:1">
+        <div class="manage-title">${veg.name||vegId}</div>
+        <div class="manage-meta">${row+1}行 / ${col+1}列 〜 ${col+span}列（${span}マス）</div>
+      </div>
+      <span class="status-pill" style="background:${veg.statusBg};color:${veg.statusColor}">${veg.status||'生育中'}</span>
+    </div>
+    <div class="tab-bar">
+      <div class="tab active"><i class="ti ti-road" style="font-size:12px"></i>ロードマップ</div>
+      <div class="tab"><i class="ti ti-basket" style="font-size:12px"></i>収量</div>
+      <div class="tab"><i class="ti ti-clipboard-list" style="font-size:12px"></i>作業ログ</div>
+    </div>
+  `;
+
+  // Content section
+  const el = document.getElementById('manage-content');
+  el.innerHTML = '';
+
+  if (!phases.length) {
+    el.innerHTML = `<div style="text-align:center;color:var(--tx3);padding:2rem 0;font-size:var(--fs-sm)">ロードマップはまだありません</div>`;
+    return;
+  }
+
+  // Progress
+  const allTasks = phases.flatMap(p => p.tasks);
+  const doneCnt = allTasks.filter(t => doneTaskIds.has(t.id)).length;
+  const pct = Math.round(doneCnt / allTasks.length * 100);
+
+  const pWrap = document.createElement('div'); pWrap.className='progress-wrap';
+  pWrap.innerHTML = `
+    <div class="progress-label">
+      <span class="progress-title"><i class="ti ti-chart-bar" style="color:var(--green);font-size:var(--fs-base)"></i>全体進捗</span>
+      <span class="progress-pct">${pct}%</span>
+    </div>
+    <div class="progress-outer"><div class="progress-inner" id="prog-bar" style="width:${pct}%"></div></div>
+  `;
+  el.appendChild(pWrap);
+
+  // Phases
+  phases.forEach((phase, pi) => {
+    const phaseDone = phase.tasks.every(t => doneTaskIds.has(t.id));
+    const phaseActive = !phaseDone && (pi === 0 || phases.slice(0,pi).every(pp => pp.tasks.every(t => doneTaskIds.has(t.id))));
+
+    const phaseBlock = document.createElement('div'); phaseBlock.className='phase-block';
+    const dotClass = phaseDone ? 'done' : phaseActive ? 'active' : '';
+    phaseBlock.innerHTML = `
+      <div class="phase-heading">
+        <div class="phase-dot ${dotClass}"></div>
+        <span class="phase-name">${phase.name}</span>
+        <span class="phase-period">${phase.period}</span>
+      </div>
+    `;
+
+    phase.tasks.forEach(task => {
+      const isDone = doneTaskIds.has(task.id);
+      const isOpen = openDetailIds.has(task.id);
+
+      const card = document.createElement('div'); card.className='task-card'; card.id=`card-${task.id}`;
+      card.innerHTML = `
+        <div class="task-main">
+          <div class="task-cb-wrap">
+            <input type="checkbox" class="task-cb" id="cb-${task.id}" ${isDone?'checked':''}>
+          </div>
+          <div class="task-clickable" id="tc-${task.id}">
+            <div class="task-body" style="flex:1;min-width:0">
+              <div class="task-name ${isDone?'done':''}">${task.name}</div>
+              <div class="task-desc">${task.desc}</div>
+              ${isDone ? `<span class="task-date-chip">✓ 記録済み</span>` : ''}
+            </div>
+            <span class="task-expand"><i class="ti ti-chevron-${isOpen?'up':'down'}"></i></span>
+          </div>
+        </div>
+        <div class="task-detail ${isOpen?'open':''}" id="detail-${task.id}">
+          <div class="task-memo">${task.memo}</div>
+          ${task.videoId ? renderVideoCard(task.videoId, task.name) : ''}
+        </div>
+      `;
+
+      // Checkbox click → show date dialog
+      card.querySelector(`#cb-${task.id}`).addEventListener('change', function(e) {
+        e.preventDefault();
+        this.checked = isDone; // revert visually until confirmed
+        if (!isDone) {
+          showTaskDateDialog(task.id, task.name, sid, vegId, row, col, span);
+        }
+      });
+
+      // Row click → toggle detail
+      card.querySelector(`#tc-${task.id}`).addEventListener('click', () => {
+        if (openDetailIds.has(task.id)) openDetailIds.delete(task.id);
+        else openDetailIds.add(task.id);
+        renderManage(sid, vegId, row, col, span);
+        if (task.videoId && !doneTaskIds.has(task.id)) {
+          setTimeout(() => updateDemoGuide('step-video'), 100);
+        }
+      });
+
+      phaseBlock.appendChild(card);
+    });
+
+    el.appendChild(phaseBlock);
+  });
+
+  // Store for date dialog callback
+  window._currentManageArgs = [sid, vegId, row, col, span];
+}
+
+function renderVideoCard(videoId, taskName) {
+  return `
+    <div class="video-card">
+      <div class="video-card-header">
+        <i class="ti ti-brand-youtube" style="font-size:12px"></i>
+        参考動画
+      </div>
+      <div id="video-area-${videoId}" style="position:relative">
+        <div class="video-thumb" onclick="embedVideo('${videoId}')">
+          <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" alt="${taskName}" onerror="this.style.display='none'">
+          <div class="play-btn"><i class="ti ti-player-play-filled"></i></div>
+        </div>
+      </div>
+      <a class="video-open-btn" href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener">
+        <i class="ti ti-external-link" style="font-size:11px"></i>YouTubeで開く
+      </a>
+    </div>
+  `;
+}
+
+function embedVideo(videoId) {
+  const area = document.getElementById(`video-area-${videoId}`);
+  if (!area) return;
+  area.innerHTML = `<iframe class="video-embed" src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+}
+
+// ── Task date dialog ──────────────────────────────────────────────────────
+
+function showTaskDateDialog(taskId, taskName, sid, vegId, row, col, span) {
+  document.getElementById('dlg-task-name').textContent = taskName;
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById('dlg-task-date-input').value = today;
+  document.getElementById('dlg-task-date').classList.add('open');
+  taskDoneCallback = () => {
+    doneTaskIds.add(taskId);
+    document.getElementById('dlg-task-date').classList.remove('open');
+    showFloatBadge('✓ ' + taskName + 'を記録しました');
+    renderManage(sid, vegId, row, col, span);
+    if (taskId === 't4') {
+      setTimeout(() => updateDemoGuide('step-after-check'), 300);
+    }
+  };
+  updateDemoGuide('step-date-dialog');
+}
+
+function confirmTaskDate() {
+  if (taskDoneCallback) taskDoneCallback();
+  taskDoneCallback = null;
+}
+
+function cancelTaskDate() {
+  document.getElementById('dlg-task-date').classList.remove('open');
+  taskDoneCallback = null;
+}
+
+// ── Float badge ───────────────────────────────────────────────────────────
+
+function showFloatBadge(text) {
+  const el = document.createElement('div');
+  el.className = 'float-badge';
+  el.textContent = text;
+  document.body.appendChild(el);
+  el.addEventListener('animationend', () => el.remove());
+}
+
+// ── Demo guide ────────────────────────────────────────────────────────────
+
+const GUIDE_STEPS = {
+  'start':           '① 空きマスをタップして野菜を登録してみましょう',
+  'step-reg':        '② 作物を選択して「登録」を押してください',
+  'step-registered': '🌱 登録されました！',
+  'step-click-tomato': '③ いまグリッドに追加されたトマトをタップしてください',
+  'step-manage':     '④ ロードマップでタスクが確認できます。チェックボックスをタップして作業を記録してみましょう',
+  'step-date-dialog': '⑤ 実施日を確認して「記録」を押してください',
+  'step-after-check': '⑥ タスク名をタップするとメモや参考動画が表示されます',
+  'step-video':      '📹 参考動画が表示されました！▶ をタップして確認できます',
+  'done':            '✅ デモ完了！',
+};
+
+function updateDemoGuide(step) {
+  const guide = document.getElementById('demo-guide');
+  const text = GUIDE_STEPS[step];
+  if (text) {
+    guide.textContent = text;
+    guide.style.opacity = '1';
+  } else {
+    guide.style.opacity = '0';
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+
+renderGrid();
+updateDemoGuide('start');
+</script>
+</body>
+</html>
