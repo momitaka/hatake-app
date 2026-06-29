@@ -61,6 +61,7 @@ body{font-family:var(--font-sans);background:#f9f8f4;min-height:100vh;padding:0}
 #master-content{flex:1;overflow-y:auto;padding:0 0 24px}
 #screen-manage .toolbar,#screen-master .toolbar{position:relative;top:auto;flex-shrink:0;margin:0 -0.5rem;background:#5aad4e;border-bottom:none;padding:10px 13px;border-bottom-right-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,0.13);z-index:1}
 #manage-static{flex-shrink:0;padding:10px 0.5rem 10px;background:#fff;margin:0 -0.5rem;box-shadow:0 4px 14px rgba(0,0,0,0.13);position:sticky;top:0;z-index:10}
+#manage-tabs{flex-shrink:0;padding:10px 0.5rem 12px;background:#fff;margin:0 -0.5rem}
 #manage-content{flex:1;overflow-y:auto;padding:10px 0 24px}
 .toolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--color-background-primary);border-bottom:2px solid #5aad4e;padding:0 0.5rem;margin:0 -0.5rem 12px;position:sticky;top:0;z-index:20}
 .toolbar-grid{background:#f9f8f4;border-bottom:none;flex-direction:column;align-items:stretch;gap:0;padding:0;margin-bottom:10px}
@@ -104,7 +105,7 @@ body{font-family:var(--font-sans);background:#f9f8f4;min-height:100vh;padding:0}
 .legend-item{display:flex;align-items:center;gap:5px;font-size:var(--fs-xs);color:var(--color-text-secondary)}
 .legend-dot{width:12px;height:10px;border-radius:2px;border-width:2px;border-style:solid;flex-shrink:0}
 .status-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:99px;font-size:var(--fs-xs);font-weight:500}
-.manage-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.manage-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:0}
 .manage-title{font-size:var(--fs-md);font-weight:500;color:var(--color-text-primary);flex:1}
 .manage-meta{font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-top:2px}
 .tab-bar{display:flex;margin-bottom:16px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);overflow:hidden}
@@ -463,8 +464,9 @@ body{
   </div>
 
   <div class="screen" id="screen-manage">
-    <div class="toolbar"><button class="btn-grid-chip btn-master" onclick="goBack()"><i class="ti ti-arrow-left" style="font-size:var(--fs-xs)"></i>グリッドへ戻る</button><div style="flex:1"></div><button class="btn-grid-chip admin-only" id="btn-complete-manage" onclick="currentTab='log';renderManage();setTimeout(()=>{const n=document.getElementById('complete-notice');if(n){n.classList.add('highlight');setTimeout(()=>n.classList.remove('highlight'),2500);}},50);" style="background:#fff;border-color:#fff;color:#c62828;font-weight:600"><i class="ti ti-flag-check" style="font-size:var(--fs-xs)"></i>管理の完了</button></div>
     <div id="manage-static"></div>
+    <div class="toolbar"><button class="btn-grid-chip btn-master" onclick="goBack()"><i class="ti ti-arrow-left" style="font-size:var(--fs-xs)"></i>グリッドへ戻る</button><div style="flex:1"></div><button class="btn-grid-chip admin-only" id="btn-complete-manage" onclick="currentTab='log';renderManage();setTimeout(()=>{const n=document.getElementById('complete-notice');if(n){n.classList.add('highlight');setTimeout(()=>n.classList.remove('highlight'),2500);}},50);" style="background:#fff;border-color:#fff;color:#c62828;font-weight:600"><i class="ti ti-flag-check" style="font-size:var(--fs-xs)"></i>管理の完了</button></div>
+    <div id="manage-tabs"></div>
     <div id="manage-content"></div>
   </div>
 
@@ -1435,9 +1437,10 @@ function goBack(){document.getElementById('screen-manage').classList.remove('act
 function renderManage(){
   buildSegs();const seg=segs[currentSeg];if(!seg)return;const veg=getVeg(seg.crop);const majorSt=calcMajorStatus(currentSeg,seg.crop);
   const st=document.getElementById('manage-static');
+  const tb=document.getElementById('manage-tabs');
   const el=document.getElementById('manage-content');
   const existingIframe=el.querySelector('iframe');if(existingIframe)existingIframe.src='';
-  st.innerHTML='';el.innerHTML='';
+  st.innerHTML='';tb.innerHTML='';el.innerHTML='';
   const hdr=document.createElement('div');hdr.className='manage-header';
   const plantDisp=seg.plantDate?seg.plantDate.slice(5).replace('-','/'):null;
   const startChipHtml=isAdmin?`<span id="manage-start-chip" class="task-date-chip" style="cursor:pointer;margin-left:6px">${plantDisp?plantDisp+'〜':'＋開始日'}</span>`:(plantDisp?` ／ ${plantDisp}開始`:'');
@@ -1447,7 +1450,7 @@ function renderManage(){
   const tabs=[{id:'basic',icon:'ti-plant',label:'基礎知識'},{id:'roadmap',icon:'ti-road',label:'ロードマップ'},{id:'harvest',icon:'ti-basket',label:'収量'},{id:'log',icon:'ti-clipboard-list',label:'作業ログ'}];
   const tabBar=document.createElement('div');tabBar.className='tab-bar';tabBar.style.margin='0 0 0';
   tabs.forEach(tab=>{const btn=document.createElement('div');btn.className='tab-btn'+(currentTab===tab.id?' active':'');btn.innerHTML=`<i class="ti ${tab.icon}" style="font-size:var(--fs-sm)"></i>${tab.label}`;btn.addEventListener('click',()=>{currentTab=tab.id;renderManage();});tabBar.appendChild(btn);});
-  st.appendChild(tabBar);
+  tb.appendChild(tabBar);
   if(currentTab==='roadmap')renderRoadmapTab(el,seg,veg);
   else if(currentTab==='log')renderLogTab(el,seg);
   else if(currentTab==='harvest')renderHarvestTab(el,seg);
@@ -1521,7 +1524,7 @@ function renderHarvestTab(el,seg){
   addBtn.addEventListener('click',()=>{const date=iDate.value,amount=parseFloat(iAmt.value),unit=iUnit.value;if(!date||isNaN(amount)||amount<=0)return;pushUndo();if(!harvestLogs[currentSeg])harvestLogs[currentSeg]=[];harvestLogs[currentSeg].push({id:`h_${Date.now()}`,date,amount,unit});harvestLogs[currentSeg].sort((a,b)=>a.date.localeCompare(b.date));saveLS();renderManage();});
   const listWrap=document.createElement('div');listWrap.className='harvest-list';
   if(!logs.length){const emp=document.createElement('div');emp.className='harvest-empty';emp.textContent='まだ収穫記録がありません。';listWrap.appendChild(emp);}
-  else{[...logs].reverse().forEach(h=>{const row=document.createElement('div');row.className='harvest-row';const dateEl=document.createElement('div');dateEl.className='harvest-row-date';dateEl.textContent=h.date;const amtEl=document.createElement('div');amtEl.className='harvest-row-amount';amtEl.textContent=`${h.amount} ${h.unit}`;const delBtn=document.createElement('button');delBtn.className='harvest-del-btn';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>';delBtn.classList.add('admin-only');if(isAdmin)delBtn.addEventListener('click',()=>{pushUndo();harvestLogs[currentSeg]=harvestLogs[currentSeg].filter(x=>x.id!==h.id);saveLS();renderManage();});row.append(dateEl,amtEl,delBtn);listWrap.appendChild(row);});}
+  else{[...logs].reverse().forEach(h=>{const row=document.createElement('div');row.className='harvest-row';const dateEl=document.createElement('div');dateEl.className='harvest-row-date';dateEl.textContent=h.date;const amtEl=document.createElement('div');amtEl.className='harvest-row-amount';amtEl.textContent=`${h.amount} ${h.unit}`;const delBtn=document.createElement('button');delBtn.className='harvest-del-btn';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>';delBtn.addEventListener('click',()=>{if(!confirm('この収穫記録を削除しますか？'))return;pushUndo();harvestLogs[currentSeg]=harvestLogs[currentSeg].filter(x=>x.id!==h.id);saveLS();renderManage();});row.append(dateEl,amtEl,delBtn);listWrap.appendChild(row);});}
   el.appendChild(listWrap);
   Object.entries(getHarvestSummary(currentSeg)).forEach(([unit,amt])=>{const totalEl=document.createElement('div');totalEl.className='harvest-total';totalEl.innerHTML=`<span class="harvest-total-label"><i class="ti ti-calculator" style="font-size:var(--fs-sm);margin-right:4px"></i>合計（${unit}）</span><span class="harvest-total-val">${amt} ${unit}</span>`;el.appendChild(totalEl);});
 }
@@ -2017,8 +2020,8 @@ loadFromDB().then(loaded=>{
   // タップでフェードアウト
   const _splash=document.getElementById('splash-screen');
   function _closeSplash(){_splash.style.opacity='0';setTimeout(()=>_splash.style.display='none',600);}
-  _splash.addEventListener('touchend',e=>{e.preventDefault();_closeSplash();},{once:true,passive:false});
-  _splash.addEventListener('click',_closeSplash,{once:true});
+  if(new URLSearchParams(location.search).get('skip_splash')){_splash.style.display='none';}
+  else{_splash.addEventListener('touchend',e=>{e.preventDefault();_closeSplash();},{once:true,passive:false});_splash.addEventListener('click',_closeSplash,{once:true});setTimeout(_closeSplash,2000);}
 })();
 
 // ===== v25: Supabase Auth =====

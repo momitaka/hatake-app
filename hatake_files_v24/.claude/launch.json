@@ -5,7 +5,15 @@
       "name": "hatake",
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "8765"],
-      "port": 8765
+      "port": 8765,
+      "url": "http://localhost:8765/hatake_v25.html?skip_splash=1"
+    },
+    {
+      "name": "hatake-demo",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8766"],
+      "port": 8766,
+      "url": "http://localhost:8766/hatake_demo.html"
     }
   ]
 }
