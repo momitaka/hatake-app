@@ -1699,7 +1699,7 @@ function renderMasterSaveBar(col,veg){
   if(!slot)return;
   slot.innerHTML='';
   if(!requireAdmin()){slot.style.display='none';return;}
-  const delBtn=document.createElement('button');delBtn.className='btn-delete-master';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>削除';delBtn.addEventListener('click',()=>{if(!confirm(`「${veg.name}」をマスタから削除しますか？`))return;delete vegMaster[veg.id];selectedMasterVeg=null;saveLS();renderMasterList();renderMasterDetail();});
+  const delBtn=document.createElement('button');delBtn.className='btn-delete-master';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>削除';delBtn.addEventListener('click',()=>{const usedCells=Object.values(cells).filter(c=>c&&c.crop===veg.id);if(usedCells.length>0){alert(`「${veg.name}」は現在${usedCells.length}つの区画で使用中のため削除できません。\n区画の管理画面から野菜を外すか、区画を削除してから再度お試しください。`);return;}if(!confirm(`「${veg.name}」をレシピから削除しますか？`))return;delete vegMaster[veg.id];selectedMasterVeg=null;saveLS();renderMasterList();renderMasterDetail();});
   const saveBtn=document.createElement('button');saveBtn.className='btn-save-master';saveBtn.innerHTML='<i class="ti ti-device-floppy"></i>保存';saveBtn.addEventListener('click',()=>{saveLS();if(fromRegDlg){fromRegDlg=false;saveBtn.textContent='完了';setTimeout(()=>{closeMaster();populateCropSelect();document.getElementById('dlg-crop').value=selectedMasterVeg||'';document.getElementById('dlg-save').disabled=!selectedMasterVeg;document.getElementById('dlg-register').style.display='flex';},1200);}else{saveBtn.textContent='完了';setTimeout(()=>closeMaster(),1200);}});
   slot.append(delBtn,saveBtn);slot.style.display='flex';
 }
