@@ -65,6 +65,9 @@ body{font-family:var(--font-sans);background:#f9f8f4;min-height:100vh;padding:0}
 #manage-content{flex:1;overflow-y:auto;padding:10px 0 24px}
 .toolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--color-background-primary);border-bottom:2px solid #5aad4e;padding:0 0.5rem;margin:0 -0.5rem 12px;position:sticky;top:0;z-index:20}
 .toolbar-grid{background:#f9f8f4;border-bottom:none;flex-direction:column;align-items:stretch;gap:0;padding:0;margin-bottom:10px}
+body.admin-mode .header-card-bottom{background:#e28a12}
+body.admin-mode .toolbar{border-bottom-color:#e28a12}
+body.admin-mode #screen-manage .toolbar,body.admin-mode #screen-master .toolbar{background:#e28a12}
 .header-card{background:#fff;border-radius:0 0 14px 14px;overflow:visible;box-shadow:0 4px 14px rgba(0,0,0,0.13)}
 .header-card-top{padding:12px 13px 10px;display:flex;justify-content:space-between;align-items:flex-start;position:relative;overflow:visible;min-height:54px}
 .header-card-bottom{background:#5aad4e;padding:10px 13px;display:flex;gap:6px;align-items:center;position:relative;z-index:1;border-bottom-right-radius:14px;border-top-left-radius:14px}
@@ -949,9 +952,11 @@ function applyPermissions(){
   const st=document.getElementById('admin-status');
   if(isAdmin){
     document.body.classList.remove('view-mode');
-    if(st){st.textContent='管理者モードで操作中';st.style.color='#2e7a28';}
+    document.body.classList.add('admin-mode');
+    if(st){st.textContent='管理者モードで操作中';st.style.color='#e28a12';}
   }else{
     document.body.classList.add('view-mode');
+    document.body.classList.remove('admin-mode');
     if(st){st.textContent='閲覧モード（閲覧・作業記録のみ）';st.style.color='var(--color-text-tertiary)';}
   }
   // 動的に描画済みのマスタ詳細があれば再描画して権限を反映
@@ -1962,7 +1967,7 @@ document.getElementById('btn-complete-cancel').addEventListener('click',closeCom
 document.getElementById('dlg-complete-confirm').addEventListener('mousedown',e=>{if(e.target===e.currentTarget)closeCompleteConfirm();});
 document.getElementById('btn-complete-execute').addEventListener('click',()=>{if(pendingCompleteSeg)executeComplete(pendingCompleteSeg);});
 
-document.getElementById('btn-add-veg').addEventListener('click',()=>{if(!requireAdmin())return;document.getElementById('av-preset').value='';document.getElementById('av-name').value='';document.getElementById('av-variety').value='';document.getElementById('av-ref-url').value='';document.getElementById('av-grow-method').value='seedling';document.getElementById('av-season').value='';document.getElementById('av-region').value='';addVegEmoji='🌱';addVegIconFile=null;renderEmojiGrid();document.getElementById('av-next').disabled=true;document.getElementById('dlg-add-veg').style.display='flex';});
+document.getElementById('btn-add-veg').addEventListener('click',()=>{if(!requireAdmin())return;document.getElementById('av-preset').value='';document.getElementById('av-name').value='';document.getElementById('av-variety').value='';document.getElementById('av-ref-url').value='';document.getElementById('av-grow-method').value='seedling';document.getElementById('av-season').value='';document.getElementById('av-region').value=localStorage.getItem('hatake_last_region')||'';addVegEmoji='🌱';addVegIconFile=null;renderEmojiGrid();document.getElementById('av-next').disabled=true;document.getElementById('dlg-add-veg').style.display='flex';});
 document.getElementById('btn-add-veg-cancel').addEventListener('click',()=>{document.getElementById('dlg-add-veg').style.display='none';});
 document.getElementById('dlg-add-veg').addEventListener('mousedown',e=>{if(e.target===e.currentTarget)document.getElementById('dlg-add-veg').style.display='none';});
 document.getElementById('av-preset').addEventListener('change',()=>{const val=document.getElementById('av-preset').value;const preset=PRESET_VEGS.find(v=>v.id===val);if(preset){document.getElementById('av-name').value=preset.name;addVegEmoji=preset.emoji;addVegIconFile=preset.iconFile||null;renderEmojiGrid();}checkAddVegValid();});
@@ -1994,7 +1999,7 @@ function renderEmojiGrid(){const grid=document.getElementById('av-emoji-grid');g
 document.getElementById('av-next').addEventListener('click',()=>{
   if(!requireAdmin())return;
   const name=document.getElementById('av-name').value.trim();const variety=document.getElementById('av-variety').value.trim();const presetId=document.getElementById('av-preset').value;const preset=PRESET_VEGS.find(v=>v.id===presetId);if(!name)return;
-  const id=presetId&&!vegMaster[presetId]?presetId:`veg_${Date.now()}`;const growMethod=document.getElementById('av-grow-method').value;const refUrl=document.getElementById('av-ref-url').value.trim();const season=document.getElementById('av-season').value;const region=document.getElementById('av-region').value;vegMaster[id]={id,name,emoji:addVegEmoji,iconFile:addVegIconFile||undefined,family:preset?preset.family:'',variety,growMethod,season,region,referenceUrl:refUrl,phases:[]};selectedMasterVeg=id;saveLS();document.getElementById('dlg-add-veg').style.display='none';renderMasterList();renderMasterDetail();
+  const id=presetId&&!vegMaster[presetId]?presetId:`veg_${Date.now()}`;const growMethod=document.getElementById('av-grow-method').value;const refUrl=document.getElementById('av-ref-url').value.trim();const season=document.getElementById('av-season').value;const region=document.getElementById('av-region').value;if(region)localStorage.setItem('hatake_last_region',region);vegMaster[id]={id,name,emoji:addVegEmoji,iconFile:addVegIconFile||undefined,family:preset?preset.family:'',variety,growMethod,season,region,referenceUrl:refUrl,phases:[]};selectedMasterVeg=id;saveLS();document.getElementById('dlg-add-veg').style.display='none';renderMasterList();renderMasterDetail();
 });
 
 const presetSel=document.getElementById('av-preset');
