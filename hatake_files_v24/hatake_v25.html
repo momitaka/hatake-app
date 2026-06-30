@@ -576,6 +576,23 @@ body{
     <button class="btn-primary" style="width:100%;font-size:var(--fs-base);padding:9px" onclick="document.getElementById('dlg-archive-done').style.display='none'">閉じる</button>
   </div>
 </div>
+<!-- 汎用確認ダイアログ -->
+<div id="dlg-custom-confirm" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:200;background:rgba(0,0,0,0.4)">
+  <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.25rem 1.25rem 1rem;min-width:260px;max-width:320px;width:88%;text-align:center" onclick="event.stopPropagation()">
+    <div id="dlg-custom-confirm-msg" style="font-size:var(--fs-base);color:var(--color-text-primary);line-height:1.6;margin-bottom:16px;white-space:pre-wrap"></div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button id="dlg-custom-confirm-ok" class="btn-primary" style="font-size:var(--fs-base);padding:9px">OK</button>
+      <button id="dlg-custom-confirm-cancel" class="btn" style="font-size:var(--fs-base);padding:9px">キャンセル</button>
+    </div>
+  </div>
+</div>
+<!-- 汎用アラートダイアログ -->
+<div id="dlg-custom-alert" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:200;background:rgba(0,0,0,0.4)">
+  <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.25rem 1.25rem 1rem;min-width:260px;max-width:320px;width:88%;text-align:center" onclick="event.stopPropagation()">
+    <div id="dlg-custom-alert-msg" style="font-size:var(--fs-base);color:var(--color-text-primary);line-height:1.6;margin-bottom:16px;white-space:pre-wrap"></div>
+    <button id="dlg-custom-alert-ok" class="btn-primary" style="width:100%;font-size:var(--fs-base);padding:9px">OK</button>
+  </div>
+</div>
 <div id="dlg-complete-confirm" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:100;background:rgba(0,0,0,0.4)">
   <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.25rem;min-width:260px;max-width:340px;width:90%;max-height:90vh;overflow-y:auto">
     <div style="font-size:var(--fs-base);font-weight:500;margin-bottom:12px;display:flex;align-items:center;gap:6px;color:var(--color-text-danger)"><i class="ti ti-alert-triangle"></i>この野菜の管理を完了しますか？</div>
@@ -840,6 +857,24 @@ function showMilestoneDialog(type){
   }
   dlg.style.display='flex';
 }
+function showConfirm(msg, onOk){
+  document.getElementById('dlg-custom-confirm-msg').textContent=msg;
+  const dlg=document.getElementById('dlg-custom-confirm');
+  const okBtn=document.getElementById('dlg-custom-confirm-ok');
+  const cancelBtn=document.getElementById('dlg-custom-confirm-cancel');
+  const close=()=>{dlg.style.display='none';okBtn.onclick=null;cancelBtn.onclick=null;};
+  okBtn.onclick=()=>{close();onOk();};
+  cancelBtn.onclick=()=>close();
+  dlg.style.display='flex';
+}
+function showAlert(msg, onOk){
+  document.getElementById('dlg-custom-alert-msg').textContent=msg;
+  const dlg=document.getElementById('dlg-custom-alert');
+  const okBtn=document.getElementById('dlg-custom-alert-ok');
+  const close=()=>{dlg.style.display='none';okBtn.onclick=null;if(onOk)onOk();};
+  okBtn.onclick=()=>close();
+  dlg.style.display='flex';
+}
 function showTaskDateDialog(title, taskName, onConfirm, onCancel){
   const dlg=document.getElementById('dlg-task-date');
   document.getElementById('dlg-task-date-title').textContent=title;
@@ -930,12 +965,12 @@ document.getElementById('btn-admin-login').addEventListener('click',()=>{
     if(_dataStrategy!=='session')localStorage.setItem('hatake_admin','1');
     applyPermissions();
     document.getElementById('s-admin-pw').value='';
-    alert('管理者モードになりました');
+    showAlert('管理者モードになりました');
   }else if(pw===''){
     isAdmin=false;
     localStorage.removeItem('hatake_admin');
     applyPermissions();
-  }else{alert('パスワードが違います');}
+  }else{showAlert('パスワードが違います');}
 });
 // v25: autoAdmin=true（コラボ版） → 全ユーザーが操作可能
 // freeDataStrategy='session' → セッション限定で操作可能（localStorage汚染なし）
@@ -1535,7 +1570,7 @@ function renderLogTab(el,seg){
   completeBtn.addEventListener('click',()=>openCompleteConfirm(currentSeg));
   completeBar.appendChild(completeBtn);
   const delDivider=document.createElement('hr');delDivider.style.cssText='border:none;border-top:0.5px solid var(--color-border-tertiary);margin:16px 0';completeBar.appendChild(delDivider);
-  const deleteBtn=document.createElement('button');deleteBtn.style.cssText='margin-top:0;width:100%;font-size:var(--fs-sm);padding:8px;border-radius:var(--border-radius-md);border:0.5px solid #e57373;background:#fff5f5;color:#c62828;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px';deleteBtn.innerHTML='<i class="ti ti-trash"></i>この区画の登録を削除';deleteBtn.addEventListener('click',()=>{if(!confirm('この区画の登録を削除します。\n作業記録や収穫記録も失われます。\nよろしいですか？'))return;pushUndo();const sid=currentSeg;Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===sid)delete cells[k];});delete segTasks[sid];delete actionLogs[sid];delete harvestLogs[sid];delete segSummaryMemo[sid];buildSegs();saveLS();goBack();renderGrid();});
+  const deleteBtn=document.createElement('button');deleteBtn.style.cssText='margin-top:0;width:100%;font-size:var(--fs-sm);padding:8px;border-radius:var(--border-radius-md);border:0.5px solid #e57373;background:#fff5f5;color:#c62828;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px';deleteBtn.innerHTML='<i class="ti ti-trash"></i>この区画の登録を削除';deleteBtn.addEventListener('click',()=>{showConfirm('この区画の登録を削除します。\n作業記録や収穫記録も失われます。\nよろしいですか？',()=>{pushUndo();const sid=currentSeg;Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===sid)delete cells[k];});delete segTasks[sid];delete actionLogs[sid];delete harvestLogs[sid];delete segSummaryMemo[sid];buildSegs();saveLS();goBack();renderGrid();});});
   completeBar.appendChild(deleteBtn);el.appendChild(completeBar);
 }
 
@@ -1551,7 +1586,7 @@ function renderHarvestTab(el,seg){
   addBtn.addEventListener('click',()=>{const date=iDate.value,amount=parseFloat(iAmt.value),unit=iUnit.value;if(!date||isNaN(amount)||amount<=0)return;pushUndo();if(!harvestLogs[currentSeg])harvestLogs[currentSeg]=[];harvestLogs[currentSeg].push({id:`h_${Date.now()}`,date,amount,unit});harvestLogs[currentSeg].sort((a,b)=>a.date.localeCompare(b.date));saveLS();renderManage();});
   const listWrap=document.createElement('div');listWrap.className='harvest-list';
   if(!logs.length){const emp=document.createElement('div');emp.className='harvest-empty';emp.textContent='まだ収穫記録がありません。';listWrap.appendChild(emp);}
-  else{[...logs].reverse().forEach(h=>{const row=document.createElement('div');row.className='harvest-row';const dateEl=document.createElement('div');dateEl.className='harvest-row-date';dateEl.textContent=h.date;const amtEl=document.createElement('div');amtEl.className='harvest-row-amount';amtEl.textContent=`${h.amount} ${h.unit}`;const delBtn=document.createElement('button');delBtn.className='harvest-del-btn';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>';delBtn.addEventListener('click',()=>{if(!confirm('この収穫記録を削除しますか？'))return;pushUndo();harvestLogs[currentSeg]=harvestLogs[currentSeg].filter(x=>x.id!==h.id);saveLS();renderManage();});row.append(dateEl,amtEl,delBtn);listWrap.appendChild(row);});}
+  else{[...logs].reverse().forEach(h=>{const row=document.createElement('div');row.className='harvest-row';const dateEl=document.createElement('div');dateEl.className='harvest-row-date';dateEl.textContent=h.date;const amtEl=document.createElement('div');amtEl.className='harvest-row-amount';amtEl.textContent=`${h.amount} ${h.unit}`;const delBtn=document.createElement('button');delBtn.className='harvest-del-btn';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>';delBtn.addEventListener('click',()=>{showConfirm('この収穫記録を削除しますか？',()=>{pushUndo();harvestLogs[currentSeg]=harvestLogs[currentSeg].filter(x=>x.id!==h.id);saveLS();renderManage();});});row.append(dateEl,amtEl,delBtn);listWrap.appendChild(row);});}
   el.appendChild(listWrap);
   Object.entries(getHarvestSummary(currentSeg)).forEach(([unit,amt])=>{const totalEl=document.createElement('div');totalEl.className='harvest-total';totalEl.innerHTML=`<span class="harvest-total-label"><i class="ti ti-calculator" style="font-size:var(--fs-sm);margin-right:4px"></i>合計（${unit}）</span><span class="harvest-total-val">${amt} ${unit}</span>`;el.appendChild(totalEl);});
 }
@@ -1634,7 +1669,7 @@ function syncAisleInputs(){
   document.getElementById('s-aisle-rows').value=aisleRows.map(r=>r+1).join(', ');
   document.getElementById('s-aisle-cols').value=aisleCols.map(c=>c+1).join(', ');
 }
-function resetAll(){if(!requireAdmin())return;if(!confirm('全データをリセットしますか？'))return;cells={};segs={};segTasks={};actionLogs={};harvestLogs={};segSummaryMemo={};archivedSegs={};undoStack=[];renderGrid();updUndoBtn();saveLS();}
+function resetAll(){if(!requireAdmin())return;showConfirm('全データをリセットしますか？',()=>{cells={};segs={};segTasks={};actionLogs={};harvestLogs={};segSummaryMemo={};archivedSegs={};undoStack=[];renderGrid();updUndoBtn();saveLS();});}
 
 function openMaster(){document.getElementById('screen-register').classList.remove('active');document.getElementById('screen-master').classList.add('active');renderMasterList();if(selectedMasterVeg)renderMasterDetail();}
 function closeMaster(){document.getElementById('screen-master').classList.remove('active');document.getElementById('screen-register').classList.add('active');renderGrid();}
@@ -1682,8 +1717,9 @@ function renderMasterDetail(){
         upBtn.addEventListener('click',()=>{if(ti===0)return;const tasks=vegMaster[veg.id].phases[pi].tasks;[tasks[ti-1],tasks[ti]]=[tasks[ti],tasks[ti-1]];saveLS();renderMasterDetail();});
         downBtn.addEventListener('click',()=>{const tasks=vegMaster[veg.id].phases[pi].tasks;if(ti>=tasks.length-1)return;[tasks[ti],tasks[ti+1]]=[tasks[ti+1],tasks[ti]];saveLS();renderMasterDetail();});
         delBtn.addEventListener('click',()=>{
-          if(inUse&&!confirm(`このタスクを削除すると、この野菜を使用中の区画の記録が参照できなくなる場合があります。\n削除しますか？`))return;
-          vegMaster[veg.id].phases[pi].tasks.splice(ti,1);saveLS();renderMasterDetail();
+          const doDelete=()=>{vegMaster[veg.id].phases[pi].tasks.splice(ti,1);saveLS();renderMasterDetail();};
+          if(inUse){showConfirm(`このタスクを削除すると、この野菜を使用中の区画の記録が参照できなくなる場合があります。\n削除しますか？`,doDelete);return;}
+          doDelete();
         });
       }
     });
@@ -1699,7 +1735,7 @@ function renderMasterSaveBar(col,veg){
   if(!slot)return;
   slot.innerHTML='';
   if(!requireAdmin()){slot.style.display='none';return;}
-  const delBtn=document.createElement('button');delBtn.className='btn-delete-master';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>削除';delBtn.addEventListener('click',()=>{const usedCells=Object.values(cells).filter(c=>c&&c.crop===veg.id);if(usedCells.length>0){alert(`「${veg.name}」は現在${usedCells.length}つの区画で使用中のため削除できません。\n区画の管理画面から野菜を外すか、区画を削除してから再度お試しください。`);return;}if(!confirm(`「${veg.name}」をレシピから削除しますか？`))return;delete vegMaster[veg.id];selectedMasterVeg=null;saveLS();renderMasterList();renderMasterDetail();});
+  const delBtn=document.createElement('button');delBtn.className='btn-delete-master';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>削除';delBtn.addEventListener('click',()=>{const usedCells=Object.values(cells).filter(c=>c&&c.crop===veg.id);if(usedCells.length>0){showAlert(`「${veg.name}」は現在${usedCells.length}つの区画で使用中のため削除できません。\n区画の管理画面から野菜を外すか、区画を削除してから再度お試しください。`);return;}showConfirm(`「${veg.name}」をレシピから削除しますか？`,()=>{delete vegMaster[veg.id];selectedMasterVeg=null;saveLS();renderMasterList();renderMasterDetail();});});
   const saveBtn=document.createElement('button');saveBtn.className='btn-save-master';saveBtn.innerHTML='<i class="ti ti-device-floppy"></i>保存';saveBtn.addEventListener('click',()=>{saveLS();if(fromRegDlg){fromRegDlg=false;saveBtn.textContent='完了';setTimeout(()=>{closeMaster();populateCropSelect();document.getElementById('dlg-crop').value=selectedMasterVeg||'';document.getElementById('dlg-save').disabled=!selectedMasterVeg;document.getElementById('dlg-register').style.display='flex';},1200);}else{saveBtn.textContent='完了';setTimeout(()=>closeMaster(),1200);}});
   slot.append(delBtn,saveBtn);slot.style.display='flex';
 }
@@ -1709,39 +1745,41 @@ const SUPABASE_FUNCTION_URL='https://rkubnugczjlsxskomknm.supabase.co/functions/
 async function aiGenerate(vegId){
   const veg=vegMaster[vegId];if(!veg)return;
   const inUse=Object.values(cells).some(c=>c.crop===vegId);
-  if(inUse&&!confirm(`「${veg.name}」は区画に登録されています。\n工程表を再生成するとタスクの記録（チェック済み）がリセットされます。続けますか？`))return;
-  const btn=document.getElementById('btn-ai-gen');
-  if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2"></i>生成中...';}
-  try{
-    const res=await fetch(SUPABASE_FUNCTION_URL,{
-      method:'POST',
-      headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY},
-      body:JSON.stringify({
-        vegName:veg.name,
-        family:veg.family||'',
-        growMethod:veg.growMethod||'seedling',
-        season:veg.season||'',
-        region:veg.region||'',
-        referenceUrl:veg.referenceUrl||''
-      })
-    });
-    if(!res.ok){const e=await res.json();throw new Error(e.error||'生成に失敗しました');}
-    const data=await res.json();
-    if(!data.phases||!data.phases.length)throw new Error('工程表データが空です');
-    // idを確実にユニーク化
-    data.phases.forEach((p,pi)=>{
-      p.id=`p${pi+1}`;
-      p.tasks.forEach((t,ti)=>{t.id=`t_${pi+1}_${ti+1}_${Math.random().toString(36).slice(2,5)}`;});
-    });
-    vegMaster[vegId].phases=data.phases;
-    if(data.basicInfo)vegMaster[vegId].basicInfo=data.basicInfo;
-    saveLS();renderMasterDetail();
-    alert(`「${veg.name}」の工程表と基礎知識をAIで生成しました！`);
-  }catch(e){
-    alert(`生成エラー：${e.message}`);
-  }finally{
-    if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-sparkles"></i>再生成';}
-  }
+  const doGenerate=async()=>{
+    const btn=document.getElementById('btn-ai-gen');
+    if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2"></i>生成中...';}
+    try{
+      const res=await fetch(SUPABASE_FUNCTION_URL,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY},
+        body:JSON.stringify({
+          vegName:veg.name,
+          family:veg.family||'',
+          growMethod:veg.growMethod||'seedling',
+          season:veg.season||'',
+          region:veg.region||'',
+          referenceUrl:veg.referenceUrl||''
+        })
+      });
+      if(!res.ok){const e=await res.json();throw new Error(e.error||'生成に失敗しました');}
+      const data=await res.json();
+      if(!data.phases||!data.phases.length)throw new Error('工程表データが空です');
+      data.phases.forEach((p,pi)=>{
+        p.id=`p${pi+1}`;
+        p.tasks.forEach((t,ti)=>{t.id=`t_${pi+1}_${ti+1}_${Math.random().toString(36).slice(2,5)}`;});
+      });
+      vegMaster[vegId].phases=data.phases;
+      if(data.basicInfo)vegMaster[vegId].basicInfo=data.basicInfo;
+      saveLS();renderMasterDetail();
+      showAlert(`「${veg.name}」の工程表と基礎知識をAIで生成しました！`);
+    }catch(e){
+      showAlert(`生成エラー：${e.message}`);
+    }finally{
+      if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-sparkles"></i>再生成';}
+    }
+  };
+  if(inUse){showConfirm(`「${veg.name}」は区画に登録されています。\n工程表を再生成するとタスクの記録（チェック済み）がリセットされます。続けますか？`,doGenerate);return;}
+  doGenerate();
 }
 
 
