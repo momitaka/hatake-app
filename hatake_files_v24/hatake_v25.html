@@ -1763,7 +1763,12 @@ function renderMasterDetail(){
           const topRow=document.createElement('div');topRow.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:6px';
           const badge=document.createElement('div');badge.style.cssText='font-size:var(--fs-xs);padding:1px 6px;border-radius:99px;'+badgeStyle;badge.textContent=typeLabel;
           topRow.appendChild(badge);
-          if(canEdit){const delBtn=document.createElement('button');delBtn.innerHTML='<i class="ti ti-x" style="font-size:var(--fs-xs)"></i>';delBtn.style.cssText='background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);padding:2px';delBtn.addEventListener('click',()=>{vegMaster[veg.id].basicInfo[typeKey].splice(idx,1);renderDiseaseSection();});topRow.appendChild(delBtn);}
+          if(canEdit){
+            const upBtn=document.createElement('button');upBtn.innerHTML='<i class="ti ti-chevron-up" style="font-size:var(--fs-xs)"></i>';upBtn.style.cssText='background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);padding:2px';upBtn.addEventListener('click',()=>{if(idx===0)return;const arr=vegMaster[veg.id].basicInfo[typeKey];[arr[idx-1],arr[idx]]=[arr[idx],arr[idx-1]];renderDiseaseSection();});
+            const downBtn=document.createElement('button');downBtn.innerHTML='<i class="ti ti-chevron-down" style="font-size:var(--fs-xs)"></i>';downBtn.style.cssText='background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);padding:2px';downBtn.addEventListener('click',()=>{const arr=vegMaster[veg.id].basicInfo[typeKey];if(idx>=arr.length-1)return;[arr[idx],arr[idx+1]]=[arr[idx+1],arr[idx]];renderDiseaseSection();});
+            const delBtn=document.createElement('button');delBtn.innerHTML='<i class="ti ti-x" style="font-size:var(--fs-xs)"></i>';delBtn.style.cssText='background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);padding:2px';delBtn.addEventListener('click',()=>{vegMaster[veg.id].basicInfo[typeKey].splice(idx,1);renderDiseaseSection();});
+            topRow.append(upBtn,downBtn,delBtn);
+          }
           card.appendChild(topRow);
           function cardField(label,key2){
             const w=document.createElement('div');w.style.cssText='margin-bottom:6px';
