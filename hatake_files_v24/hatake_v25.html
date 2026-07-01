@@ -1751,7 +1751,9 @@ function renderMasterDetail(){
     s5.append(biField('連作障害','continuousCropping',null,true),biField('受粉','pollination',null,false));
     scroll.appendChild(s5);
     // 病気・害虫
+    const hasDiseases=(bi.diseases&&bi.diseases.length)||(bi.pests&&bi.pests.length);
     const s6=biSection('病気・害虫と対策','ti-bug');
+    if(!hasDiseases){const emp=document.createElement('div');emp.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary);padding:4px 0 8px';emp.textContent='データがありません';s6.appendChild(emp);}
     function diseaseBlock(typeKey,typeLabel){
       const items=(bi[typeKey]||[]);
       items.forEach((item,idx)=>{
