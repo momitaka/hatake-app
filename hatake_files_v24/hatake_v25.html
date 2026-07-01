@@ -1751,29 +1751,47 @@ function renderMasterDetail(){
     s5.append(biField('連作障害','continuousCropping',null,true),biField('受粉','pollination',null,false));
     scroll.appendChild(s5);
     // 病気・害虫
-    const hasDiseases=(bi.diseases&&bi.diseases.length)||(bi.pests&&bi.pests.length);
     const s6=biSection('病気・害虫と対策','ti-bug');
-    if(!hasDiseases){const emp=document.createElement('div');emp.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary);padding:4px 0 8px';emp.textContent='データがありません';s6.appendChild(emp);}
-    function diseaseBlock(typeKey,typeLabel){
-      const items=(bi[typeKey]||[]);
-      items.forEach((item,idx)=>{
-        const card=document.createElement('div');card.style.cssText='border:0.5px solid var(--color-border-secondary);border-radius:8px;padding:8px 10px;margin-bottom:8px;background:var(--color-background-primary)';
-        const badge=document.createElement('div');badge.style.cssText='font-size:var(--fs-xs);padding:1px 6px;border-radius:99px;display:inline-block;margin-bottom:6px;'+(typeLabel==='病気'?'background:#FAECE7;color:#993C1D':'background:#FFF3E0;color:#92600B');badge.textContent=typeLabel;
-        card.appendChild(badge);
-        function cardField(label,key2){
-          const w=document.createElement('div');w.style.cssText='margin-bottom:6px';
-          const l=document.createElement('div');l.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-bottom:2px';l.textContent=label;
-          const inp=document.createElement('input');inp.type='text';inp.style.cssText='width:100%;font-size:var(--fs-sm);padding:4px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);box-sizing:border-box';
-          inp.value=item[key2]||'';inp.readOnly=!canEdit;
-          if(canEdit)inp.addEventListener('input',()=>{if(!vegMaster[veg.id].basicInfo[typeKey])vegMaster[veg.id].basicInfo[typeKey]=[];vegMaster[veg.id].basicInfo[typeKey][idx][key2]=inp.value;});
-          w.append(l,inp);return w;
-        }
-        card.append(cardField('名前','name'),cardField('症状','symptoms'),cardField('対策','treatment'));
-        s6.appendChild(card);
-      });
+    function renderDiseaseSection(){
+      s6.querySelectorAll('.disease-card,.disease-add-row').forEach(el=>el.remove());
+      function diseaseBlock(typeKey,typeLabel){
+        if(!vegMaster[veg.id].basicInfo[typeKey])vegMaster[veg.id].basicInfo[typeKey]=[];
+        const items=vegMaster[veg.id].basicInfo[typeKey];
+        const badgeStyle=typeLabel==='病気'?'background:#FAECE7;color:#993C1D':'background:#FFF3E0;color:#92600B';
+        items.forEach((item,idx)=>{
+          const card=document.createElement('div');card.className='disease-card';card.style.cssText='border:0.5px solid var(--color-border-secondary);border-radius:8px;padding:8px 10px;margin-bottom:8px;background:var(--color-background-primary);position:relative';
+          const topRow=document.createElement('div');topRow.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:6px';
+          const badge=document.createElement('div');badge.style.cssText='font-size:var(--fs-xs);padding:1px 6px;border-radius:99px;'+badgeStyle;badge.textContent=typeLabel;
+          topRow.appendChild(badge);
+          if(canEdit){const delBtn=document.createElement('button');delBtn.innerHTML='<i class="ti ti-x" style="font-size:var(--fs-xs)"></i>';delBtn.style.cssText='background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);padding:2px';delBtn.addEventListener('click',()=>{vegMaster[veg.id].basicInfo[typeKey].splice(idx,1);renderDiseaseSection();});topRow.appendChild(delBtn);}
+          card.appendChild(topRow);
+          function cardField(label,key2){
+            const w=document.createElement('div');w.style.cssText='margin-bottom:6px';
+            const l=document.createElement('div');l.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-bottom:2px';l.textContent=label;
+            const inp=document.createElement('input');inp.type='text';inp.style.cssText='width:100%;font-size:var(--fs-sm);padding:4px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);box-sizing:border-box';
+            inp.value=item[key2]||'';inp.readOnly=!canEdit;
+            if(canEdit)inp.addEventListener('input',()=>{vegMaster[veg.id].basicInfo[typeKey][idx][key2]=inp.value;});
+            w.append(l,inp);return w;
+          }
+          card.append(cardField('名前','name'),cardField('症状','symptoms'),cardField('対策','treatment'));
+          s6.appendChild(card);
+        });
+      }
+      diseaseBlock('diseases','病気');
+      diseaseBlock('pests','害虫');
+      if(!(bi.diseases&&bi.diseases.length)&&!(bi.pests&&bi.pests.length)){const emp=document.createElement('div');emp.className='disease-card';emp.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary);padding:4px 0 8px';emp.textContent='データがありません';s6.appendChild(emp);}
+      if(canEdit){
+        const addRow=document.createElement('div');addRow.className='disease-add-row';addRow.style.cssText='display:flex;gap:8px;margin-top:4px';
+        ['病気','害虫'].forEach(label=>{
+          const typeKey=label==='病気'?'diseases':'pests';
+          const btn=document.createElement('button');btn.className='master-add-task-btn';btn.innerHTML=`<i class="ti ti-plus" style="font-size:var(--fs-xs)"></i>${label}を追加`;
+          btn.addEventListener('click',()=>{if(!vegMaster[veg.id].basicInfo[typeKey])vegMaster[veg.id].basicInfo[typeKey]=[];vegMaster[veg.id].basicInfo[typeKey].push({name:'',symptoms:'',treatment:''});renderDiseaseSection();});
+          addRow.appendChild(btn);
+        });
+        s6.appendChild(addRow);
+      }
     }
-    diseaseBlock('diseases','病気');
-    diseaseBlock('pests','害虫');
+    renderDiseaseSection();
     scroll.appendChild(s6);
   } else {
     // 工程表タブ
