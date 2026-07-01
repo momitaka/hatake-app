@@ -1711,7 +1711,7 @@ function renderMasterDetail(){
   if(isAdmin){aiBanner.innerHTML=`<div class="ai-banner-text">${hasRM?'工程表・基礎情報が生成済みです。再生成で上書きできます。':'工程表と基礎情報がありません。AIで自動生成できます。'}</div><button class="btn-ai" id="btn-ai-gen"><i class="ti ti-sparkles"></i>${hasRM?'再生成':'AIで生成'}</button>`;aiBanner.querySelector('#btn-ai-gen').addEventListener('click',()=>aiGenerate(veg.id));scroll.append(hdr,aiBanner);}else{scroll.appendChild(hdr);}
   // タブバー（基礎情報 / 工程表）
   const tabBar=document.createElement('div');tabBar.className='tab-bar';tabBar.style.margin='0 0 12px';
-  [{id:'basic',label:'基礎情報',icon:'ti-info-circle'},{id:'roadmap',label:'工程表',icon:'ti-road'}].forEach(t=>{
+  [{id:'basic',label:'基礎知識',icon:'ti-info-circle'},{id:'roadmap',label:'工程表',icon:'ti-road'}].forEach(t=>{
     const btn=document.createElement('div');btn.className='tab-btn'+(masterDetailTab===t.id?' active':'');
     btn.innerHTML=`<i class="ti ${t.icon}" style="font-size:var(--fs-sm)"></i>${t.label}`;
     btn.addEventListener('click',()=>{masterDetailTab=t.id;renderMasterDetail();});
@@ -1721,7 +1721,7 @@ function renderMasterDetail(){
   if(masterDetailTab==='basic'){
     // 基礎情報タブ
     const bi=veg.basicInfo;
-    if(!bi){const emp=document.createElement('div');emp.style.cssText='text-align:center;padding:40px 20px;color:var(--color-text-tertiary);font-size:var(--fs-sm)';emp.innerHTML='<i class="ti ti-sparkles" style="font-size:28px;display:block;margin-bottom:8px"></i>AIで生成すると基礎情報が表示されます';scroll.appendChild(emp);renderMasterSaveBar(col,veg);return;}
+    if(!bi){const emp=document.createElement('div');emp.style.cssText='text-align:center;padding:40px 20px;color:var(--color-text-tertiary);font-size:var(--fs-sm)';emp.innerHTML='<i class="ti ti-sparkles" style="font-size:28px;display:block;margin-bottom:8px"></i>AIで生成すると基礎知識が表示されます';scroll.appendChild(emp);renderMasterSaveBar(col,veg);return;}
     const canEdit=requireSupervisor();
     function biField(label,key,subkey,multiline){
       const wrap=document.createElement('div');wrap.style.cssText='margin-bottom:10px';
@@ -1741,14 +1741,14 @@ function renderMasterDetail(){
     const s2=biSection('育成時期の目安','ti-calendar');
     [['土づくり','soilPrep'],['蒔きどき','sowing'],['定植時期','planting'],['第一花','firstFlower'],['収穫時期','harvest']].forEach(([label,key])=>s2.appendChild(biField(label,'seasons',key,false)));
     scroll.appendChild(s2);
-    const s3=biSection('管理のポイント','ti-droplet');
-    s3.append(biField('水やり','water',null,true),biField('施肥','fertilizer',null,true));
+    const s3=biSection('発芽・生育特性','ti-seedling');
+    s3.append(biField('発芽適温','germinationTemp',null,false),biField('積算気温','germinationAccumulatedTemp',null,false),biField('光への反応','lightPreference',null,false),biField('酸素の好み','oxygenNeeds',null,false),biField('休眠','dormancy',null,false),biField('光周性','photoperiod',null,false));
     scroll.appendChild(s3);
-    const s4=biSection('コンパニオンプランツ','ti-plant');
-    s4.append(biField('相性の良い野菜','companions',null,false),biField('避けた方が良い野菜','avoid',null,false));
+    const s4=biSection('環境への耐性','ti-thermometer');
+    s4.append(biField('耐寒性','coldTolerance',null,false),biField('耐暑性','heatTolerance',null,false),biField('耐乾性','droughtTolerance',null,false),biField('耐湿性','wetTolerance',null,false),biField('耐病虫性','pestResistance',null,false));
     scroll.appendChild(s4);
-    const s5=biSection('備考','ti-notes');
-    s5.append(biField('難易度','difficulty',null,false),biField('メモ','notes',null,true));
+    const s5=biSection('栽培ポイント','ti-tool');
+    s5.append(biField('連作障害','continuousCropping',null,true),biField('受粉','pollination',null,false));
     scroll.appendChild(s5);
   } else {
     // 工程表タブ
