@@ -1750,6 +1750,29 @@ function renderMasterDetail(){
     const s5=biSection('栽培ポイント','ti-tool');
     s5.append(biField('連作障害','continuousCropping',null,true),biField('受粉','pollination',null,false));
     scroll.appendChild(s5);
+    // 病気・害虫
+    const s6=biSection('病気・害虫と対策','ti-bug');
+    function diseaseBlock(typeKey,typeLabel){
+      const items=(bi[typeKey]||[]);
+      items.forEach((item,idx)=>{
+        const card=document.createElement('div');card.style.cssText='border:0.5px solid var(--color-border-secondary);border-radius:8px;padding:8px 10px;margin-bottom:8px;background:var(--color-background-primary)';
+        const badge=document.createElement('div');badge.style.cssText='font-size:var(--fs-xs);padding:1px 6px;border-radius:99px;display:inline-block;margin-bottom:6px;'+(typeLabel==='病気'?'background:#FAECE7;color:#993C1D':'background:#FFF3E0;color:#92600B');badge.textContent=typeLabel;
+        card.appendChild(badge);
+        function cardField(label,key2){
+          const w=document.createElement('div');w.style.cssText='margin-bottom:6px';
+          const l=document.createElement('div');l.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-bottom:2px';l.textContent=label;
+          const inp=document.createElement('input');inp.type='text';inp.style.cssText='width:100%;font-size:var(--fs-sm);padding:4px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);box-sizing:border-box';
+          inp.value=item[key2]||'';inp.readOnly=!canEdit;
+          if(canEdit)inp.addEventListener('input',()=>{if(!vegMaster[veg.id].basicInfo[typeKey])vegMaster[veg.id].basicInfo[typeKey]=[];vegMaster[veg.id].basicInfo[typeKey][idx][key2]=inp.value;});
+          w.append(l,inp);return w;
+        }
+        card.append(cardField('名前','name'),cardField('症状','symptoms'),cardField('対策','treatment'));
+        s6.appendChild(card);
+      });
+    }
+    diseaseBlock('diseases','病気');
+    diseaseBlock('pests','害虫');
+    scroll.appendChild(s6);
   } else {
     // 工程表タブ
     if(!hasRM){const emp=document.createElement('div');emp.style.cssText='font-size:var(--fs-xs);color:#9c9a93;padding:12px 0;text-align:center';emp.textContent='工程表を生成すると編集できます';scroll.appendChild(emp);renderMasterSaveBar(col,veg);return;}
