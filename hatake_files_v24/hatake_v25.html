@@ -770,7 +770,7 @@ let aisleRows=[],aisleCols=[];
 let farmNameFont='Kaisei Opti';
 let farmIcon='';
 let dragging=false,dragRow=-1,dragStartCol=-1,dragEndCol=-1,pendingRow=-1,pendingStart=-1,pendingEnd=-1;
-let currentSeg=null,currentTab='roadmap',selectedMasterVeg=null,addVegEmoji='🌱',addVegIconFile=null,fromRegDlg=false,farmName='';
+let currentSeg=null,currentTab='roadmap',selectedMasterVeg=null,masterDetailTab='roadmap',addVegEmoji='🌱',addVegIconFile=null,fromRegDlg=false,farmName='';
 let settingsOpen=false;
 
 const K=(r,c)=>`${r},${c}`;
@@ -1709,41 +1709,85 @@ function renderMasterDetail(){
   const hdr=document.createElement('div');hdr.className='master-detail-header';hdr.innerHTML=`<span class="master-detail-icon">${vegIconHtml(veg,30)}</span><div><div class="master-detail-name">${veg.name}</div><div class="master-detail-sub">${veg.variety||'標準'} ／ ${veg.family||'科未設定'}</div></div>`;
   const growBlock=document.createElement('div');growBlock.classList.add('admin-only');growBlock.style.cssText='margin-bottom:12px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary)';const growLabel=document.createElement('div');growLabel.style.cssText='font-size:var(--fs-xs);font-weight:500;color:var(--color-text-secondary);margin-bottom:8px';growLabel.textContent='栽培設定';const growRow=document.createElement('div');growRow.style.cssText='display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end';const growMethodWrap=document.createElement('div');growMethodWrap.style.cssText='display:flex;flex-direction:column;gap:3px;flex:1;min-width:120px';const growMethodLbl=document.createElement('div');growMethodLbl.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary)';growMethodLbl.textContent='育成方法';const growMethodSel=document.createElement('select');growMethodSel.style.cssText='font-size:var(--fs-sm);padding:5px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)';[{v:'seedling',l:'苗から'},{v:'seed_pot',l:'種（ポット）から'},{v:'seed_ground',l:'種（地植え）から'}].forEach(opt=>{const o=document.createElement('option');o.value=opt.v;o.textContent=opt.l;if((veg.growMethod||'seedling')===opt.v)o.selected=true;growMethodSel.appendChild(o);});if(!requireAdmin())growMethodSel.disabled=true;else growMethodSel.addEventListener('change',()=>{vegMaster[veg.id].growMethod=growMethodSel.value;});growMethodWrap.append(growMethodLbl,growMethodSel);const refUrlWrap=document.createElement('div');refUrlWrap.style.cssText='display:flex;flex-direction:column;gap:3px;flex:2;min-width:160px';const refUrlLbl=document.createElement('div');refUrlLbl.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary)';refUrlLbl.innerHTML='<i class="ti ti-link" style="font-size:var(--fs-xs)"></i> 参考URL（AI生成に使用）';const refUrlIn=document.createElement('input');refUrlIn.type='url';refUrlIn.style.cssText='font-size:var(--fs-sm);padding:5px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);width:100%';refUrlIn.placeholder='https://...';refUrlIn.value=veg.referenceUrl||'';if(!requireAdmin())refUrlIn.readOnly=true;else refUrlIn.addEventListener('input',()=>{vegMaster[veg.id].referenceUrl=refUrlIn.value;});refUrlWrap.append(refUrlLbl,refUrlIn);growRow.append(growMethodWrap,refUrlWrap);growBlock.append(growLabel,growRow);scroll.appendChild(growBlock);const aiBanner=document.createElement('div');aiBanner.className='ai-banner';aiBanner.style.margin='0 0 12px';const hasRM=veg.phases&&veg.phases.length>0;
   if(isAdmin){aiBanner.innerHTML=`<div class="ai-banner-text">${hasRM?'工程表・基礎情報が生成済みです。再生成で上書きできます。':'工程表と基礎情報がありません。AIで自動生成できます。'}</div><button class="btn-ai" id="btn-ai-gen"><i class="ti ti-sparkles"></i>${hasRM?'再生成':'AIで生成'}</button>`;aiBanner.querySelector('#btn-ai-gen').addEventListener('click',()=>aiGenerate(veg.id));scroll.append(hdr,aiBanner);}else{scroll.appendChild(hdr);}
-  if(!hasRM){const emp=document.createElement('div');emp.style.cssText='font-size:var(--fs-xs);color:#9c9a93;padding:12px 0;text-align:center';emp.textContent='工程表を生成すると編集できます';scroll.appendChild(emp);renderMasterSaveBar(col,veg);return;}
-  const hint=document.createElement('div');hint.style.cssText='font-size:var(--fs-xs);color:var(--color-text-secondary);background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:8px 12px;margin-bottom:10px;line-height:1.6';
-  const _gm2=veg.growMethod||'seedling';const _isSeed2=_gm2==='seed_pot'||_gm2==='seed_ground';
-  hint.textContent=_isSeed2?'日数は種まき（播種）を0日とした目安です。工程表で種まきの実施日/予定日を記録すると、それを基準に各タスクのスケジュールが自動計算されます。':'日数は苗を植えた日（定植）を0日とした目安です。工程表で定植の実施日/予定日を記録すると、それを基準に各タスクのスケジュールが自動計算されます。';
-  scroll.appendChild(hint);
-  veg.phases.forEach((phase,pi)=>{
-    const pb=document.createElement('div');pb.className='master-phase-block';const ph=document.createElement('div');ph.className='master-phase-header';ph.innerHTML=`<div class="phase-radio active" style="flex-shrink:0"></div><span class="master-phase-label">${phase.name}（${phase.period}）</span>`;pb.appendChild(ph);
-    phase.tasks.forEach((task,ti)=>{
-      const tr=document.createElement('div');tr.className='master-task-row';const th=document.createElement('div');th.className='master-task-header';
-      const nameIn=document.createElement('input');nameIn.type='text';nameIn.className='master-task-name-input';nameIn.value=task.name;nameIn.placeholder='タスク名';
-      const dayIn=document.createElement('input');dayIn.type='number';dayIn.className='master-task-day-input';dayIn.value=task.day;const dayLbl=document.createElement('span');dayLbl.style.cssText='font-size:var(--fs-xs);color:#9c9a93';dayLbl.textContent='日';
-      const upBtn=document.createElement('button');upBtn.className='master-task-del';upBtn.innerHTML='<i class="ti ti-chevron-up" style="font-size:var(--fs-sm)"></i>';upBtn.title='上へ';
-      const downBtn=document.createElement('button');downBtn.className='master-task-del';downBtn.innerHTML='<i class="ti ti-chevron-down" style="font-size:var(--fs-sm)"></i>';downBtn.title='下へ';
-      const delBtn=document.createElement('button');delBtn.className='master-task-del';delBtn.innerHTML='<i class="ti ti-x" style="font-size:var(--fs-sm)"></i>';th.append(nameIn,dayIn,dayLbl,upBtn,downBtn,delBtn);
-      const tbody=document.createElement('div');tbody.className='master-task-body';const memoLbl=document.createElement('div');memoLbl.className='master-task-label';memoLbl.textContent='作業メモ';const memoIn=document.createElement('textarea');memoIn.className='master-task-memo';memoIn.placeholder='作業内容の補足';memoIn.value=task.memo||'';const urlLbl=document.createElement('div');urlLbl.className='master-task-label';urlLbl.innerHTML='<i class="ti ti-brand-youtube" style="font-size:var(--fs-xs);margin-right:2px"></i>参考動画URL';const urlIn=document.createElement('input');urlIn.type='url';urlIn.className='master-task-url';urlIn.placeholder='https://...';urlIn.value=task.url||'';
-      tbody.append(memoLbl,memoIn,urlLbl,urlIn);tr.append(th,tbody);pb.appendChild(tr);
-      if(!requireSupervisor()){nameIn.readOnly=true;dayIn.readOnly=true;memoIn.readOnly=true;urlIn.readOnly=true;upBtn.style.display='none';downBtn.style.display='none';delBtn.style.display='none';}else{
-        const inUse=Object.values(cells).some(c=>c.crop===veg.id);
-        nameIn.addEventListener('input',()=>{vegMaster[veg.id].phases[pi].tasks[ti].name=nameIn.value;});
-        dayIn.addEventListener('input',()=>{vegMaster[veg.id].phases[pi].tasks[ti].day=parseInt(dayIn.value)||0;});
-        memoIn.addEventListener('input',()=>{vegMaster[veg.id].phases[pi].tasks[ti].memo=memoIn.value;});
-        urlIn.addEventListener('input',()=>{vegMaster[veg.id].phases[pi].tasks[ti].url=urlIn.value;});
-        upBtn.addEventListener('click',()=>{if(ti===0)return;const tasks=vegMaster[veg.id].phases[pi].tasks;[tasks[ti-1],tasks[ti]]=[tasks[ti],tasks[ti-1]];saveLS();renderMasterDetail();});
-        downBtn.addEventListener('click',()=>{const tasks=vegMaster[veg.id].phases[pi].tasks;if(ti>=tasks.length-1)return;[tasks[ti],tasks[ti+1]]=[tasks[ti+1],tasks[ti]];saveLS();renderMasterDetail();});
-        delBtn.addEventListener('click',()=>{
-          const doDelete=()=>{vegMaster[veg.id].phases[pi].tasks.splice(ti,1);saveLS();renderMasterDetail();};
-          if(inUse){showConfirm(`このタスクを削除すると、この野菜を使用中の区画の記録が参照できなくなる場合があります。\n削除しますか？`,doDelete);return;}
-          doDelete();
-        });
-      }
-    });
-    const addTaskBtn=document.createElement('button');addTaskBtn.className='master-add-task-btn';addTaskBtn.innerHTML='<i class="ti ti-plus" style="font-size:var(--fs-xs)"></i>タスクを追加';addTaskBtn.classList.add('supervisor-only');if(isSupervisor){addTaskBtn.addEventListener('click',()=>{vegMaster[veg.id].phases[pi].tasks.push({id:`t_${Date.now()}`,name:'',desc:'',day:0,memo:'',url:''});renderMasterDetail();});}
-    const addPestBtn=document.createElement('button');addPestBtn.className='master-add-task-btn';addPestBtn.style.cssText='color:#92400e;border-color:#f59e0b';addPestBtn.innerHTML='<i class="ti ti-bug" style="font-size:var(--fs-xs)"></i>病害虫チェックを追加';addPestBtn.classList.add('supervisor-only');if(isSupervisor){addPestBtn.addEventListener('click',()=>{vegMaster[veg.id].phases[pi].tasks.push({id:`t_${Date.now()}`,name:'',desc:'',day:0,memo:'',url:'',type:'pest'});renderMasterDetail();});}
-    const btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:6px;flex-wrap:wrap';btnRow.append(addTaskBtn,addPestBtn);pb.appendChild(btnRow);scroll.appendChild(pb);
+  // タブバー（基礎情報 / 工程表）
+  const tabBar=document.createElement('div');tabBar.className='tab-bar';tabBar.style.margin='0 0 12px';
+  [{id:'basic',label:'基礎情報',icon:'ti-info-circle'},{id:'roadmap',label:'工程表',icon:'ti-road'}].forEach(t=>{
+    const btn=document.createElement('div');btn.className='tab-btn'+(masterDetailTab===t.id?' active':'');
+    btn.innerHTML=`<i class="ti ${t.icon}" style="font-size:var(--fs-sm)"></i>${t.label}`;
+    btn.addEventListener('click',()=>{masterDetailTab=t.id;renderMasterDetail();});
+    tabBar.appendChild(btn);
   });
+  scroll.appendChild(tabBar);
+  if(masterDetailTab==='basic'){
+    // 基礎情報タブ
+    const bi=veg.basicInfo;
+    if(!bi){const emp=document.createElement('div');emp.style.cssText='text-align:center;padding:40px 20px;color:var(--color-text-tertiary);font-size:var(--fs-sm)';emp.innerHTML='<i class="ti ti-sparkles" style="font-size:28px;display:block;margin-bottom:8px"></i>AIで生成すると基礎情報が表示されます';scroll.appendChild(emp);renderMasterSaveBar(col,veg);return;}
+    const canEdit=requireSupervisor();
+    function biField(label,key,subkey,multiline){
+      const wrap=document.createElement('div');wrap.style.cssText='margin-bottom:10px';
+      const lbl=document.createElement('div');lbl.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-bottom:3px';lbl.textContent=label;
+      const val=subkey?(bi[key]&&bi[key][subkey])||'':(bi[key]||'');
+      let inp;
+      if(multiline){inp=document.createElement('textarea');inp.style.cssText='width:100%;font-size:var(--fs-sm);padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);resize:vertical;min-height:60px;box-sizing:border-box';inp.rows=2;}
+      else{inp=document.createElement('input');inp.type='text';inp.style.cssText='width:100%;font-size:var(--fs-sm);padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);box-sizing:border-box';}
+      inp.value=val;inp.readOnly=!canEdit;
+      if(canEdit)inp.addEventListener('input',()=>{if(!vegMaster[veg.id].basicInfo)vegMaster[veg.id].basicInfo={};if(subkey){if(!vegMaster[veg.id].basicInfo[key])vegMaster[veg.id].basicInfo[key]={};vegMaster[veg.id].basicInfo[key][subkey]=inp.value;}else{vegMaster[veg.id].basicInfo[key]=inp.value;}});
+      wrap.append(lbl,inp);return wrap;
+    }
+    function biSection(title,icon){const s=document.createElement('div');s.style.cssText='margin-bottom:14px';const h=document.createElement('div');h.style.cssText='font-size:var(--fs-sm);font-weight:700;color:var(--color-text-secondary);margin-bottom:8px;display:flex;align-items:center;gap:5px;border-bottom:1px solid var(--color-border-tertiary);padding-bottom:4px';h.innerHTML=`<i class="ti ${icon}" style="font-size:var(--fs-base)"></i>${title}`;s.appendChild(h);return s;}
+    const s1=biSection('基本情報','ti-info-circle');
+    s1.append(biField('サイズ','size',null,false),biField('収穫目安','yieldPerPlant',null,false),biField('適正pH','soilPH',null,false),biField('根の深さ','rootDepth',null,false));
+    scroll.appendChild(s1);
+    const s2=biSection('育成時期の目安','ti-calendar');
+    [['土づくり','soilPrep'],['蒔きどき','sowing'],['定植時期','planting'],['第一花','firstFlower'],['収穫時期','harvest']].forEach(([label,key])=>s2.appendChild(biField(label,'seasons',key,false)));
+    scroll.appendChild(s2);
+    const s3=biSection('管理のポイント','ti-droplet');
+    s3.append(biField('水やり','water',null,true),biField('施肥','fertilizer',null,true));
+    scroll.appendChild(s3);
+    const s4=biSection('コンパニオンプランツ','ti-plant');
+    s4.append(biField('相性の良い野菜','companions',null,false),biField('避けた方が良い野菜','avoid',null,false));
+    scroll.appendChild(s4);
+    const s5=biSection('備考','ti-notes');
+    s5.append(biField('難易度','difficulty',null,false),biField('メモ','notes',null,true));
+    scroll.appendChild(s5);
+  } else {
+    // 工程表タブ
+    if(!hasRM){const emp=document.createElement('div');emp.style.cssText='font-size:var(--fs-xs);color:#9c9a93;padding:12px 0;text-align:center';emp.textContent='工程表を生成すると編集できます';scroll.appendChild(emp);renderMasterSaveBar(col,veg);return;}
+    const hint=document.createElement('div');hint.style.cssText='font-size:var(--fs-xs);color:var(--color-text-secondary);background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:8px 12px;margin-bottom:10px;line-height:1.6';
+    const _gm2=veg.growMethod||'seedling';const _isSeed2=_gm2==='seed_pot'||_gm2==='seed_ground';
+    hint.textContent=_isSeed2?'日数は種まき（播種）を0日とした目安です。工程表で種まきの実施日/予定日を記録すると、それを基準に各タスクのスケジュールが自動計算されます。':'日数は苗を植えた日（定植）を0日とした目安です。工程表で定植の実施日/予定日を記録すると、それを基準に各タスクのスケジュールが自動計算されます。';
+    scroll.appendChild(hint);
+    veg.phases.forEach((phase,pi)=>{
+      const pb=document.createElement('div');pb.className='master-phase-block';const ph=document.createElement('div');ph.className='master-phase-header';ph.innerHTML=`<div class="phase-radio active" style="flex-shrink:0"></div><span class="master-phase-label">${phase.name}（${phase.period}）</span>`;pb.appendChild(ph);
+      phase.tasks.forEach((task,ti)=>{
+        const tr=document.createElement('div');tr.className='master-task-row';const th=document.createElement('div');th.className='master-task-header';
+        const nameIn=document.createElement('input');nameIn.type='text';nameIn.className='master-task-name-input';nameIn.value=task.name;nameIn.placeholder='タスク名';
+        const dayIn=document.createElement('input');dayIn.type='number';dayIn.className='master-task-day-input';dayIn.value=task.day;const dayLbl=document.createElement('span');dayLbl.style.cssText='font-size:var(--fs-xs);color:#9c9a93';dayLbl.textContent='日';
+        const upBtn=document.createElement('button');upBtn.className='master-task-del';upBtn.innerHTML='<i class="ti ti-chevron-up" style="font-size:var(--fs-sm)"></i>';upBtn.title='上へ';
+        const downBtn=document.createElement('button');downBtn.className='master-task-del';downBtn.innerHTML='<i class="ti ti-chevron-down" style="font-size:var(--fs-sm)"></i>';downBtn.title='下へ';
+        const delBtn=document.createElement('button');delBtn.className='master-task-del';delBtn.innerHTML='<i class="ti ti-x" style="font-size:var(--fs-sm)"></i>';th.append(nameIn,dayIn,dayLbl,upBtn,downBtn,delBtn);
+        const tbody=document.createElement('div');tbody.className='master-task-body';const memoLbl=document.createElement('div');memoLbl.className='master-task-label';memoLbl.textContent='作業メモ';const memoIn=document.createElement('textarea');memoIn.className='master-task-memo';memoIn.placeholder='作業内容の補足';memoIn.value=task.memo||'';const urlLbl=document.createElement('div');urlLbl.className='master-task-label';urlLbl.innerHTML='<i class="ti ti-brand-youtube" style="font-size:var(--fs-xs);margin-right:2px"></i>参考動画URL';const urlIn=document.createElement('input');urlIn.type='url';urlIn.className='master-task-url';urlIn.placeholder='https://...';urlIn.value=task.url||'';
+        tbody.append(memoLbl,memoIn,urlLbl,urlIn);tr.append(th,tbody);pb.appendChild(tr);
+        if(!requireSupervisor()){nameIn.readOnly=true;dayIn.readOnly=true;memoIn.readOnly=true;urlIn.readOnly=true;upBtn.style.display='none';downBtn.style.display='none';delBtn.style.display='none';}else{
+          const inUse=Object.values(cells).some(c=>c.crop===veg.id);
+          nameIn.addEventListener('input',()=>{vegMaster[veg.id].phases[pi].tasks[ti].name=nameIn.value;});
+          dayIn.addEventListener('input',()=>{vegMaster[veg.id].phases[pi].tasks[ti].day=parseInt(dayIn.value)||0;});
+          memoIn.addEventListener('input',()=>{vegMaster[veg.id].phases[pi].tasks[ti].memo=memoIn.value;});
+          urlIn.addEventListener('input',()=>{vegMaster[veg.id].phases[pi].tasks[ti].url=urlIn.value;});
+          upBtn.addEventListener('click',()=>{if(ti===0)return;const tasks=vegMaster[veg.id].phases[pi].tasks;[tasks[ti-1],tasks[ti]]=[tasks[ti],tasks[ti-1]];saveLS();renderMasterDetail();});
+          downBtn.addEventListener('click',()=>{const tasks=vegMaster[veg.id].phases[pi].tasks;if(ti>=tasks.length-1)return;[tasks[ti],tasks[ti+1]]=[tasks[ti+1],tasks[ti]];saveLS();renderMasterDetail();});
+          delBtn.addEventListener('click',()=>{
+            const doDelete=()=>{vegMaster[veg.id].phases[pi].tasks.splice(ti,1);saveLS();renderMasterDetail();};
+            if(inUse){showConfirm(`このタスクを削除すると、この野菜を使用中の区画の記録が参照できなくなる場合があります。\n削除しますか？`,doDelete);return;}
+            doDelete();
+          });
+        }
+      });
+      const addTaskBtn=document.createElement('button');addTaskBtn.className='master-add-task-btn';addTaskBtn.innerHTML='<i class="ti ti-plus" style="font-size:var(--fs-xs)"></i>タスクを追加';addTaskBtn.classList.add('supervisor-only');if(isSupervisor){addTaskBtn.addEventListener('click',()=>{vegMaster[veg.id].phases[pi].tasks.push({id:`t_${Date.now()}`,name:'',desc:'',day:0,memo:'',url:''});renderMasterDetail();});}
+      const addPestBtn=document.createElement('button');addPestBtn.className='master-add-task-btn';addPestBtn.style.cssText='color:#92400e;border-color:#f59e0b';addPestBtn.innerHTML='<i class="ti ti-bug" style="font-size:var(--fs-xs)"></i>病害虫チェックを追加';addPestBtn.classList.add('supervisor-only');if(isSupervisor){addPestBtn.addEventListener('click',()=>{vegMaster[veg.id].phases[pi].tasks.push({id:`t_${Date.now()}`,name:'',desc:'',day:0,memo:'',url:'',type:'pest'});renderMasterDetail();});}
+      const btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:6px;flex-wrap:wrap';btnRow.append(addTaskBtn,addPestBtn);pb.appendChild(btnRow);scroll.appendChild(pb);
+    });
+  }
   renderMasterSaveBar(col,veg);
 }
 
