@@ -286,6 +286,8 @@ body{
 .status-pill{font-size:var(--fs-sm);padding:3px 10px;font-weight:700}
 
 .view-mode .admin-only{display:none !important}
+.view-mode .supervisor-only{display:none !important}
+.supervisor-mode .admin-only{display:none !important}
 @keyframes pulse-fade{0%,100%{opacity:1}50%{opacity:0.25}}
 .tap-to-start{animation:pulse-fade 2.4s ease-in-out infinite}
 
@@ -755,6 +757,7 @@ if(IS_DEV)document.addEventListener('DOMContentLoaded',()=>{
   document.querySelectorAll('.toolbar').forEach(t=>{if(getComputedStyle(t).position==='sticky')t.style.top=h+'px';});
 });
 let isAdmin=false;
+let isSupervisor=false; // youtuber_supervisor以上（supervisor + admin 両方）
 const MAX_UNDO=30;
 let COLS=8,ROWS=6,cells={},segs={},segTasks={},actionLogs={},harvestLogs={},segSummaryMemo={},vegMaster={},archivedSegs={},customIcons={},undoStack=[];
 let aisleRows=[],aisleCols=[];
@@ -948,6 +951,7 @@ document.getElementById('dlg-settings').addEventListener('mousedown',e=>{if(e.ta
 //               AI生成、設定変更、収穫削除、管理完了
 // ────────────────────────────────────────────────────────
 function requireAdmin(){return isAdmin;}
+function requireSupervisor(){return isSupervisor;}
 function applyPermissions(){
   const st=document.getElementById('admin-status');
   if(isAdmin){
@@ -982,8 +986,10 @@ document.getElementById('btn-admin-login').addEventListener('click',()=>{
 // 個人版 → 従来通りlocalStorageのhatake_adminフラグで判定
 if((window.APP_CONFIG&&window.APP_CONFIG.autoAdmin)){
   isAdmin=true;
+  isSupervisor=true;
 }else if(localStorage.getItem('hatake_admin')==='1'){
   isAdmin=true;
+  isSupervisor=true;
 }else{
   document.body.classList.add('view-mode');
 }
@@ -1713,7 +1719,7 @@ function renderMasterDetail(){
       const delBtn=document.createElement('button');delBtn.className='master-task-del';delBtn.innerHTML='<i class="ti ti-x" style="font-size:var(--fs-sm)"></i>';th.append(nameIn,dayIn,dayLbl,upBtn,downBtn,delBtn);
       const tbody=document.createElement('div');tbody.className='master-task-body';const memoLbl=document.createElement('div');memoLbl.className='master-task-label';memoLbl.textContent='作業メモ';const memoIn=document.createElement('textarea');memoIn.className='master-task-memo';memoIn.placeholder='作業内容の補足';memoIn.value=task.memo||'';const urlLbl=document.createElement('div');urlLbl.className='master-task-label';urlLbl.innerHTML='<i class="ti ti-brand-youtube" style="font-size:var(--fs-xs);margin-right:2px"></i>参考動画URL';const urlIn=document.createElement('input');urlIn.type='url';urlIn.className='master-task-url';urlIn.placeholder='https://...';urlIn.value=task.url||'';
       tbody.append(memoLbl,memoIn,urlLbl,urlIn);tr.append(th,tbody);pb.appendChild(tr);
-      if(!requireAdmin()){nameIn.readOnly=true;dayIn.readOnly=true;memoIn.readOnly=true;urlIn.readOnly=true;upBtn.style.display='none';downBtn.style.display='none';delBtn.style.display='none';}else{
+      if(!requireSupervisor()){nameIn.readOnly=true;dayIn.readOnly=true;memoIn.readOnly=true;urlIn.readOnly=true;upBtn.style.display='none';downBtn.style.display='none';delBtn.style.display='none';}else{
         const inUse=Object.values(cells).some(c=>c.crop===veg.id);
         nameIn.addEventListener('input',()=>{vegMaster[veg.id].phases[pi].tasks[ti].name=nameIn.value;});
         dayIn.addEventListener('input',()=>{vegMaster[veg.id].phases[pi].tasks[ti].day=parseInt(dayIn.value)||0;});
@@ -1728,8 +1734,8 @@ function renderMasterDetail(){
         });
       }
     });
-    const addTaskBtn=document.createElement('button');addTaskBtn.className='master-add-task-btn';addTaskBtn.innerHTML='<i class="ti ti-plus" style="font-size:var(--fs-xs)"></i>タスクを追加';addTaskBtn.classList.add('admin-only');if(isAdmin){addTaskBtn.addEventListener('click',()=>{vegMaster[veg.id].phases[pi].tasks.push({id:`t_${Date.now()}`,name:'',desc:'',day:0,memo:'',url:''});renderMasterDetail();});}
-    const addPestBtn=document.createElement('button');addPestBtn.className='master-add-task-btn';addPestBtn.style.cssText='color:#92400e;border-color:#f59e0b';addPestBtn.innerHTML='<i class="ti ti-bug" style="font-size:var(--fs-xs)"></i>病害虫チェックを追加';addPestBtn.classList.add('admin-only');if(isAdmin){addPestBtn.addEventListener('click',()=>{vegMaster[veg.id].phases[pi].tasks.push({id:`t_${Date.now()}`,name:'',desc:'',day:0,memo:'',url:'',type:'pest'});renderMasterDetail();});}
+    const addTaskBtn=document.createElement('button');addTaskBtn.className='master-add-task-btn';addTaskBtn.innerHTML='<i class="ti ti-plus" style="font-size:var(--fs-xs)"></i>タスクを追加';addTaskBtn.classList.add('supervisor-only');if(isSupervisor){addTaskBtn.addEventListener('click',()=>{vegMaster[veg.id].phases[pi].tasks.push({id:`t_${Date.now()}`,name:'',desc:'',day:0,memo:'',url:''});renderMasterDetail();});}
+    const addPestBtn=document.createElement('button');addPestBtn.className='master-add-task-btn';addPestBtn.style.cssText='color:#92400e;border-color:#f59e0b';addPestBtn.innerHTML='<i class="ti ti-bug" style="font-size:var(--fs-xs)"></i>病害虫チェックを追加';addPestBtn.classList.add('supervisor-only');if(isSupervisor){addPestBtn.addEventListener('click',()=>{vegMaster[veg.id].phases[pi].tasks.push({id:`t_${Date.now()}`,name:'',desc:'',day:0,memo:'',url:'',type:'pest'});renderMasterDetail();});}
     const btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:6px;flex-wrap:wrap';btnRow.append(addTaskBtn,addPestBtn);pb.appendChild(btnRow);scroll.appendChild(pb);
   });
   renderMasterSaveBar(col,veg);
@@ -2152,11 +2158,29 @@ loadFromDB().then(loaded=>{
             subscription_status: 'free'
           })
         });
+        isAdmin = false;
+        isSupervisor = false;
         window.APP_SUBSCRIBED = false;
+        document.body.classList.add('view-mode');
         _updateAuthUI(user, false);
       } else {
+        const role = rows[0].role;
         const isActive = rows[0].subscription_status === 'active';
-        window.APP_SUBSCRIBED = isActive;
+        // ロール判定
+        isAdmin = (role === 'platform_admin');
+        isSupervisor = (role === 'youtuber_supervisor' || isAdmin);
+        window.APP_SUBSCRIBED = isActive || isSupervisor;
+        // ボディクラス設定
+        if(isAdmin) {
+          document.body.classList.remove('view-mode','supervisor-mode');
+          document.body.classList.add('admin-mode');
+        } else if(isSupervisor) {
+          document.body.classList.remove('view-mode','admin-mode');
+          document.body.classList.add('supervisor-mode');
+        } else {
+          document.body.classList.remove('admin-mode','supervisor-mode');
+          document.body.classList.add('view-mode');
+        }
         _updateAuthUI(user, isActive);
         // サブスク有効ならsessionStorageのデータをSupabaseへ移行
         if(isActive) _migrateSessionToCloud(accessToken);
