@@ -9,24 +9,24 @@
   畑管理アプリ v25
   作成日: 2026-06-28 / Crafted with care by momitaka
   ----------------------------------------------------------------
-  【v25 変更内容】
-  - YouTuberコラボモデル対応：config/ ディレクトリから設定ファイルを
-    読み込み、アプリ名・テーマカラー・スプラッシュ・トップイラストを
-    動的に差し替える仕組みを追加
-  - URLパラメータ ?config=<name> で設定ファイルを切り替え可能
-    例: ?config=kagaku-jikyu → config/kagaku-jikyu.json を読む
-    未指定時は config/default.json（＝従来の「私の畑」）を使用
+  【v25 シナリオ2（マーケットプレイス型課金モデル）】
+  - ?config= によるチャンネル専用スキンは廃止。個人版(default)と
+    マーケットプレイス版(market)の2種類のみになった
+  - 監修者（チャンネル）情報はconfigファイルではなく、Supabaseの
+    creators/recipesテーブルで管理する（複数監修者のレシピを横断表示）
+  - URLパラメータ ?config=<name> は個人版/マーケットプレイス版の
+    切り替えにのみ使用。未指定時は config/default.json を使用
   - CSS変数 --theme-color / --accent-color をconfig値で上書き
 
   【現状】
   - default.json = 現行「私の畑」（モミタカさん実データ）完全互換
-  - kagaku-jikyu.json = 科学的に楽しく自給自足ch版（ダミーデータ）
+  - market.json = マーケットプレイス版の共通設定（会員=Supabase Authで管理）
   - Supabase app_data テーブルへの既存データは一切変更なし
+  - マイグレーション: supabase/migrations/20260702_v25_scenario2_marketplace.sql
 
   【次のステップ】
-  - splashImage / topIllustration に実際のURLまたはBase64を設定
-  - 各YouTuber版の recipes コンテンツ拡充
-  - ビルドスクリプトによる静的バンドル化（各YouTuber版ごとのHTML生成）
+  - マーケットプレイスUI（レシピ一覧・購入導線）の実装
+  - Stripe連携（Checkout・Webhook）
   ================================================================
 -->
 
@@ -288,6 +288,23 @@ body{
 .view-mode .admin-only{display:none !important}
 .view-mode .supervisor-only{display:none !important}
 .supervisor-mode .admin-only{display:none !important}
+.market-mode .admin-pw-only{display:none !important}
+.market-only{display:none !important}
+.market-mode .market-only{display:flex !important}
+.view-mode .diy-add-btn{display:none}
+.market-mode.view-mode .diy-add-btn{display:flex}
+.market-card{display:flex;gap:10px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:8px;cursor:pointer;margin-bottom:10px}
+.market-card:hover{background:var(--color-background-tertiary)}
+.market-thumb{position:relative;width:104px;height:64px;flex-shrink:0;border-radius:8px;overflow:hidden;background:#dce8d8}
+.market-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.market-thumb .market-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;text-shadow:0 1px 3px rgba(0,0,0,0.5)}
+.market-price{font-size:var(--fs-xs);padding:3px 8px;border-radius:999px;background:#d4f0b8;color:#27500a;display:inline-block;margin-top:3px}
+.market-detail-thumb{position:relative;border-radius:var(--border-radius-md);overflow:hidden;background:#dce8d8;aspect-ratio:16/9;margin-bottom:12px}
+.market-detail-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.market-detail-thumb .market-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:32px;text-shadow:0 1px 3px rgba(0,0,0,0.5)}
+.market-lock-box{position:relative;padding:12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);margin-bottom:12px}
+.market-lock-box .market-lock-lines div{height:8px;border-radius:4px;background:var(--color-border-secondary);margin-bottom:6px;filter:blur(2px)}
+.market-lock-box .market-lock-icon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--color-text-tertiary)}
 @keyframes pulse-fade{0%,100%{opacity:1}50%{opacity:0.25}}
 .tap-to-start{animation:pulse-fade 2.4s ease-in-out infinite}
 
@@ -310,7 +327,7 @@ body{
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
       <div>
         <div style="font-size:17px;font-weight:700;color:#1a1915" id="auth-modal-title">アカウント登録</div>
-        <div style="font-size:var(--fs-xs);color:#9c9a93;margin-top:3px" id="auth-modal-sub">月額400円・いつでも解約OK</div>
+        <div style="font-size:var(--fs-xs);color:#9c9a93;margin-top:3px" id="auth-modal-sub">月額330円・いつでも解約OK</div>
       </div>
       <button onclick="closeAuthModal()" style="width:28px;height:28px;border-radius:50%;border:none;background:#f5f5f0;color:#5f5e5a;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">×</button>
     </div>
@@ -415,9 +432,9 @@ body{
     <div id="dlg-settings" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;align-items:flex-start;justify-content:center;padding-top:56px">
       <div class="settings-panel" style="width:min(400px,92vw);max-height:80vh;overflow-y:auto;margin:0">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><span style="font-size:var(--fs-base);font-weight:600;color:var(--color-text-primary)">設定</span><button class="btn" id="btn-close-settings"><i class="ti ti-x"></i>閉じる</button></div>
-        <div class="settings-section-label">管理者モード</div>
-        <div class="settings-row"><input type="password" id="s-admin-pw" placeholder="管理者パスワード" style="flex:1;padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)"><button class="btn" id="btn-admin-login">ログイン</button></div>
-        <div id="admin-status" style="font-size:var(--fs-xs);margin-bottom:8px;color:var(--color-text-tertiary)">閲覧モード</div>
+        <div class="settings-section-label admin-pw-only">管理者モード</div>
+        <div class="settings-row admin-pw-only"><input type="password" id="s-admin-pw" placeholder="管理者パスワード" style="flex:1;padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)"><button class="btn" id="btn-admin-login">ログイン</button></div>
+        <div id="admin-status" class="admin-pw-only" style="font-size:var(--fs-xs);margin-bottom:8px;color:var(--color-text-tertiary)">閲覧モード</div>
         <hr class="divider" style="margin:10px 0">
         <div class="settings-section-label admin-only">農園名</div>
         <div class="settings-row admin-only"><input type="text" id="s-farm-name" placeholder="例：我が家の畑" style="flex:1;font-size:var(--fs-base);padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)"><button class="btn" id="btn-save-farm-name">保存</button></div>
@@ -500,7 +517,7 @@ body{
         <div class="master-list-col">
           <div class="master-list-header">登録済み野菜</div>
           <div id="master-list-items"></div>
-          <button class="master-add-btn admin-only" id="btn-add-veg"><i class="ti ti-plus" style="font-size:var(--fs-base)"></i>野菜を追加</button>
+          <button class="master-add-btn diy-add-btn" id="btn-add-veg"><i class="ti ti-plus" style="font-size:var(--fs-base)"></i>野菜を追加</button>
         </div>
         <div class="master-detail-col" id="master-detail-col">
           <div class="master-detail-scroll" id="master-detail-scroll">
@@ -509,6 +526,22 @@ body{
         </div>
       </div>
     </div>
+  </div>
+
+  <div class="screen" id="screen-market-list">
+    <div class="toolbar">
+      <button class="btn-grid-chip btn-master" onclick="closeMarketList()"><i class="ti ti-arrow-left" style="font-size:var(--fs-xs)"></i>戻る</button>
+      <span style="font-size:var(--fs-base);font-weight:600;color:#fff;margin-left:4px;flex:1;text-align:center">レシピを探す</span>
+    </div>
+    <div id="market-list-items" style="padding:12px"></div>
+  </div>
+
+  <div class="screen" id="screen-market-detail">
+    <div class="toolbar">
+      <button class="btn-grid-chip btn-master" onclick="backToMarketList()"><i class="ti ti-arrow-left" style="font-size:var(--fs-xs)"></i>戻る</button>
+      <span style="font-size:var(--fs-base);font-weight:600;color:#fff;margin-left:4px;flex:1;text-align:center">レシピ詳細</span>
+    </div>
+    <div id="market-detail-content" style="padding:12px"></div>
   </div>
 </div>
 
@@ -529,7 +562,9 @@ body{
 <div id="dlg-add-veg" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:99;background:rgba(0,0,0,0.4)">
   <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.25rem;min-width:260px;max-width:340px;width:90%;max-height:90vh;overflow-y:auto">
     <div style="font-size:var(--fs-base);font-weight:500;margin-bottom:14px;display:flex;align-items:center;gap:6px"><i class="ti ti-plant" style="color:#5aad4e"></i>野菜を追加</div>
-    <div class="dlg-field"><label>プリセットから選ぶ</label><select id="av-preset"><option value="">— プリセット野菜 —</option></select></div>
+    <div class="dlg-field market-only" style="margin-bottom:2px"><button type="button" class="btn" id="btn-open-market" style="width:100%"><i class="ti ti-shopping-cart"></i>レシピを探す（購入する）</button></div>
+    <div class="market-only" style="font-size:var(--fs-xs);color:var(--color-text-tertiary);text-align:center;margin:2px 0 6px">または</div>
+    <div class="dlg-field"><label id="av-preset-label">プリセットから選ぶ</label><select id="av-preset"><option value="">— プリセット野菜 —</option></select></div>
     <div style="font-size:var(--fs-xs);color:var(--color-text-tertiary);text-align:center;margin:2px 0 6px">または</div>
     <div class="dlg-field"><label>野菜名（自由入力）</label><input type="text" id="av-name" placeholder="例：パプリカ"></div>
     <div class="dlg-field"><label>品種・メモ（任意）</label><input type="text" id="av-variety" placeholder="例：ミニ、大玉など"></div>
@@ -629,22 +664,20 @@ body{
   if(!/^[a-zA-Z0-9_-]+$/.test(configName)) configName = 'default';
 
   // デフォルト値（default.json と同等）
+  // v25 シナリオ2: ?config= によるチャンネル専用スキンは廃止。
+  // 個人版(default)とマーケットプレイス版(market)の2種類のみになり、
+  // 監修者（チャンネル）情報はconfigファイルではなくSupabaseのcreatorsテーブルで管理する。
   var defaultConfig = {
     appName: '私の畑',
-    youtuberName: '',
-    youtubeChannelId: '',
     themeColor: '#5aad4e',
     accentColor: '#d4f0b8',
     splashImage: '',
     topIllustration: '',
-    recipes: [],
     supabaseTable: 'app_data',
     dbId: 'main',
     lsKey: 'hatake_v21',
     adminPassword: 'hatake2026',
-    autoAdmin: false,
-    freeDataStrategy: 'localStorage', // 'localStorage' = 個人版 / 'session' = コラボ版
-    channelId: 'default'
+    freeDataStrategy: 'localStorage' // 'localStorage' = 個人版 / 'session' = マーケットプレイス版
   };
   window.APP_CONFIG = Object.assign({}, defaultConfig);
 
@@ -680,6 +713,7 @@ body{
   // セッション戦略: freeDataStrategy='session' の場合、
   // バックグラウンド移行時に sessionStorage を破棄する
   if(window.APP_CONFIG.freeDataStrategy === 'session') {
+    document.body.classList.add('market-mode');
     document.addEventListener('visibilitychange', function(){
       if(document.hidden && !window.APP_SUBSCRIBED) {
         // 未サブスクユーザーがアプリを離れたらデータ破棄
@@ -797,10 +831,12 @@ const isoFull=s=>{if(!s)return '';const[y,m,d]=s.split('-');return `${y}年${par
 const isoShort=s=>{if(!s)return '';const[y,m,d]=s.split('-');return `${y}/${parseInt(m)}/${parseInt(d)}`};
 const daysBetween=(a,b)=>Math.round((new Date(b)-new Date(a))/86400000);
 
-// v25: テーブルごとに保存・読込のクエリを切り替える
-// app_data（個人版）: id カラムで識別  PATCH
-// user_records（コラボ版）: user_id + channel_id で識別  UPSERT
-const _channelId=(window.APP_CONFIG&&window.APP_CONFIG.channelId)||'default';
+// v25シナリオ2: テーブルごとに保存・読込のクエリを切り替える
+// app_data（個人版）: id カラムで識別  PATCH（従来通り、匿名anonキーのみ）
+// user_records（マーケットプレイス版）: user_id（=users.id）で識別  UPSERT
+// マーケットプレイス版は channel_id で分離しない（1ユーザー1行）。
+// 未ログイン（会員でない）間は _marketUserId が null のため保存・読込とも何もしない
+let _marketUserId=null,_marketAccessToken=null;
 async function saveToDB(data){
   try{
     if(SUPABASE_TABLE==='app_data'){
@@ -811,11 +847,12 @@ async function saveToDB(data){
         body:JSON.stringify({data,updated_at:new Date().toISOString()})
       });
     }else{
-      // コラボ版：user_records に UPSERT（user_id + channel_id をキーに）
+      // マーケットプレイス版：会員のみ user_records に UPSERT（user_id をキーに）
+      if(!_marketUserId||!_marketAccessToken)return;
       await fetch(SUPABASE_URL+'/rest/v1/'+SUPABASE_TABLE,{
         method:'POST',
-        headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},
-        body:JSON.stringify({user_id:DB_ID,channel_id:_channelId,data,updated_at:new Date().toISOString()})
+        headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+_marketAccessToken,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},
+        body:JSON.stringify({user_id:_marketUserId,data,updated_at:new Date().toISOString()})
       });
     }
   }catch(e){console.error('DB save error',e);}
@@ -829,9 +866,10 @@ async function loadFromDB(){
         headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY}
       });
     }else{
-      // コラボ版：user_id + channel_id で取得
-      res=await fetch(SUPABASE_URL+'/rest/v1/'+SUPABASE_TABLE+'?user_id=eq.'+DB_ID+'&channel_id=eq.'+_channelId+'&select=data',{
-        headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY}
+      // マーケットプレイス版：会員のみ user_id で取得
+      if(!_marketUserId||!_marketAccessToken)return false;
+      res=await fetch(SUPABASE_URL+'/rest/v1/'+SUPABASE_TABLE+'?user_id=eq.'+_marketUserId+'&select=data',{
+        headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+_marketAccessToken}
       });
     }
     const rows=await res.json();
@@ -973,6 +1011,7 @@ function applyPermissions(){
   if(document.getElementById('screen-master').classList.contains('active')&&selectedMasterVeg){renderMasterDetail();}
 }
 document.getElementById('btn-admin-login').addEventListener('click',()=>{
+  if(_dataStrategy==='session')return; // マーケットプレイス版はパスワード方式を使わない（Supabase Authのroleのみで判定）
   const pw=document.getElementById('s-admin-pw').value;
   if(pw===ADMIN_PASSWORD){
     isAdmin=true;
@@ -987,15 +1026,15 @@ document.getElementById('btn-admin-login').addEventListener('click',()=>{
     applyPermissions();
   }else{showAlert('パスワードが違います');}
 });
-// v25: autoAdmin=true（コラボ版） → 全ユーザーが操作可能
-// freeDataStrategy='session' → セッション限定で操作可能（localStorage汚染なし）
-// 個人版 → 従来通りlocalStorageのhatake_adminフラグで判定
-if((window.APP_CONFIG&&window.APP_CONFIG.autoAdmin)){
-  isAdmin=true;
-  isSupervisor=true;
-}else if(localStorage.getItem('hatake_admin')==='1'){
-  isAdmin=true;
-  isSupervisor=true;
+// v25シナリオ2: マーケットプレイス版はSupabase Authのroleでのみ権限判定する（後段のAuth処理が確定させる）。
+// 個人版のみ、従来通りlocalStorageのhatake_adminフラグで判定する。
+if(_dataStrategy!=='session'){
+  if(localStorage.getItem('hatake_admin')==='1'){
+    isAdmin=true;
+    isSupervisor=true;
+  }else{
+    document.body.classList.add('view-mode');
+  }
 }else{
   document.body.classList.add('view-mode');
 }
@@ -1691,6 +1730,107 @@ function resetAll(){if(!requireAdmin())return;showConfirm('全データをリセ
 function openMaster(){document.getElementById('screen-register').classList.remove('active');document.getElementById('screen-master').classList.add('active');renderMasterList();if(selectedMasterVeg)renderMasterDetail();}
 function closeMaster(){document.getElementById('screen-master').classList.remove('active');document.getElementById('screen-register').classList.add('active');renderGrid();}
 
+// ===== v25シナリオ2: マーケットプレイス（フェーズ2・一覧＋詳細画面のみ。購入処理はフェーズ3） =====
+let _marketReturnScreenId=null,_marketSelectedRecipe=null;
+function _ytThumbUrl(url){
+  if(!url)return null;
+  const m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{6,})/);
+  return m?('https://img.youtube.com/vi/'+m[1]+'/hqdefault.jpg'):null;
+}
+function _effectivePrice(r){
+  if(r.sale_price_jpy!=null&&r.sale_starts_at&&r.sale_ends_at){
+    const now=new Date(),s=new Date(r.sale_starts_at),e=new Date(r.sale_ends_at);
+    if(now>=s&&now<=e)return r.sale_price_jpy;
+  }
+  return r.price_jpy;
+}
+function openMarketList(){
+  document.getElementById('dlg-add-veg').style.display='none';
+  const active=document.querySelector('.screen.active');
+  _marketReturnScreenId=active?active.id:'screen-register';
+  if(active)active.classList.remove('active');
+  document.getElementById('screen-market-list').classList.add('active');
+  renderMarketList();
+}
+function closeMarketList(){
+  document.getElementById('screen-market-list').classList.remove('active');
+  document.getElementById(_marketReturnScreenId||'screen-register').classList.add('active');
+  renderGrid();
+}
+function openMarketDetail(recipe){
+  _marketSelectedRecipe=recipe;
+  document.getElementById('screen-market-list').classList.remove('active');
+  document.getElementById('screen-market-detail').classList.add('active');
+  renderMarketDetail();
+}
+function backToMarketList(){
+  document.getElementById('screen-market-detail').classList.remove('active');
+  document.getElementById('screen-market-list').classList.add('active');
+}
+async function renderMarketList(){
+  const el=document.getElementById('market-list-items');
+  el.innerHTML='<div style="text-align:center;color:var(--color-text-tertiary);font-size:var(--fs-sm);padding:20px 0">読み込み中...</div>';
+  try{
+    const res=await fetch(SUPABASE_URL+'/rest/v1/recipes?is_published=eq.true&select=id,name,emoji,family,price_jpy,sale_price_jpy,sale_starts_at,sale_ends_at,reference_video_url,creators(name,avatar_emoji)&order=created_at.desc',{
+      headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY}
+    });
+    if(!res.ok)throw new Error('recipes fetch failed: '+res.status);
+    const rows=await res.json();
+    el.innerHTML='';
+    if(!Array.isArray(rows)||rows.length===0){
+      el.innerHTML='<div style="text-align:center;color:var(--color-text-tertiary);font-size:var(--fs-sm);padding:20px 0">まだ公開されているレシピがありません</div>';
+      return;
+    }
+    rows.forEach(r=>{
+      const card=document.createElement('div');card.className='market-card';
+      const thumb=_ytThumbUrl(r.reference_video_url);
+      const creatorName=(r.creators&&r.creators.name)||'';
+      card.innerHTML=`<div class="market-thumb">${thumb?`<img src="${thumb}">`:''}<span class="market-play"><i class="ti ti-player-play"></i></span></div><div style="min-width:0;flex:1"><div style="font-size:var(--fs-sm);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.name}</div><div style="font-size:var(--fs-xs);color:var(--color-text-tertiary);margin:3px 0">${creatorName}</div><span class="market-price">${_effectivePrice(r)}円</span></div>`;
+      card.addEventListener('click',()=>openMarketDetail(r));
+      el.appendChild(card);
+    });
+  }catch(e){
+    console.error('market list load error',e);
+    el.innerHTML='<div style="text-align:center;color:var(--color-text-tertiary);font-size:var(--fs-sm);padding:20px 0">読み込みに失敗しました</div>';
+  }
+}
+function renderMarketDetail(){
+  const r=_marketSelectedRecipe;if(!r)return;
+  const el=document.getElementById('market-detail-content');
+  const thumb=_ytThumbUrl(r.reference_video_url);
+  const creatorName=(r.creators&&r.creators.name)||'';
+  el.innerHTML=`<div class="market-detail-thumb">${thumb?`<img src="${thumb}">`:''}<span class="market-play"><i class="ti ti-player-play"></i></span></div>
+    <div style="text-align:center;margin-bottom:12px">
+      <div style="font-size:var(--fs-base);font-weight:600">${r.name}</div>
+      <div style="font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-top:3px">${creatorName} 監修</div>
+    </div>
+    <div class="market-lock-box">
+      <div style="font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-bottom:8px">工程表・基礎知識（購入後に閲覧できます）</div>
+      <div class="market-lock-lines"><div style="width:80%"></div><div style="width:60%"></div><div style="width:70%"></div></div>
+      <div class="market-lock-icon"><i class="ti ti-lock"></i></div>
+    </div>
+    <div style="font-size:var(--fs-xs);color:var(--color-text-danger);line-height:1.6;margin-bottom:14px">退会すると、購入したレシピも含めて全データが削除されます。再度ご利用には購入し直しが必要です。</div>
+    <button class="btn-primary" id="btn-market-purchase" style="width:100%;justify-content:center">${_effectivePrice(r)}円で購入する</button>`;
+  document.getElementById('btn-market-purchase').addEventListener('click',async()=>{
+    const btn=document.getElementById('btn-market-purchase');
+    if(!window._sbClient){showAlert('ログインが必要です。');return;}
+    btn.disabled=true;btn.textContent='購入処理中...';
+    try{
+      const {data,error}=await window._sbClient.functions.invoke('purchase-recipe',{body:{recipe_id:r.id}});
+      if(error)throw error;
+      if(data&&data.error)throw new Error(data.error);
+      showAlert(
+        (data&&data.already_owned)?'このレシピは購入済みです。':'購入が完了しました。「野菜を追加」の「購入したレシピから選ぶ」から追加できます。',
+        ()=>{closeMarketList();}
+      );
+    }catch(e){
+      console.error('purchase error',e);
+      showAlert('購入処理に失敗しました。時間をおいて再度お試しください。');
+      btn.disabled=false;btn.textContent=_effectivePrice(r)+'円で購入する';
+    }
+  });
+}
+
 function renderMasterList(){
   const el=document.getElementById('master-list-items');el.innerHTML='';
   Object.values(vegMaster).sort((a,b)=>a.name.localeCompare(b.name,'ja')).forEach(veg=>{
@@ -2075,10 +2215,47 @@ document.getElementById('btn-complete-cancel').addEventListener('click',closeCom
 document.getElementById('dlg-complete-confirm').addEventListener('mousedown',e=>{if(e.target===e.currentTarget)closeCompleteConfirm();});
 document.getElementById('btn-complete-execute').addEventListener('click',()=>{if(pendingCompleteSeg)executeComplete(pendingCompleteSeg);});
 
-document.getElementById('btn-add-veg').addEventListener('click',()=>{if(!requireAdmin())return;document.getElementById('av-preset').value='';document.getElementById('av-name').value='';document.getElementById('av-variety').value='';document.getElementById('av-ref-url').value='';document.getElementById('av-grow-method').value='seedling';document.getElementById('av-season').value='';document.getElementById('av-region').value=localStorage.getItem('hatake_last_region')||'';addVegEmoji='🌱';addVegIconFile=null;renderEmojiGrid();document.getElementById('av-next').disabled=true;document.getElementById('dlg-add-veg').style.display='flex';});
+function _canOpenAddVeg(){return requireAdmin()||(_dataStrategy==='session'&&!!_marketUserId);}
+let _myPurchasedRecipes=[];
+async function _populateAddVegPreset(){
+  const sel=document.getElementById('av-preset');const label=document.getElementById('av-preset-label');
+  if(_dataStrategy==='session'&&!isAdmin&&!isSupervisor&&_marketUserId){
+    label.textContent='購入したレシピから選ぶ';
+    sel.innerHTML='<option value="">— 購入したレシピ —</option>';
+    _myPurchasedRecipes=[];
+    try{
+      const res=await fetch(SUPABASE_URL+'/rest/v1/user_recipes?user_id=eq.'+_marketUserId+'&select=id,name,emoji,family,grow_method,season,phases,basic_info,reference_video_url',{
+        headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+_marketAccessToken}
+      });
+      if(res.ok)_myPurchasedRecipes=await res.json();
+    }catch(e){console.error('user_recipes load error',e);}
+    _myPurchasedRecipes.forEach(r=>{const op=document.createElement('option');op.value=r.id;op.textContent=(r.emoji||'')+' '+r.name;sel.appendChild(op);});
+  }else{
+    label.textContent='プリセットから選ぶ';
+    sel.innerHTML='<option value="">— プリセット野菜 —</option>';
+    _myPurchasedRecipes=[];
+    PRESET_VEGS.forEach(v=>{const op=document.createElement('option');op.value=v.id;op.textContent=`${v.emoji} ${v.name}`;sel.appendChild(op);});
+  }
+}
+document.getElementById('btn-add-veg').addEventListener('click',()=>{if(!_canOpenAddVeg())return;document.getElementById('av-name').value='';document.getElementById('av-variety').value='';document.getElementById('av-ref-url').value='';document.getElementById('av-grow-method').value='seedling';document.getElementById('av-season').value='';document.getElementById('av-region').value=localStorage.getItem('hatake_last_region')||'';addVegEmoji='🌱';addVegIconFile=null;renderEmojiGrid();document.getElementById('av-next').disabled=true;_populateAddVegPreset();document.getElementById('dlg-add-veg').style.display='flex';});
 document.getElementById('btn-add-veg-cancel').addEventListener('click',()=>{document.getElementById('dlg-add-veg').style.display='none';});
 document.getElementById('dlg-add-veg').addEventListener('mousedown',e=>{if(e.target===e.currentTarget)document.getElementById('dlg-add-veg').style.display='none';});
-document.getElementById('av-preset').addEventListener('change',()=>{const val=document.getElementById('av-preset').value;const preset=PRESET_VEGS.find(v=>v.id===val);if(preset){document.getElementById('av-name').value=preset.name;addVegEmoji=preset.emoji;addVegIconFile=preset.iconFile||null;renderEmojiGrid();}checkAddVegValid();});
+document.getElementById('btn-open-market').addEventListener('click',openMarketList);
+document.getElementById('av-preset').addEventListener('change',()=>{
+  const val=document.getElementById('av-preset').value;
+  const purchased=_myPurchasedRecipes.find(r=>r.id===val);
+  if(purchased){
+    document.getElementById('av-name').value=purchased.name;
+    addVegEmoji=purchased.emoji||'🌱';addVegIconFile=null;renderEmojiGrid();
+    document.getElementById('av-grow-method').value=purchased.grow_method||'seedling';
+    document.getElementById('av-season').value=purchased.season||'';
+    document.getElementById('av-ref-url').value=purchased.reference_video_url||'';
+  }else{
+    const preset=PRESET_VEGS.find(v=>v.id===val);
+    if(preset){document.getElementById('av-name').value=preset.name;addVegEmoji=preset.emoji;addVegIconFile=preset.iconFile||null;renderEmojiGrid();}
+  }
+  checkAddVegValid();
+});
 document.getElementById('av-name').addEventListener('input',checkAddVegValid);
 function checkAddVegValid(){document.getElementById('av-next').disabled=!document.getElementById('av-name').value.trim();}
 document.getElementById('btn-upload-icon').addEventListener('click',()=>document.getElementById('av-icon-upload').click());
@@ -2105,20 +2282,22 @@ document.getElementById('av-icon-upload').addEventListener('change',e=>{
 });
 function renderEmojiGrid(){const grid=document.getElementById('av-emoji-grid');grid.innerHTML='';const customEntries=Object.keys(customIcons).map(k=>({emoji:'',iconFile:k,isCustom:true}));[...ALL_ICONS,...customEntries].forEach(icon=>{const isSelected=icon.iconFile?icon.iconFile===addVegIconFile:(!addVegIconFile&&icon.emoji===addVegEmoji);const opt=document.createElement('div');opt.className='emoji-opt'+(isSelected?' selected':'');opt.style.position='relative';const src=icon.iconFile?(ICON_B64[icon.iconFile]||customIcons[icon.iconFile]||null):null;if(src){opt.innerHTML=`<img src="${src}" width="24" height="24" style="object-fit:contain">`;}else{opt.textContent=icon.emoji;}if(icon.isCustom){const del=document.createElement('div');del.innerHTML='<i class="ti ti-x"></i>';del.style.cssText='position:absolute;top:-5px;right:-5px;width:14px;height:14px;border-radius:50%;background:#e53;color:#fff;font-size:8px;display:flex;align-items:center;justify-content:center;cursor:pointer';del.addEventListener('click',e=>{e.stopPropagation();delete customIcons[icon.iconFile];if(addVegIconFile===icon.iconFile){addVegIconFile=null;addVegEmoji='🌱';}saveLS();renderEmojiGrid();});opt.appendChild(del);}opt.addEventListener('click',()=>{addVegEmoji=icon.emoji;addVegIconFile=icon.iconFile||null;renderEmojiGrid();});grid.appendChild(opt);});}
 document.getElementById('av-next').addEventListener('click',()=>{
-  if(!requireAdmin())return;
-  const name=document.getElementById('av-name').value.trim();const variety=document.getElementById('av-variety').value.trim();const presetId=document.getElementById('av-preset').value;const preset=PRESET_VEGS.find(v=>v.id===presetId);if(!name)return;
-  const id=presetId&&!vegMaster[presetId]?presetId:`veg_${Date.now()}`;const growMethod=document.getElementById('av-grow-method').value;const refUrl=document.getElementById('av-ref-url').value.trim();const season=document.getElementById('av-season').value;const region=document.getElementById('av-region').value;if(region)localStorage.setItem('hatake_last_region',region);vegMaster[id]={id,name,emoji:addVegEmoji,iconFile:addVegIconFile||undefined,family:preset?preset.family:'',variety,growMethod,season,region,referenceUrl:refUrl,phases:[]};selectedMasterVeg=id;saveLS();document.getElementById('dlg-add-veg').style.display='none';renderMasterList();renderMasterDetail();
+  if(!_canOpenAddVeg())return;
+  const name=document.getElementById('av-name').value.trim();const variety=document.getElementById('av-variety').value.trim();const presetId=document.getElementById('av-preset').value;const preset=PRESET_VEGS.find(v=>v.id===presetId);const purchased=_myPurchasedRecipes.find(r=>r.id===presetId);if(!name)return;
+  const id=purchased?`veg_${Date.now()}`:(presetId&&!vegMaster[presetId]?presetId:`veg_${Date.now()}`);
+  const growMethod=document.getElementById('av-grow-method').value;const refUrl=document.getElementById('av-ref-url').value.trim();const season=document.getElementById('av-season').value;const region=document.getElementById('av-region').value;if(region)localStorage.setItem('hatake_last_region',region);
+  vegMaster[id]={id,name,emoji:addVegEmoji,iconFile:addVegIconFile||undefined,family:purchased?purchased.family:(preset?preset.family:''),variety,growMethod,season,region,referenceUrl:refUrl,phases:purchased?JSON.parse(JSON.stringify(purchased.phases||[])):[],basicInfo:purchased?JSON.parse(JSON.stringify(purchased.basic_info||{})):undefined};
+  selectedMasterVeg=id;saveLS();document.getElementById('dlg-add-veg').style.display='none';renderMasterList();renderMasterDetail();
 });
-
-const presetSel=document.getElementById('av-preset');
-PRESET_VEGS.forEach(v=>{const op=document.createElement('option');op.value=v.id;op.textContent=`${v.emoji} ${v.name}`;presetSel.appendChild(op);});
 
 let resizeTimer;
 window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(document.getElementById('screen-register').classList.contains('active'))renderGrid();},100)});
 
 loadLS();renderLegend();renderGrid();
 // DB から最新データを読み込み（非管理者でも最新を表示）
-loadFromDB().then(loaded=>{
+// マーケットプレイス版はログイン（会員確認）が済むまで_marketUserIdが無いため、
+// ここでは何もせずfalseが返る。ログイン後にAuth処理側から改めて呼び出す。
+function _applyLoadedData(loaded){
   if(loaded){
     if(!vegMaster['tomato'])vegMaster['tomato']=JSON.parse(JSON.stringify(TOMATO_SAMPLE));
     document.getElementById('s-cols').value=COLS;
@@ -2129,7 +2308,8 @@ loadFromDB().then(loaded=>{
     const splashNameEl=document.getElementById('splash-farm-name');
     if(splashNameEl)splashNameEl.textContent=farmName||((window.APP_CONFIG&&window.APP_CONFIG.appName)||'私の畑');
   }
-});
+}
+loadFromDB().then(_applyLoadedData);
 
 // ===== スプラッシュ画面 =====
 (function(){
@@ -2233,46 +2413,38 @@ loadFromDB().then(loaded=>{
   });
 
   // ── ログイン後の処理 ──────────────────────────────────
+  // v25シナリオ2: 「ログイン＝会員＝サブスク」。usersにレコードがある＝会員。
+  // Stripe決済連携（フェーズ5）が完了するまでは、ここでusersを自動作成しない
+  // （決済なしの無料会員を作らないため。channel_idによる絞り込みも廃止）。
   async function _onUserLogin(user, accessToken) {
-    // users テーブルを確認（なければ新規作成）
     try {
       const headers = {
         'apikey': SUPABASE_ANON_KEY,
         'Authorization': 'Bearer ' + accessToken,
         'Content-Type': 'application/json'
       };
-      // ユーザーレコード取得
       const res = await fetch(
-        SUPABASE_URL + '/rest/v1/users?auth_uid=eq.' + user.id + '&channel_id=eq.' + _channelId + '&select=role,subscription_status',
+        SUPABASE_URL + '/rest/v1/users?auth_uid=eq.' + user.id + '&select=id,role,cancel_at',
         {headers}
       );
       const rows = await res.json();
 
       if(!rows || rows.length === 0) {
-        // 初回ログイン → users テーブルに新規登録
-        await fetch(SUPABASE_URL + '/rest/v1/users', {
-          method: 'POST',
-          headers: {...headers, 'Prefer': 'return=minimal'},
-          body: JSON.stringify({
-            auth_uid: user.id,
-            channel_id: _channelId,
-            role: 'end_user',
-            subscription_status: 'free'
-          })
-        });
+        // 会員登録（サブスク決済）が完了していない
         isAdmin = false;
         isSupervisor = false;
         window.APP_SUBSCRIBED = false;
+        _marketUserId = null;
+        _marketAccessToken = null;
         document.body.classList.add('view-mode');
-        _updateAuthUI(user, false);
+        _updateAuthUI(user, false, null);
       } else {
-        const role = rows[0].role;
-        const isActive = rows[0].subscription_status === 'active';
-        // ロール判定
-        isAdmin = (role === 'platform_admin');
-        isSupervisor = (role === 'youtuber_supervisor' || isAdmin);
-        window.APP_SUBSCRIBED = isActive || isSupervisor;
-        // ボディクラス設定
+        const row = rows[0];
+        isAdmin = (row.role === 'platform_admin');
+        isSupervisor = (row.role === 'youtuber_supervisor' || isAdmin);
+        window.APP_SUBSCRIBED = true; // usersに行がある＝会員
+        _marketUserId = row.id;
+        _marketAccessToken = accessToken;
         if(isAdmin) {
           document.body.classList.remove('view-mode','supervisor-mode');
           document.body.classList.add('admin-mode');
@@ -2283,9 +2455,15 @@ loadFromDB().then(loaded=>{
           document.body.classList.remove('admin-mode','supervisor-mode');
           document.body.classList.add('view-mode');
         }
-        _updateAuthUI(user, isActive);
-        // サブスク有効ならsessionStorageのデータをSupabaseへ移行
-        if(isActive) _migrateSessionToCloud(accessToken);
+        _updateAuthUI(user, true, row.cancel_at);
+        // 既存のクラウドデータがあればそちらを優先して表示。
+        // 無ければ（初めての会員登録）お試し中のセッションデータを初回移行する
+        const loaded = await loadFromDB();
+        if(loaded) {
+          _applyLoadedData(true);
+        } else {
+          await _migrateSessionToCloud();
+        }
       }
     } catch(e) {
       console.error('Auth user check error', e);
@@ -2293,28 +2471,14 @@ loadFromDB().then(loaded=>{
   }
 
   // ── sessionStorage → Supabase へのデータ移行 ──────────
-  async function _migrateSessionToCloud(accessToken) {
+  // 初めて会員になったタイミングでのみ呼ばれる（既存クラウドデータは上書きしない）
+  async function _migrateSessionToCloud() {
     const raw = sessionStorage.getItem(LS_KEY);
     if(!raw) return;
     try {
       const data = JSON.parse(raw);
       if(!data || !data.cells || Object.keys(data.cells).length === 0) return;
-      // user_records に保存（サブスク開始時の初回移行）
-      await fetch(SUPABASE_URL + '/rest/v1/user_records', {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': 'Bearer ' + accessToken,
-          'Content-Type': 'application/json',
-          'Prefer': 'resolution=merge-duplicates,return=minimal'
-        },
-        body: JSON.stringify({
-          user_id: DB_ID,
-          channel_id: _channelId,
-          data,
-          updated_at: new Date().toISOString()
-        })
-      });
+      await saveToDB(data);
       console.log('[v25] session data migrated to Supabase');
     } catch(e) {
       console.error('Data migration error', e);
@@ -2322,7 +2486,7 @@ loadFromDB().then(loaded=>{
   }
 
   // ── Auth UI 更新 ──────────────────────────────────────
-  function _updateAuthUI(user, isSubscribed) {
+  function _updateAuthUI(user, isMember, cancelAt) {
     const emailForm  = document.getElementById('auth-email-form');
     const sentMsg    = document.getElementById('auth-sent-msg');
     const loggedIn   = document.getElementById('auth-loggedin');
@@ -2337,14 +2501,17 @@ loadFromDB().then(loaded=>{
       if(loggedIn)  loggedIn.style.display  = 'block';
       if(userEmail) userEmail.textContent   = user.email || '';
       if(subStatus) {
-        if(isSubscribed) {
-          subStatus.innerHTML = '<span style="color:#2e7a28;font-weight:600">✓ サブスク有効</span>';
+        if(isMember && cancelAt) {
+          const d = new Date(cancelAt).toLocaleDateString('ja-JP');
+          subStatus.innerHTML = '<span style="color:#9c9a93">'+d+'まで利用可能（解約予約済み）</span>';
+        } else if(isMember) {
+          subStatus.innerHTML = '<span style="color:#2e7a28;font-weight:600">✓ 会員（サブスク有効）</span>';
         } else {
-          subStatus.innerHTML = '<span style="color:#9c9a93">無料プラン（データは保存されません）</span>';
+          subStatus.innerHTML = '<span style="color:#9c9a93">会員登録（サブスク決済）が完了していません</span>';
         }
       }
-      // サブスク有効ならバナーを隠す
-      if(saveBanner && isSubscribed) saveBanner.style.display = 'none';
+      // 会員ならバナーを隠す
+      if(saveBanner && isMember) saveBanner.style.display = 'none';
     } else {
       // 未ログイン
       if(emailForm) emailForm.style.display = 'block';
@@ -2360,17 +2527,17 @@ loadFromDB().then(loaded=>{
     // 現在のログイン状態に応じてUI切り替え
     _sb.auth.getSession().then(({data:{session}}) => {
       if(session) {
-        _updateAuthUI(session.user, window.APP_SUBSCRIBED);
+        _updateAuthUI(session.user, window.APP_SUBSCRIBED, null);
         const title = document.getElementById('auth-modal-title');
         const sub   = document.getElementById('auth-modal-sub');
         if(title) title.textContent = 'アカウント情報';
         if(sub)   sub.textContent   = '';
       } else {
-        _updateAuthUI(null, false);
+        _updateAuthUI(null, false, null);
         const title = document.getElementById('auth-modal-title');
         const sub   = document.getElementById('auth-modal-sub');
         if(title) title.textContent = 'アカウント登録';
-        if(sub)   sub.textContent   = '月額400円・いつでも解約OK';
+        if(sub)   sub.textContent   = '月額150円・1ヶ月無料・いつでも解約OK';
       }
     });
     dlg.style.display = 'flex';
