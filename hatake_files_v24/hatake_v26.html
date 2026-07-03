@@ -1823,8 +1823,8 @@ function renderMarketDetail(){
       if(error)throw error;
       if(data&&data.error)throw new Error(data.error);
       showAlert(
-        (data&&data.already_owned)?'このレシピは購入済みです。':'購入が完了しました。「野菜を追加」の「購入したレシピから選ぶ」から追加できます。',
-        ()=>{backToMarketList();closeMarketList();}
+        (data&&data.already_owned)?'このレシピは購入済みです。':'購入が完了しました。内容を確認して登録してください。',
+        ()=>{backToMarketList();closeMarketList();_openAddVegFromPurchase(data&&data.user_recipe);}
       );
     }catch(e){
       console.error('purchase error',e);
@@ -2244,6 +2244,19 @@ async function _populateAddVegPreset(){
   }
 }
 document.getElementById('btn-add-veg').addEventListener('click',()=>{if(!_canEditFarm())return;document.getElementById('av-name').value='';document.getElementById('av-variety').value='';document.getElementById('av-ref-url').value='';document.getElementById('av-grow-method').value='seedling';document.getElementById('av-season').value='';document.getElementById('av-region').value=localStorage.getItem('hatake_last_region')||'';addVegEmoji='🌱';addVegIconFile=null;renderEmojiGrid();document.getElementById('av-next').disabled=true;_populateAddVegPreset();document.getElementById('dlg-add-veg').style.display='flex';});
+// 購入直後、「購入したレシピから選ぶ」を手動で選び直す手間を省き、
+// そのまま内容が反映された状態で「野菜を追加」ダイアログを開く
+async function _openAddVegFromPurchase(userRecipe){
+  document.getElementById('av-name').value='';document.getElementById('av-variety').value='';document.getElementById('av-ref-url').value='';document.getElementById('av-grow-method').value='seedling';document.getElementById('av-season').value='';document.getElementById('av-region').value=localStorage.getItem('hatake_last_region')||'';addVegEmoji='🌱';addVegIconFile=null;renderEmojiGrid();
+  document.getElementById('av-next').disabled=true;
+  await _populateAddVegPreset();
+  const sel=document.getElementById('av-preset');
+  if(userRecipe&&userRecipe.id&&_myPurchasedRecipes.some(r=>r.id===userRecipe.id)){
+    sel.value=userRecipe.id;
+    sel.dispatchEvent(new Event('change'));
+  }
+  document.getElementById('dlg-add-veg').style.display='flex';
+}
 document.getElementById('btn-add-veg-cancel').addEventListener('click',()=>{document.getElementById('dlg-add-veg').style.display='none';});
 document.getElementById('dlg-add-veg').addEventListener('mousedown',e=>{if(e.target===e.currentTarget)document.getElementById('dlg-add-veg').style.display='none';});
 document.getElementById('btn-open-market').addEventListener('click',openMarketList);
