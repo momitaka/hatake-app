@@ -101,6 +101,7 @@ Deno.serve(async (req) => {
         source_recipe_id: recipe.id,
         name: recipe.name,
         emoji: recipe.emoji,
+        veg_key: recipe.veg_key,
         family: recipe.family,
         grow_method: recipe.grow_method,
         season: recipe.season,

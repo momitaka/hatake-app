@@ -2230,7 +2230,7 @@ async function _populateAddVegPreset(){
     sel.innerHTML='<option value="">— 購入したレシピ —</option>';
     _myPurchasedRecipes=[];
     try{
-      const res=await fetch(SUPABASE_URL+'/rest/v1/user_recipes?user_id=eq.'+_marketUserId+'&select=id,name,emoji,family,grow_method,season,phases,basic_info,reference_video_url',{
+      const res=await fetch(SUPABASE_URL+'/rest/v1/user_recipes?user_id=eq.'+_marketUserId+'&select=id,name,emoji,veg_key,family,grow_method,season,phases,basic_info,reference_video_url',{
         headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+_marketAccessToken}
       });
       if(res.ok)_myPurchasedRecipes=await res.json();
@@ -2265,7 +2265,10 @@ document.getElementById('av-preset').addEventListener('change',()=>{
   const purchased=_myPurchasedRecipes.find(r=>r.id===val);
   if(purchased){
     document.getElementById('av-name').value=purchased.name;
-    addVegEmoji=purchased.emoji||'🌱';addVegIconFile=null;renderEmojiGrid();
+    const vegPreset=PRESET_VEGS.find(v=>v.id===purchased.veg_key);
+    if(vegPreset){addVegEmoji=vegPreset.emoji;addVegIconFile=vegPreset.iconFile||null;}
+    else{addVegEmoji=purchased.emoji||'🌱';addVegIconFile=null;}
+    renderEmojiGrid();
     document.getElementById('av-grow-method').value=purchased.grow_method||'seedling';
     document.getElementById('av-season').value=purchased.season||'';
     document.getElementById('av-ref-url').value=purchased.reference_video_url||'';
