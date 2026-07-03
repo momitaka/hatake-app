@@ -2425,6 +2425,15 @@ loadFromDB().then(_applyLoadedData);
   const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   window._sbClient = _sb;
 
+  // 別タブ（メールのマジックリンクから開いたタブ等）でログイン/ログアウトすると、
+  // supabase-jsがセッションをlocalStorageに書き込む。その変化をこのタブでも検知して
+  // 自動的に再読み込みし、手動リロードしなくてもログイン状態が反映されるようにする
+  window.addEventListener('storage', (e) => {
+    if(e.key && e.key.includes('auth-token')) {
+      window.location.reload();
+    }
+  });
+
   // ── Auth状態の変化を監視 ──────────────────────────────
   _sb.auth.onAuthStateChange(async (event, session) => {
     if(session && session.user) {
