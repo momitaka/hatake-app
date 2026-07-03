@@ -2609,10 +2609,7 @@ loadFromDB().then(_applyLoadedData);
     const btn   = document.getElementById('auth-magic-btn');
     if(!email) { if(msg) msg.textContent = 'メールアドレスを入力してください'; return; }
     if(btn) { btn.textContent = '送信中...'; btn.disabled = true; }
-    const {error} = await _sb.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: location.href }
-    });
+    const {error} = await _sb.auth.signInWithOtp({ email });
     if(error) {
       if(msg) msg.textContent = '送信に失敗しました: ' + error.message;
       if(btn) { btn.textContent = 'メールでログインコードを受け取る'; btn.disabled = false; }
