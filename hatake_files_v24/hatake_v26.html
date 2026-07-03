@@ -363,15 +363,15 @@ body{
 
     <!-- 送信完了メッセージ＋コード入力 -->
     <!-- v26: メールのリンクはセキュリティスキャンで無効化されることがあるため、
-         リンクではなく6桁コードを手入力してログインする方式に変更 -->
+         リンクではなくコードを手入力してログインする方式に変更 -->
     <div id="auth-sent-msg" style="display:none;text-align:center;padding:12px 0">
       <div style="font-size:32px;margin-bottom:12px">📧</div>
       <div style="font-weight:600;margin-bottom:8px">メールを送信しました</div>
       <div style="font-size:var(--fs-xs);color:#5f5e5a;line-height:1.7;margin-bottom:14px">
-        メールに記載された6桁のコードを入力してください。
+        メールに記載されたコードを入力してください。
       </div>
-      <input id="auth-otp-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="123456"
-        style="width:100%;padding:10px 12px;border:1px solid #d0cfc8;border-radius:8px;font-size:20px;text-align:center;letter-spacing:6px;outline:none;box-sizing:border-box;margin-bottom:10px"
+      <input id="auth-otp-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="10" placeholder="12345678"
+        style="width:100%;padding:10px 12px;border:1px solid #d0cfc8;border-radius:8px;font-size:20px;text-align:center;letter-spacing:4px;outline:none;box-sizing:border-box;margin-bottom:10px"
         onfocus="this.style.borderColor='#5aad4e'" onblur="this.style.borderColor='#d0cfc8'">
       <button onclick="verifyOtpCode()" id="auth-verify-btn"
         style="width:100%;padding:12px;background:#5aad4e;color:#fff;border:none;border-radius:99px;font-size:var(--fs-base);font-weight:600;cursor:pointer;margin-bottom:8px">
@@ -2624,7 +2624,7 @@ loadFromDB().then(_applyLoadedData);
     }
   };
 
-  // v26: メールのリンクではなく、メールに記載された6桁コードを手入力してログインする
+  // v26: メールのリンクではなく、メールに記載されたコードを手入力してログインする
   // （メールアプリのセキュリティスキャンでリンクが自動消費される問題を回避するため）
   window.verifyOtpCode = async function() {
     const email = (document.getElementById('auth-email-input').value || '').trim();
