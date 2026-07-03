@@ -748,6 +748,7 @@ body{
 <script src="data/preset_vegs.js"></script>
 <script>
 
+// ===== 共通ヘルパー・マスタデータ =====
 // アイコン表示ヘルパー: iconFileがあれば<img>、なければ絵文字にフォールバック
 function vegIconHtml(veg, size) {
   size = size || 18;
@@ -800,6 +801,7 @@ const TOMATO_SAMPLE={
   ]
 };
 
+// ===== グローバル状態・定数 =====
 const SUPABASE_URL='https://rkubnugczjlsxskomknm.supabase.co';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrdWJudWdjempsc3hza29ta25tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5NjEzODgsImV4cCI6MjA5NzUzNzM4OH0.JaLpL82VNtoBMXXjJXIdv0k8ZJH2yOIeKGg4s8vU310';
 // v25: 設定ファイルから読み込む値（APP_CONFIG が確定するまでデフォルト値で動作）
@@ -827,6 +829,7 @@ let dragging=false,dragRow=-1,dragStartCol=-1,dragEndCol=-1,pendingRow=-1,pendin
 let currentSeg=null,currentTab='roadmap',selectedMasterVeg=null,masterDetailTab='roadmap',addVegEmoji='🌱',addVegIconFile=null,fromRegDlg=false,farmName='';
 let settingsOpen=false;
 
+// ===== 日付ユーティリティ =====
 const K=(r,c)=>`${r},${c}`;
 const todayISO=()=>new Date().toISOString().slice(0,10);
 function initDateSelects(yId,mId,dId,isoVal){
@@ -856,6 +859,7 @@ const daysBetween=(a,b)=>Math.round((new Date(b)-new Date(a))/86400000);
 // user_records（マーケットプレイス版）: user_id（=users.id）で識別  UPSERT
 // マーケットプレイス版は channel_id で分離しない（1ユーザー1行）。
 // 未ログイン（会員でない）間は _marketUserId が null のため保存・読込とも何もしない
+// ===== DB保存・読込 =====
 let _marketUserId=null,_marketAccessToken=null;
 async function saveToDB(data){
   try{
@@ -904,6 +908,7 @@ async function loadFromDB(){
   }catch(e){console.error('DB load error',e);}
   return false;
 }
+// ===== 日付変換・汎用ダイアログ =====
 function dispToISO(disp){
   if(!disp)return null;
   const year=new Date().getFullYear();
@@ -954,6 +959,7 @@ function showTaskDateDialog(title, taskName, onConfirm, onCancel){
   window._taskDateCancel=onCancel||null;
   dlg.style.display='flex';
 }
+// ===== ローカルストレージ・Undo管理 =====
 // v25: ストレージ抽象化
 // freeDataStrategy='session' → sessionStorage（バックグラウンドで破棄）
 // freeDataStrategy='localStorage' → localStorage（個人版・従来通り）
@@ -1004,16 +1010,16 @@ document.getElementById('dlg-undo-confirm').addEventListener('mousedown',e=>{if(
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();if(!undoStack.length)return;document.getElementById('dlg-undo-confirm').style.display='flex';}});
 
 document.getElementById('btn-open-archive').addEventListener('click',()=>{openArchive();});
+// ===== 設定ダイアログ =====
 function openSettings(){document.getElementById('dlg-settings').style.display='flex';syncAisleInputs();}
 function closeSettings(){document.getElementById('dlg-settings').style.display='none';}
 document.getElementById('btn-settings').addEventListener('click',openSettings);
 document.getElementById('btn-close-settings').addEventListener('click',closeSettings);
 document.getElementById('dlg-settings').addEventListener('mousedown',e=>{if(e.target===e.currentTarget)closeSettings();});
-// ── 権限定義 ──────────────────────────────────────────────
+// ===== 権限管理 =====
 // 全ユーザー可: タスク記録・収穫追加・全体メモ・画面閲覧
 // 管理者のみ  : 区画登録/編集、栽培レシピ追加/編集/削除、
 //               AI生成、設定変更、収穫削除、管理完了
-// ────────────────────────────────────────────────────────
 function permRequireAdmin(){return permIsAdmin;}
 function permRequireSupervisor(){return permIsSupervisor;}
 function permApply(){
@@ -1062,6 +1068,7 @@ document.getElementById('btn-save-farm-name').addEventListener('click',()=>{farm
 document.querySelectorAll('input[name="farm-font"]').forEach(r=>{r.addEventListener('change',()=>{farmNameFont=r.value;saveLS();updateFarmNameDisplay();});});
 document.getElementById('btn-open-master').addEventListener('click',()=>{closeSettings();openMaster();});
 
+// ===== 区画データ構造・作物ヘルパー =====
 function buildSegs(){segs={};for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){const k=K(r,c),cell=cells[k];if(!cell)continue;const sid=cell.segId;if(!segs[sid])segs[sid]={id:sid,row:r,cols:[],crop:cell.crop||null,plantDate:cell.plantDate||null};else if(!segs[sid].plantDate&&cell.plantDate)segs[sid].plantDate=cell.plantDate;segs[sid].cols.push(c);}}
 function getVeg(id){return vegMaster[id]||null}
 function vegFamily(id){const v=getVeg(id);return v?v.family:null}
@@ -1092,6 +1099,7 @@ function getNextTask(sid,cropId){const v=getVeg(cropId);if(!v||!v.phases.length)
 function calcProgress(sid,cropId){const v=getVeg(cropId);if(!v)return{pct:0,phaseIdx:0};const all=v.phases.flatMap(p=>p.tasks);let lastCheckedIdx=-1;all.forEach((t,i)=>{if(getTaskState(sid,t.id).done)lastCheckedIdx=i;});const pct=all.length?Math.round((lastCheckedIdx+1)/all.length*100):0;let phaseIdx=0;if(lastCheckedIdx>=0){let count=0;for(let i=0;i<v.phases.length;i++){count+=v.phases[i].tasks.length;if(lastCheckedIdx<count){phaseIdx=i;break;}phaseIdx=i;}}return{pct,phaseIdx}}
 function calcMajorStatus(sid,cropId){const v=getVeg(cropId);if(!v||!v.phases.length)return MAJOR_STATUS[0];const{phaseIdx}=calcProgress(sid,cropId);return MAJOR_STATUS.find(m=>m.id===v.phases[phaseIdx].majorStatus)||MAJOR_STATUS[0]}
 function addDays(dateStr,days){if(!dateStr)return null;const d=new Date(dateStr);d.setDate(d.getDate()+days);return `${d.getMonth()+1}/${d.getDate()}`}
+// ===== グリッド描画・ドラッグ操作 =====
 const AISLE_W=10,AISLE_H=10;
 function calcCellSize(){const wrap=document.getElementById('grid-wrap');const W=wrap.offsetWidth||600;const normalCols=COLS-aisleCols.length;const normalRows=ROWS-aisleRows.length;const usedW=12+3*(COLS+1)+aisleCols.length*AISLE_W;const cellW=Math.floor((W-usedW)/Math.max(1,normalCols));const cellH=Math.max(36,Math.min(58,Math.floor(cellW*0.94)));return{cellW,cellH,normalCols,normalRows}}
 
@@ -1181,6 +1189,7 @@ function onDown(r,c,e){e.preventDefault();if(!permCanEditFarm())return;if(aisleR
 function onEnter(c){const dir=c>=dragStartCol?1:-1;let end=dragStartCol;for(let ci=dragStartCol;ci!==c+dir;ci+=dir){if(ci<0||ci>=COLS)break;const k=K(dragRow,ci);if(cells[k]&&cells[k].crop)break;end=ci;}if(end===dragEndCol)return;dragEndCol=end;const s=Math.min(dragStartCol,dragEndCol),e2=Math.max(dragStartCol,dragEndCol);document.querySelectorAll('#grid-table td[data-r]').forEach(td=>{const r2=+td.dataset.r,c2=+td.dataset.c;if(r2===dragRow&&c2>=s&&c2<=e2){td.style.outline='2px solid #4A90E2';td.style.background='rgba(74,144,226,0.12)';}else if(!cells[K(r2,c2)]?.crop){td.style.outline='';td.style.background='';}});} 
 function onUp(){if(!dragging){dragging=false;return;}dragging=false;const s=Math.min(dragStartCol,dragEndCol),e2=Math.max(dragStartCol,dragEndCol);if(dragRow>=0&&s<=e2){pendingRow=dragRow;pendingStart=s;pendingEnd=e2;showRegDlg();}renderGrid();}
 
+// ===== 区画登録ダイアログ =====
 function showRegDlg(){
   populateCropSelect();
   document.getElementById('dlg-preview').textContent=`${pendingRow+1}行 / ${pendingStart+1}〜${pendingEnd+1}列（${pendingEnd-pendingStart+1}マス）`;
@@ -1224,6 +1233,7 @@ document.getElementById('dlg-save').addEventListener('click',()=>{
 
 let archiveSortKey='completedDate',archiveSortDir='desc',archiveDetailSeg=null,currentSnapshotIdx=0;
 
+// ===== アーカイブ画面 =====
 function openArchive(){archiveDetailSeg=null;currentSnapshotIdx=0;document.getElementById('screen-register').classList.remove('active');document.getElementById('screen-archive').classList.add('active');renderArchive();}
 function closeArchive(){document.getElementById('screen-archive').classList.remove('active');document.getElementById('screen-register').classList.add('active');}
 
@@ -1543,6 +1553,7 @@ function renderArchiveDetail(el,segId){
   else{sortedDates.forEach(date=>{const group=document.createElement('div');group.className='log-date-group';const ghdr=document.createElement('div');ghdr.className='log-date-header';ghdr.innerHTML=`<span class="log-date-label">${isoFull(date)}</span><div class="log-date-line"></div>`;group.appendChild(ghdr);byDate[date].forEach(item=>{const isHarvest=item._type==='harvest';const entry=document.createElement('div');entry.className='log-entry';const icon=document.createElement('div');icon.className=`log-entry-icon ${isHarvest?'harvest':'task'}`;icon.innerHTML=`<i class="ti ${isHarvest?'ti-basket':'ti-check'}" aria-hidden="true"></i>`;const title=document.createElement('div');title.className='log-entry-title';title.textContent=isHarvest?'収穫':item.task;entry.append(icon,title);if(isHarvest){const badge=document.createElement('div');badge.className='log-entry-badge';badge.textContent=`${item.amount} ${item.unit}`;entry.appendChild(badge);}group.appendChild(entry);});el.appendChild(group);});}
 }
 
+// ===== 管理画面（工程表・ログ・収穫） =====
 function openManage(sid){currentSeg=sid;currentTab='roadmap';document.getElementById('screen-register').classList.remove('active');document.getElementById('screen-manage').classList.add('active');renderManage();}
 function goBack(){document.getElementById('screen-manage').classList.remove('active');document.getElementById('screen-register').classList.add('active');currentSeg=null;renderGrid();}
 
@@ -1668,6 +1679,7 @@ function renderHarvestTab(el,seg){
 }
 
 const GRID_BG_SRC='images/grid_bg_farmer.png';
+// ===== グリッド設定・畑名・凡例 =====
 function applyGridBg(){
   const wrap=document.getElementById('grid-wrap');
   if(!wrap)return;
@@ -1866,6 +1878,7 @@ function renderMarketDetail(){
   });
 }
 
+// ===== 栽培レシピ（マスタ）画面 =====
 function renderMasterList(){
   const el=document.getElementById('master-list-items');el.innerHTML='';
   Object.values(vegMaster).sort((a,b)=>a.name.localeCompare(b.name,'ja')).forEach(veg=>{
@@ -2257,6 +2270,7 @@ document.getElementById('btn-complete-execute').addEventListener('click',()=>{if
 // マーケットプレイス版では、お試し中の未ログイン訪問者も含めて
 // 誰でも自分の畑（セッション or 会員データ）を操作できる（旧autoAdmin:trueと同じ考え方）。
 // 個人版は従来通りpermRequireAdmin()（管理者パスワードでログインした本人）のみ。
+// ===== 野菜追加フロー（畑編集権限チェック含む） =====
 function permCanEditFarm(){return permRequireAdmin()||_dataStrategy==='session';}
 let _myPurchasedRecipes=[];
 async function _populateAddVegPreset(){
@@ -2355,6 +2369,7 @@ loadLS();renderLegend();renderGrid();
 // DB から最新データを読み込み（非管理者でも最新を表示）
 // マーケットプレイス版はログイン（会員確認）が済むまで_marketUserIdが無いため、
 // ここでは何もせずfalseが返る。ログイン後にAuth処理側から改めて呼び出す。
+// ===== 初期データ読込後の反映 =====
 function _applyLoadedData(loaded){
   if(loaded){
     if(!vegMaster['tomato'])vegMaster['tomato']=JSON.parse(JSON.stringify(TOMATO_SAMPLE));
