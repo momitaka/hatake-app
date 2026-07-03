@@ -7,17 +7,23 @@
 ## プロジェクト概要
 
 家庭菜園の区画・作業タスク・収穫を一元管理するスマートフォン向け Web アプリ。
-YouTuber コラボ対応のマルチテナント版（v25）を開発中。
+複数監修者のレシピを横断販売するマーケットプレイス型マルチテナント版（v26）を開発中。
 
-**現バージョン**: v25（メイン開発対象）  
+**現バージョン**: v26（メイン開発対象）  
 **ビジネスモデル（シナリオ2）**: 栽培管理サブスク 150円/月（1ヶ月無料・運営100%）＋ レシピ買い切り 300円/本（監修者70%・運営30%、レシピ単位で価格調整可）。詳細は Notion の関連ページ参照。
+
+### バージョン番号を上げる基準
+コードの見た目や機能追加ではなく、**ビジネスモデル／アーキテクチャの根本転換**があった時のみ上げる。
+- 例：v24→v25（個人版→YouTuberコラボ版）、v25→v26（チャンネル専用スキン→複数監修者マーケットプレイス）
+- 判断基準：「旧バージョンの設計書を読んだ人が、現在の仕組みについて“機能が足りない”ではなく“根本的に誤解する”か」。誤解するなら上げる、単なる機能追加なら上げない
+- 該当しそうな変更を検討・提案する際は、Claude からもバージョンアップの要否を都度提案する
 
 ## インフラ構成
 
 | サービス | 用途 | URL |
 |---|---|---|
 | GitHub | コード管理 | https://github.com/momitaka/hatake-app |
-| Vercel | ホスティング（メイン） | https://hatake-app-nu.vercel.app/hatake_v25.html |
+| Vercel | ホスティング（メイン） | https://hatake-app-nu.vercel.app/hatake_v26.html |
 | Supabase | DB・Auth | https://rkubnugczjlsxskomknm.supabase.co |
 | Stripe | サブスク決済 | 未設定（将来） |
 
@@ -26,7 +32,7 @@ YouTuber コラボ対応のマルチテナント版（v25）を開発中。
 ```
 hatake_app/
 ├── hatake_files_v24/
-│   ├── hatake_v25.html         ← メインアプリ（現行最新）
+│   ├── hatake_v26.html         ← メインアプリ（現行最新）
 │   ├── config/default.json     ← 個人版「私の畑」設定（触らない）
 │   └── config/market.json      ← マーケットプレイス版 共通設定
 ├── supabase/
@@ -44,8 +50,8 @@ hatake_app/
 # ローカルサーバー起動
 cd /Users/momi/claude/hatake_app/hatake_files_v24
 python3 -m http.server 8080
-# 個人版: http://localhost:8080/hatake_v25.html
-# マーケットプレイス版: http://localhost:8080/hatake_v25.html?config=market
+# 個人版: http://localhost:8080/hatake_v26.html
+# マーケットプレイス版: http://localhost:8080/hatake_v26.html?config=market
 
 # デプロイ（push で Vercel 自動デプロイ）
 git add .

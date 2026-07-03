@@ -3,13 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>畑管理アプリ v25</title>
+<title>畑管理アプリ v26</title>
 <!--
   ================================================================
-  畑管理アプリ v25
+  畑管理アプリ v26
   作成日: 2026-06-28 / Crafted with care by momitaka
+  v25からv26への改名: 2026-07-03（コラボ版→マーケットプレイス版への
+  business model転換に伴うバージョンアップ。詳細はCLAUDE.md参照）
   ----------------------------------------------------------------
-  【v25 シナリオ2（マーケットプレイス型課金モデル）】
+  【v26 シナリオ2（マーケットプレイス型課金モデル）】
   - ?config= によるチャンネル専用スキンは廃止。個人版(default)と
     マーケットプレイス版(market)の2種類のみになった
   - 監修者（チャンネル）情報はconfigファイルではなく、Supabaseの
@@ -700,7 +702,7 @@ body{
   root.style.setProperty('--accent-color', window.APP_CONFIG.accentColor);
 
   // <title> を設定ファイルのアプリ名で上書き
-  document.title = window.APP_CONFIG.appName + ' v25';
+  document.title = window.APP_CONFIG.appName + ' v26';
 
   // トップイラストを設定（DOM構築後に実行）
   if(window.APP_CONFIG.topIllustration) {

@@ -2,7 +2,7 @@
 
 家庭菜園の区画・作業タスク・収穫を一元管理するスマートフォン向け Web アプリです。
 
-**[→ アプリを開く](https://hatake-app-nu.vercel.app/hatake_v25.html)**
+**[→ アプリを開く](https://hatake-app-nu.vercel.app/hatake_v26.html)**
 
 ---
 
@@ -34,7 +34,8 @@
 | バージョン | 内容 |
 |---|---|
 | v24 | 個人版・安定稼働中 |
-| v25 | YouTuber コラボ対応・Supabase Auth 実装（現行開発版） |
+| v25 | YouTuber コラボ対応・Supabase Auth 実装（チャンネル専用スキン、廃止済み） |
+| v26 | マーケットプレイス型課金モデル・複数監修者のレシピを横断販売（現行開発版） |
 
 ---
 
@@ -44,7 +45,7 @@
 git clone https://github.com/momitaka/hatake-app.git
 cd hatake-app/hatake_files_v24
 python3 -m http.server 8080
-# → http://localhost:8080/hatake_v25.html
+# → http://localhost:8080/hatake_v26.html
 ```
 
 デプロイは `git push origin main` で Vercel が自動実行します。
