@@ -416,6 +416,7 @@ body{
           <span class="undo-count" id="undo-count" style="color:rgba(255,255,255,0.7)"></span>
           <div style="flex:1"></div>
           <button class="btn-grid-chip btn-master" id="btn-open-master"><i class="ti ti-plant-2" style="font-size:var(--fs-xs)"></i>栽培レシピ</button>
+          <button class="btn-grid-icon market-only" id="btn-open-account" title="アカウント" onclick="openAuthModal()"><i class="ti ti-user" id="account-header-icon"></i></button>
           <button class="btn-grid-icon" id="btn-open-archive" title="過去データ"><i class="ti ti-archive"></i></button>
           <button class="btn-grid-icon" id="btn-settings" title="設定"><i class="ti ti-settings"></i></button>
         </div>
@@ -2498,6 +2499,12 @@ loadFromDB().then(_applyLoadedData);
     const userEmail  = document.getElementById('auth-user-email');
     const subStatus  = document.getElementById('auth-sub-status');
     const saveBanner = document.getElementById('save-banner');
+
+    // ヘッダーの常設アカウントアイコン：状態が一目でわかるようにクラスを切り替える
+    const headerIcon = document.getElementById('account-header-icon');
+    if(headerIcon) {
+      headerIcon.className = user ? (isMember ? 'ti ti-user-check' : 'ti ti-user-exclamation') : 'ti ti-user';
+    }
 
     if(user) {
       // ログイン済み表示
