@@ -1557,7 +1557,7 @@ function renderRoadmapTab(el,seg,veg){
   const wrap=document.createElement('div');wrap.className='progress-wrap';wrap.innerHTML=`<div class="progress-label"><div class="progress-title">${vegIconHtml(veg,18)} ${veg.name} 工程表</div><div class="progress-pct">${pct}%</div></div><div class="progress-bar-outer"><div class="progress-bar-inner" style="width:${pct}%"></div></div>`;el.appendChild(wrap);
   veg.phases.forEach((phase,pi)=>{
     const isCurrent=pi===phaseIdx,isDone=pi<phaseIdx;
-    const block=document.createElement('div');block.className='phase-block';block.innerHTML=`<div class="phase-heading"><div class="phase-radio ${isDone?'done':isCurrent?'active':''}"></div><span class="phase-name" style="color:${isCurrent?'#1a1915':'#5f5e5a'}">${phase.name}</span><span class="phase-period">（${phase.period}）</span></div>`;
+    const block=document.createElement('div');block.className='phase-block';block.innerHTML=`<div class="phase-heading"><div class="phase-radio ${isDone?'done':isCurrent?'active':''}"></div><span class="phase-name" style="color:${isCurrent?'#1a1915':'#5f5e5a'}">${phase.name}</span>${phase.period?'<span class="phase-period">（'+phase.period+'）</span>':''}</div>`;
     phase.tasks.forEach(task=>{
       const state=getTaskState(currentSeg,task.id);const isPest=task.type==='pest';const card=document.createElement('div');card.className='task-card'+(isPest?' pest':'');
       const _gm=veg.growMethod||'seedling';const _isSeed=_gm==='seed_pot'||_gm==='seed_ground';
@@ -1824,7 +1824,7 @@ function renderMarketDetail(){
       if(data&&data.error)throw new Error(data.error);
       showAlert(
         (data&&data.already_owned)?'このレシピは購入済みです。':'購入が完了しました。「野菜を追加」の「購入したレシピから選ぶ」から追加できます。',
-        ()=>{closeMarketList();}
+        ()=>{backToMarketList();closeMarketList();}
       );
     }catch(e){
       console.error('purchase error',e);
@@ -1953,7 +1953,7 @@ function renderMasterDetail(){
     hint.textContent=_isSeed2?'日数は種まき（播種）を0日とした目安です。工程表で種まきの実施日/予定日を記録すると、それを基準に各タスクのスケジュールが自動計算されます。':'日数は苗を植えた日（定植）を0日とした目安です。工程表で定植の実施日/予定日を記録すると、それを基準に各タスクのスケジュールが自動計算されます。';
     scroll.appendChild(hint);
     veg.phases.forEach((phase,pi)=>{
-      const pb=document.createElement('div');pb.className='master-phase-block';const ph=document.createElement('div');ph.className='master-phase-header';ph.innerHTML=`<div class="phase-radio active" style="flex-shrink:0"></div><span class="master-phase-label">${phase.name}（${phase.period}）</span>`;pb.appendChild(ph);
+      const pb=document.createElement('div');pb.className='master-phase-block';const ph=document.createElement('div');ph.className='master-phase-header';ph.innerHTML=`<div class="phase-radio active" style="flex-shrink:0"></div><span class="master-phase-label">${phase.name}${phase.period?'（'+phase.period+'）':''}</span>`;pb.appendChild(ph);
       phase.tasks.forEach((task,ti)=>{
         const tr=document.createElement('div');tr.className='master-task-row';const th=document.createElement('div');th.className='master-task-header';
         const nameIn=document.createElement('input');nameIn.type='text';nameIn.className='master-task-name-input';nameIn.value=task.name;nameIn.placeholder='タスク名';
@@ -1990,7 +1990,7 @@ function renderMasterSaveBar(col,veg){
   const slot=document.getElementById('master-toolbar-btns');
   if(!slot)return;
   slot.innerHTML='';
-  if(!requireAdmin()){slot.style.display='none';return;}
+  if(!_canEditFarm()){slot.style.display='none';return;}
   const delBtn=document.createElement('button');delBtn.className='btn-delete-master';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>削除';delBtn.addEventListener('click',()=>{const usedCells=Object.values(cells).filter(c=>c&&c.crop===veg.id);if(usedCells.length>0){showAlert(`「${veg.name}」は現在${usedCells.length}つの区画で使用中のため削除できません。\n区画の管理画面から野菜を外すか、区画を削除してから再度お試しください。`);return;}showConfirm(`「${veg.name}」をレシピから削除しますか？`,()=>{delete vegMaster[veg.id];selectedMasterVeg=null;saveLS();renderMasterList();renderMasterDetail();});});
   const saveBtn=document.createElement('button');saveBtn.className='btn-save-master';saveBtn.innerHTML='<i class="ti ti-device-floppy"></i>保存';saveBtn.addEventListener('click',()=>{saveLS();if(fromRegDlg){fromRegDlg=false;saveBtn.textContent='完了';setTimeout(()=>{closeMaster();populateCropSelect();document.getElementById('dlg-crop').value=selectedMasterVeg||'';document.getElementById('dlg-save').disabled=!selectedMasterVeg;document.getElementById('dlg-register').style.display='flex';},1200);}else{saveBtn.textContent='完了';setTimeout(()=>closeMaster(),1200);}});
   slot.append(delBtn,saveBtn);slot.style.display='flex';
