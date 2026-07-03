@@ -1,3 +1,5 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -9,7 +11,23 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { vegName, family, growMethod, season, region, referenceUrl } = await req.json();
+    const { vegName, family, growMethod, season, region, referenceUrl, vegKey } = await req.json();
+
+    // 品種（veg_key）単位の基礎知識デフォルト値を確認。
+    // 既にあれば使い回し、無ければAI生成後に登録する（先勝ち）。
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+    const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const admin = (SUPABASE_URL && SERVICE_ROLE_KEY) ? createClient(SUPABASE_URL, SERVICE_ROLE_KEY) : null;
+
+    let existingBasicInfo: unknown = null;
+    if (admin && vegKey) {
+      const { data: row } = await admin
+        .from('veg_basic_info_defaults')
+        .select('basic_info')
+        .eq('veg_key', vegKey)
+        .maybeSingle();
+      existingBasicInfo = row?.basic_info ?? null;
+    }
 
     const growMethodLabel =
       growMethod === 'seed_pot' ? '種（ポット）から' :
@@ -150,6 +168,22 @@ ${referenceUrl ? `参考URL: ${referenceUrl}` : ''}
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error('JSONが見つかりませんでした');
     const result = JSON.parse(jsonMatch[0]);
+
+    // 既定値があればそちらを採用（品種内でのブレを防ぐ）。無ければ今回の
+    // 生成結果を新しい既定値として登録する。
+    let basicInfoSource: 'existing' | 'new' = 'new';
+    if (result.basicInfo) {
+      if (existingBasicInfo) {
+        result.basicInfo = existingBasicInfo;
+        basicInfoSource = 'existing';
+      } else if (admin && vegKey) {
+        const { error: insertErr } = await admin
+          .from('veg_basic_info_defaults')
+          .insert({ veg_key: vegKey, basic_info: result.basicInfo });
+        if (insertErr) console.error('veg_basic_info_defaults insert error', insertErr);
+      }
+    }
+    result.basicInfoSource = basicInfoSource;
 
     return new Response(JSON.stringify(result), {
       headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },

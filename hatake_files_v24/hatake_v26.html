@@ -2014,7 +2014,8 @@ async function aiGenerate(vegId){
           growMethod:veg.growMethod||'seedling',
           season:veg.season||'',
           region:veg.region||'',
-          referenceUrl:veg.referenceUrl||''
+          referenceUrl:veg.referenceUrl||'',
+          vegKey:vegId
         })
       });
       if(!res.ok){const e=await res.json();throw new Error(e.error||'生成に失敗しました');}
@@ -2027,7 +2028,10 @@ async function aiGenerate(vegId){
       vegMaster[vegId].phases=data.phases;
       if(data.basicInfo)vegMaster[vegId].basicInfo=data.basicInfo;
       saveLS();renderMasterDetail();
-      showAlert(`「${veg.name}」の工程表と基礎知識をAIで生成しました！`);
+      const basicInfoMsg=data.basicInfoSource==='existing'
+        ?`基礎知識は「${veg.name}」の既存の初期値を使用しました（このレシピ内で自由に編集できます）。`
+        :`基礎知識は「${veg.name}」として新規生成し、この品種の初期値として保存しました。`;
+      showAlert(`「${veg.name}」の工程表をAIで生成しました！\n${basicInfoMsg}`);
     }catch(e){
       showAlert(`生成エラー：${e.message}`);
     }finally{
