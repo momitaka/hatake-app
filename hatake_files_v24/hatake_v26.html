@@ -344,7 +344,7 @@ body{
       </div>
       <button onclick="sendMagicLink()" id="auth-magic-btn"
         style="width:100%;padding:12px;background:#5aad4e;color:#fff;border:none;border-radius:99px;font-size:var(--fs-base);font-weight:600;cursor:pointer;margin-bottom:12px">
-        メールでログインリンクを受け取る
+        メールでログインコードを受け取る
       </button>
       <!-- Google ログイン: 未使用・非表示
            有効化には以下が必要：
@@ -361,13 +361,27 @@ body{
       <div id="auth-msg" style="margin-top:12px;font-size:var(--fs-xs);text-align:center;min-height:18px"></div>
     </div>
 
-    <!-- 送信完了メッセージ -->
+    <!-- 送信完了メッセージ＋コード入力 -->
+    <!-- v26: メールのリンクはセキュリティスキャンで無効化されることがあるため、
+         リンクではなく6桁コードを手入力してログインする方式に変更 -->
     <div id="auth-sent-msg" style="display:none;text-align:center;padding:12px 0">
       <div style="font-size:32px;margin-bottom:12px">📧</div>
       <div style="font-weight:600;margin-bottom:8px">メールを送信しました</div>
-      <div style="font-size:var(--fs-xs);color:#5f5e5a;line-height:1.7">
-        メールのリンクをタップしてください。<br>このページに自動で戻ってきます。
+      <div style="font-size:var(--fs-xs);color:#5f5e5a;line-height:1.7;margin-bottom:14px">
+        メールに記載された6桁のコードを入力してください。
       </div>
+      <input id="auth-otp-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="123456"
+        style="width:100%;padding:10px 12px;border:1px solid #d0cfc8;border-radius:8px;font-size:20px;text-align:center;letter-spacing:6px;outline:none;box-sizing:border-box;margin-bottom:10px"
+        onfocus="this.style.borderColor='#5aad4e'" onblur="this.style.borderColor='#d0cfc8'">
+      <button onclick="verifyOtpCode()" id="auth-verify-btn"
+        style="width:100%;padding:12px;background:#5aad4e;color:#fff;border:none;border-radius:99px;font-size:var(--fs-base);font-weight:600;cursor:pointer;margin-bottom:8px">
+        コードを確認してログイン
+      </button>
+      <button onclick="document.getElementById('auth-email-form').style.display='block';document.getElementById('auth-sent-msg').style.display='none';"
+        style="background:none;border:none;color:#9c9a93;font-size:var(--fs-xs);cursor:pointer;text-decoration:underline;padding:4px">
+        メールアドレスを入力し直す
+      </button>
+      <div id="auth-otp-msg" style="margin-top:6px;font-size:var(--fs-xs);text-align:center;min-height:18px"></div>
     </div>
 
     <!-- ログイン済み表示 -->
@@ -2601,11 +2615,33 @@ loadFromDB().then(_applyLoadedData);
     });
     if(error) {
       if(msg) msg.textContent = '送信に失敗しました: ' + error.message;
-      if(btn) { btn.textContent = 'メールでログインリンクを受け取る'; btn.disabled = false; }
+      if(btn) { btn.textContent = 'メールでログインコードを受け取る'; btn.disabled = false; }
     } else {
       document.getElementById('auth-email-form').style.display = 'none';
       document.getElementById('auth-sent-msg').style.display   = 'block';
+      const otpInput=document.getElementById('auth-otp-input');
+      const otpMsg=document.getElementById('auth-otp-msg');
+      if(otpInput)otpInput.value='';
+      if(otpMsg)otpMsg.textContent='';
+      if(btn) { btn.textContent = 'メールでログインコードを受け取る'; btn.disabled = false; }
     }
+  };
+
+  // v26: メールのリンクではなく、メールに記載された6桁コードを手入力してログインする
+  // （メールアプリのセキュリティスキャンでリンクが自動消費される問題を回避するため）
+  window.verifyOtpCode = async function() {
+    const email = (document.getElementById('auth-email-input').value || '').trim();
+    const code  = (document.getElementById('auth-otp-input').value || '').trim();
+    const msg   = document.getElementById('auth-otp-msg');
+    const btn   = document.getElementById('auth-verify-btn');
+    if(!code) { if(msg) msg.textContent = 'コードを入力してください'; return; }
+    if(btn) { btn.textContent = '確認中...'; btn.disabled = true; }
+    const {error} = await _sb.auth.verifyOtp({ email, token: code, type: 'email' });
+    if(error) {
+      if(msg) msg.textContent = 'コードが正しくないか、期限切れです';
+      if(btn) { btn.textContent = 'コードを確認してログイン'; btn.disabled = false; }
+    }
+    // 成功時はonAuthStateChangeが発火し、_onUserLoginが呼ばれて画面が自動更新される
   };
 
   window.signInWithGoogle = async function() {
