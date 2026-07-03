@@ -40,7 +40,10 @@ hatake_app/
 │   ├── functions/purchase-recipe/   ← レシピ購入処理 Edge Function（Stripe未連携・即時成立の暫定版）
 │   └── migrations/
 │       ├── 20260702_v25_scenario2_marketplace.sql ← 実行済み（creators/users/recipes/recipe_purchases/user_recipes/user_records）
-│       └── 20260703_v25_scenario2_rls.sql         ← 実行済み（RLS最小構成）
+│       ├── 20260703_v25_scenario2_rls.sql         ← 実行済み（RLS最小構成）
+│       ├── 20260703_v25_user_recipes_veg_key.sql  ← 実行済み
+│       ├── 20260703_v25_veg_basic_info_defaults.sql ← 実行済み
+│       └── archived/                              ← 廃止済み旧設計（channel_id方式）。実行しないこと
 └── CLAUDE.md                   ← このファイル
 ```
 
@@ -69,19 +72,23 @@ git push origin main
 
 - **管理画面** = 区画の詳細管理画面（野菜管理画面）
 - **グリッド画面** = トップの畑マップ画面
-- **コラボ版** = `?config=kagaku-jikyu` を付けた URL
+- **マーケットプレイス版** = `?config=market` を付けた URL
 - **個人版** = デフォルトの「私の畑」版
+- ~~コラボ版~~（`?config=kagaku-jikyu` 等のチャンネル専用スキン）はv26で廃止済み。複数監修者のレシピを横断表示するマーケットプレイス版に統合された
 
 ## Supabase テーブル
 
 | テーブル | 状態 | 用途 |
 |---|---|---|
 | `app_data` | ✅ 稼働中 | 個人版データ（**触らない**） |
-| `users` | ⬜ 未作成 | ユーザー・ロール管理 |
-| `recipes` | ⬜ 未作成 | YouTuber レシピ |
-| `user_records` | ⬜ 未作成 | コラボ版ユーザーデータ |
+| `creators` | ✅ 稼働中 | 監修者（チャンネル）情報 |
+| `users` | ✅ 稼働中 | 会員アカウント・ロール管理（ログイン＝会員＝サブスク） |
+| `recipes` | ✅ 稼働中 | 監修者が管理する共有マスターレシピ |
+| `recipe_purchases` | ✅ 稼働中 | レシピ購入履歴・収益分配台帳 |
+| `user_recipes` | ✅ 稼働中 | 購入時にコピーした、ユーザーが自由編集できるレシピ |
+| `user_records` | ✅ 稼働中 | マーケットプレイス版ユーザーの畑データ |
 
-→ `supabase/migrations/20260628_v25_collab_tables.sql` を Supabase SQL Editor で実行すれば 3 テーブル作成される
+→ `supabase/migrations/20260702_v25_scenario2_marketplace.sql` で作成（channel_id方式の旧設計は`supabase/migrations/archived/`に移動済み・現行DBには存在しない）
 
 ## Notion
 
