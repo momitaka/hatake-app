@@ -829,7 +829,12 @@ let COLS=8,ROWS=6,cells={},segs={},segTasks={},actionLogs={},harvestLogs={},segS
 let aisleRows=[],aisleCols=[];
 let farmNameFont='Kaisei Opti';
 let farmIcon='';
-let dragging=false,dragRow=-1,dragStartCol=-1,dragEndCol=-1,pendingRow=-1,pendingStart=-1,pendingEnd=-1;
+// グリッドのドラッグ範囲選択に関する一時状態。保存も他画面参照もされない。
+const dragState={
+  dragging:false,row:-1,startCol:-1,endCol:-1,
+  pendingRow:-1,pendingStart:-1,pendingEnd:-1,
+  touchStartX:0,touchStartY:0,
+};
 let currentSeg=null,currentTab='roadmap',selectedMasterVeg=null,masterDetailTab='roadmap',addVegEmoji='🌱',addVegIconFile=null,fromRegDlg=false,farmName='';
 let settingsOpen=false;
 
@@ -1152,7 +1157,7 @@ function renderGrid(){
       // colspanはアイル列を跨がない範囲に制限
       let span=registered&&seg?seg.cols.length:1;
       if(span>1){const cols=seg.cols.slice().sort((a,b)=>a-b);span=0;for(const sc of cols){if(aisleCols.includes(sc))break;span++;}if(span===0)span=1;}
-      const selecting=dragging&&r===dragRow&&c>=Math.min(dragStartCol,dragEndCol)&&c<=Math.max(dragStartCol,dragEndCol);
+      const selecting=dragState.dragging&&r===dragState.row&&c>=Math.min(dragState.startCol,dragState.endCol)&&c<=Math.max(dragState.startCol,dragState.endCol);
       const fs=famStyle(vegFamily(seg?seg.crop:null));const majorSt=registered?calcMajorStatus(sid,seg.crop):null;
       const td=document.createElement('td');td.dataset.r=r;td.dataset.c=c;
       if(span>1)td.setAttribute('colspan',span);
@@ -1179,7 +1184,7 @@ function renderGrid(){
       }
       td.appendChild(inner);
       if(registered){td.style.cursor='pointer';td.addEventListener('click',()=>openManage(sid));}
-      else{td.style.cursor='crosshair';td.addEventListener('mousedown',e=>{if(e.button!==0)return;onDown(r,c,e)});td.addEventListener('mouseenter',()=>{if(dragging&&r===dragRow)onEnter(c)});td.addEventListener('touchstart',e=>{e.preventDefault();onDown(r,c,e)},{passive:false});td.addEventListener('touchmove',e=>{e.preventDefault();const t=e.touches[0];if(Math.abs(t.clientX-_touchStartX)<10&&Math.abs(t.clientY-_touchStartY)<10)return;const el2=document.elementFromPoint(t.clientX,t.clientY);const td2=el2&&el2.closest('td');if(td2)td2.dispatchEvent(new MouseEvent('mouseenter'));},{passive:false});}
+      else{td.style.cursor='crosshair';td.addEventListener('mousedown',e=>{if(e.button!==0)return;onDown(r,c,e)});td.addEventListener('mouseenter',()=>{if(dragState.dragging&&r===dragState.row)onEnter(c)});td.addEventListener('touchstart',e=>{e.preventDefault();onDown(r,c,e)},{passive:false});td.addEventListener('touchmove',e=>{e.preventDefault();const t=e.touches[0];if(Math.abs(t.clientX-dragState.touchStartX)<10&&Math.abs(t.clientY-dragState.touchStartY)<10)return;const el2=document.elementFromPoint(t.clientX,t.clientY);const td2=el2&&el2.closest('td');if(td2)td2.dispatchEvent(new MouseEvent('mouseenter'));},{passive:false});}
       tr.appendChild(td);
     }
     tbl.appendChild(tr);
@@ -1188,18 +1193,17 @@ function renderGrid(){
   updateFarmNameDisplay();
   requestAnimationFrame(applyGridBg);
 }
-let _touchStartX=0,_touchStartY=0;
-function onDown(r,c,e){e.preventDefault();if(!permCanEditFarm())return;if(aisleRows.includes(r)||aisleCols.includes(c))return;const k=K(r,c);if(cells[k]&&cells[k].crop)return;dragging=true;dragRow=r;dragStartCol=c;dragEndCol=c;if(e.touches&&e.touches[0]){_touchStartX=e.touches[0].clientX;_touchStartY=e.touches[0].clientY;}document.addEventListener('mouseup',onUp,{once:true});document.addEventListener('touchend',onUp,{once:true});window.addEventListener('touchend',onUp,{once:true});
+function onDown(r,c,e){e.preventDefault();if(!permCanEditFarm())return;if(aisleRows.includes(r)||aisleCols.includes(c))return;const k=K(r,c);if(cells[k]&&cells[k].crop)return;dragState.dragging=true;dragState.row=r;dragState.startCol=c;dragState.endCol=c;if(e.touches&&e.touches[0]){dragState.touchStartX=e.touches[0].clientX;dragState.touchStartY=e.touches[0].clientY;}document.addEventListener('mouseup',onUp,{once:true});document.addEventListener('touchend',onUp,{once:true});window.addEventListener('touchend',onUp,{once:true});
   // DOM再構築せず直接ハイライト（iOS touchend対策）
   const tds=document.querySelectorAll('#grid-table td');tds.forEach(td=>{if(td.dataset.r==r&&td.dataset.c==c)td.style.background='var(--color-background-tertiary)';});
 }
-function onEnter(c){const dir=c>=dragStartCol?1:-1;let end=dragStartCol;for(let ci=dragStartCol;ci!==c+dir;ci+=dir){if(ci<0||ci>=COLS)break;const k=K(dragRow,ci);if(cells[k]&&cells[k].crop)break;end=ci;}if(end===dragEndCol)return;dragEndCol=end;const s=Math.min(dragStartCol,dragEndCol),e2=Math.max(dragStartCol,dragEndCol);document.querySelectorAll('#grid-table td[data-r]').forEach(td=>{const r2=+td.dataset.r,c2=+td.dataset.c;if(r2===dragRow&&c2>=s&&c2<=e2){td.style.outline='2px solid #4A90E2';td.style.background='rgba(74,144,226,0.12)';}else if(!cells[K(r2,c2)]?.crop){td.style.outline='';td.style.background='';}});} 
-function onUp(){if(!dragging){dragging=false;return;}dragging=false;const s=Math.min(dragStartCol,dragEndCol),e2=Math.max(dragStartCol,dragEndCol);if(dragRow>=0&&s<=e2){pendingRow=dragRow;pendingStart=s;pendingEnd=e2;showRegDlg();}renderGrid();}
+function onEnter(c){const dir=c>=dragState.startCol?1:-1;let end=dragState.startCol;for(let ci=dragState.startCol;ci!==c+dir;ci+=dir){if(ci<0||ci>=COLS)break;const k=K(dragState.row,ci);if(cells[k]&&cells[k].crop)break;end=ci;}if(end===dragState.endCol)return;dragState.endCol=end;const s=Math.min(dragState.startCol,dragState.endCol),e2=Math.max(dragState.startCol,dragState.endCol);document.querySelectorAll('#grid-table td[data-r]').forEach(td=>{const r2=+td.dataset.r,c2=+td.dataset.c;if(r2===dragState.row&&c2>=s&&c2<=e2){td.style.outline='2px solid #4A90E2';td.style.background='rgba(74,144,226,0.12)';}else if(!cells[K(r2,c2)]?.crop){td.style.outline='';td.style.background='';}});} 
+function onUp(){if(!dragState.dragging){dragState.dragging=false;return;}dragState.dragging=false;const s=Math.min(dragState.startCol,dragState.endCol),e2=Math.max(dragState.startCol,dragState.endCol);if(dragState.row>=0&&s<=e2){dragState.pendingRow=dragState.row;dragState.pendingStart=s;dragState.pendingEnd=e2;showRegDlg();}renderGrid();}
 
 // ===== 区画登録ダイアログ =====
 function showRegDlg(){
   populateCropSelect();
-  document.getElementById('dlg-preview').textContent=`${pendingRow+1}行 / ${pendingStart+1}〜${pendingEnd+1}列（${pendingEnd-pendingStart+1}マス）`;
+  document.getElementById('dlg-preview').textContent=`${dragState.pendingRow+1}行 / ${dragState.pendingStart+1}〜${dragState.pendingEnd+1}列（${dragState.pendingEnd-dragState.pendingStart+1}マス）`;
   document.getElementById('dlg-crop').value='';
   document.getElementById('dlg-date-input').value=todayISO();
   document.getElementById('dlg-save').disabled=true;
@@ -1217,25 +1221,25 @@ document.getElementById('dlg-crop').addEventListener('change',()=>{
   document.getElementById('dlg-save').disabled=!cropId;
   const warn=document.getElementById('dlg-rotation-warn');
   warn.style.display='none';warn.innerHTML='';
-  if(!cropId||pendingRow<0)return;
+  if(!cropId||dragState.pendingRow<0)return;
   const veg=getVeg(cropId);if(!veg||!ROTATION_FAMILIES.has(veg.family))return;
-  const cols=Array.from({length:pendingEnd-pendingStart+1},(_,i)=>pendingStart+i);
-  const hits=checkRotation(pendingRow,cols).filter(a=>a.family===veg.family);
+  const cols=Array.from({length:dragState.pendingEnd-dragState.pendingStart+1},(_,i)=>dragState.pendingStart+i);
+  const hits=checkRotation(dragState.pendingRow,cols).filter(a=>a.family===veg.family);
   if(!hits.length)return;
   const h=hits[0];const months=Math.round(daysBetween(h.completedDate,todayISO())/30);
   warn.innerHTML=`<i class="ti ti-alert-triangle" style="font-size:var(--fs-xs);margin-right:3px"></i>このエリアでは<strong>${months}ヶ月前</strong>に${h.family}（${h.cropName}）を栽培していました。連作障害に注意してください。`;
   warn.style.display='block';
 });
-document.getElementById('btn-dlg-cancel').addEventListener('click',()=>{document.getElementById('dlg-register').style.display='none';pendingRow=-1;pendingStart=-1;pendingEnd=-1;renderGrid();});
-document.getElementById('dlg-go-master').addEventListener('click',()=>{document.getElementById('dlg-register').style.display='none';pendingRow=-1;pendingStart=-1;pendingEnd=-1;openMaster();});
+document.getElementById('btn-dlg-cancel').addEventListener('click',()=>{document.getElementById('dlg-register').style.display='none';dragState.pendingRow=-1;dragState.pendingStart=-1;dragState.pendingEnd=-1;renderGrid();});
+document.getElementById('dlg-go-master').addEventListener('click',()=>{document.getElementById('dlg-register').style.display='none';dragState.pendingRow=-1;dragState.pendingStart=-1;dragState.pendingEnd=-1;openMaster();});
 document.getElementById('dlg-add-new-veg').addEventListener('click',()=>{document.getElementById('dlg-register').style.display='none';fromRegDlg=true;openMaster();document.getElementById('btn-add-veg').click();});
-document.getElementById('dlg-register').addEventListener('mousedown',e=>{if(e.target===e.currentTarget&&Date.now()-(window._regDlgOpenTime||0)>500){document.getElementById('dlg-register').style.display='none';pendingRow=-1;pendingStart=-1;pendingEnd=-1;renderGrid();}});
+document.getElementById('dlg-register').addEventListener('mousedown',e=>{if(e.target===e.currentTarget&&Date.now()-(window._regDlgOpenTime||0)>500){document.getElementById('dlg-register').style.display='none';dragState.pendingRow=-1;dragState.pendingStart=-1;dragState.pendingEnd=-1;renderGrid();}});
 document.getElementById('dlg-save').addEventListener('click',()=>{
   const cropId=document.getElementById('dlg-crop').value,date=document.getElementById('dlg-date-input').value;if(!cropId)return;
   document.getElementById('dlg-register').style.display='none';pushUndo();
-  const sid=`s_${pendingRow}_${pendingStart}_${Date.now()}`;
-  for(let c=pendingStart;c<=pendingEnd;c++){const k=K(pendingRow,c);if(!cells[k]||!cells[k].crop)cells[k]={segId:sid,crop:cropId,plantDate:date};}
-  pendingRow=-1;pendingStart=-1;pendingEnd=-1;buildSegs();renderGrid();saveLS();
+  const sid=`s_${dragState.pendingRow}_${dragState.pendingStart}_${Date.now()}`;
+  for(let c=dragState.pendingStart;c<=dragState.pendingEnd;c++){const k=K(dragState.pendingRow,c);if(!cells[k]||!cells[k].crop)cells[k]={segId:sid,crop:cropId,plantDate:date};}
+  dragState.pendingRow=-1;dragState.pendingStart=-1;dragState.pendingEnd=-1;buildSegs();renderGrid();saveLS();
 });
 
 let archiveSortKey='completedDate',archiveSortDir='desc',archiveDetailSeg=null,currentSnapshotIdx=0;
