@@ -5,7 +5,7 @@ test.describe('ロードマップ・タスク記録', () => {
   test.beforeEach(async ({ page }) => {
     await mockSupabase(page);
     await seedStorage(page, { admin: false }); // タスク記録は閲覧モードでも可
-    await page.goto('/hatake_v24.html');
+    await page.goto('/hatake_v26.html');
     await dismissSplash(page);
     await openManageScreen(page);
     // ロードマップタブはデフォルトで開く（currentTab='roadmap'）
@@ -20,12 +20,11 @@ test.describe('ロードマップ・タスク記録', () => {
     await expect(page.locator('#dlg-task-date')).toBeVisible({ timeout: 3000 });
   });
 
-  test('日付ダイアログに年月日セレクトが表示される', async ({ page }) => {
+  test('日付ダイアログに日付入力欄が表示される', async ({ page }) => {
     await page.locator('.task-cb').first().check();
     await expect(page.locator('#dlg-task-date')).toBeVisible({ timeout: 3000 });
-    await expect(page.locator('#dlg-task-date-y')).toBeVisible();
-    await expect(page.locator('#dlg-task-date-m')).toBeVisible();
-    await expect(page.locator('#dlg-task-date-d')).toBeVisible();
+    // v26でy/m/dセレクトはネイティブのinput[type=date]に置き換わった
+    await expect(page.locator('#dlg-task-date-input')).toBeVisible();
   });
 
   test('記録するを押すとタスクに日付チップが表示される', async ({ page }) => {
@@ -48,7 +47,8 @@ test.describe('ロードマップ・タスク記録', () => {
     const cb = page.locator('.task-cb').first();
     await cb.check();
     await expect(page.locator('#dlg-task-date')).toBeVisible({ timeout: 3000 });
-    await page.locator('#dlg-task-date .btn').click(); // キャンセルボタン
+    // v26では✕ボタン（クラス無し）がキャンセル操作
+    await page.locator('#dlg-task-date').getByText('✕').click();
     await expect(cb).not.toBeChecked();
   });
 

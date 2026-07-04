@@ -5,7 +5,7 @@ test.describe('権限管理', () => {
   test.beforeEach(async ({ page }) => {
     await mockSupabase(page);
     await seedStorage(page, { admin: false });
-    await page.goto('/hatake_v24.html');
+    await page.goto('/hatake_v26.html');
     await dismissSplash(page);
   });
 

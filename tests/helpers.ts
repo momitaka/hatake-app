@@ -91,9 +91,9 @@ export async function loginAsAdmin(page: Page) {
   await page.locator('#btn-settings').click();
   await page.locator('#dlg-settings').waitFor({ state: 'visible' });
   await page.locator('#s-admin-pw').fill(ADMIN_PASSWORD);
-  page.once('dialog', d => d.accept());
   await page.locator('#btn-admin-login').click();
-  await page.waitForTimeout(300);
+  // v26: alert()ではなく独自モーダル(#dlg-custom-alert)に置き換わっている
+  await page.locator('#dlg-custom-alert-ok').click();
   await page.locator('#btn-close-settings').click();
   await page.waitForTimeout(200);
 }

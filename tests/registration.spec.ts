@@ -5,7 +5,7 @@ test.describe('区画登録ダイアログ', () => {
   test.beforeEach(async ({ page }) => {
     await mockSupabase(page);
     await seedStorage(page, { admin: true });
-    await page.goto('/hatake_v24.html');
+    await page.goto('/hatake_v26.html');
     await dismissSplash(page);
   });
 
@@ -14,21 +14,19 @@ test.describe('区画登録ダイアログ', () => {
     await expect(page.locator('#dlg-register')).toBeVisible({ timeout: 3000 });
   });
 
-  test('ダイアログに日付セレクトが表示される', async ({ page }) => {
+  test('ダイアログに日付入力欄が表示される', async ({ page }) => {
     await clickGridCell(page, 1, 0);
     await expect(page.locator('#dlg-register')).toBeVisible({ timeout: 3000 });
-    await expect(page.locator('#dlg-date-y')).toBeVisible();
-    await expect(page.locator('#dlg-date-m')).toBeVisible();
-    await expect(page.locator('#dlg-date-d')).toBeVisible();
+    // v26でy/m/dセレクトはネイティブのinput[type=date]に置き換わった
+    await expect(page.locator('#dlg-date-input')).toBeVisible();
   });
 
-  test('日付セレクトが今日の年月日で初期化される', async ({ page }) => {
+  test('日付入力欄が今日の日付で初期化される', async ({ page }) => {
     const today = new Date();
+    const iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     await clickGridCell(page, 1, 0);
     await expect(page.locator('#dlg-register')).toBeVisible({ timeout: 3000 });
-    await expect(page.locator('#dlg-date-y')).toHaveValue(String(today.getFullYear()));
-    await expect(page.locator('#dlg-date-m')).toHaveValue(String(today.getMonth() + 1).padStart(2, '0'));
-    await expect(page.locator('#dlg-date-d')).toHaveValue(String(today.getDate()).padStart(2, '0'));
+    await expect(page.locator('#dlg-date-input')).toHaveValue(iso);
   });
 
   test('作物未選択時は登録ボタンが無効', async ({ page }) => {

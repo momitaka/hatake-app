@@ -4,7 +4,7 @@ import { mockSupabase, dismissSplash } from './helpers';
 test.describe('スプラッシュ画面', () => {
   test.beforeEach(async ({ page }) => {
     await mockSupabase(page);
-    await page.goto('/hatake_v24.html');
+    await page.goto('/hatake_v26.html');
   });
 
   test('起動時にスプラッシュが表示される', async ({ page }) => {

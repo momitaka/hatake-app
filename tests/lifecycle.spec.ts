@@ -26,13 +26,13 @@ test.describe('管理者ライフサイクル', () => {
     test.beforeEach(async ({ page }) => {
       await mockSupabase(page);
       await seedStorage(page, { admin: true });
-      await page.goto('/hatake_v24.html');
+      await page.goto('/hatake_v26.html');
       await dismissSplash(page);
     });
 
     test('step1: タスクを記録できる', async ({ page }) => {
       await openManageScreen(page);
-      await page.locator('.tab-btn').filter({ hasText: 'ロードマップ' }).click();
+      await page.locator('.tab-btn').filter({ hasText: '工程表' }).click();
       await page.locator('.task-cb').first().check();
       await expect(page.locator('#dlg-task-date')).toBeVisible({ timeout: 3000 });
       await page.locator('#dlg-task-date .btn-primary').click();
@@ -123,7 +123,7 @@ test.describe('管理者ライフサイクル', () => {
         }));
         localStorage.setItem('hatake_admin', '1');
       }, { veg: { ...SEED_VEG } });
-      await page.goto('/hatake_v24.html');
+      await page.goto('/hatake_v26.html');
       await dismissSplash(page);
     });
 
@@ -140,7 +140,7 @@ test.describe('管理者ライフサイクル', () => {
       await expect(page.locator('#screen-manage')).toBeVisible();
 
       // 3. タスク記録
-      await page.locator('.tab-btn').filter({ hasText: 'ロードマップ' }).click();
+      await page.locator('.tab-btn').filter({ hasText: '工程表' }).click();
       await page.locator('.task-cb').first().check();
       await expect(page.locator('#dlg-task-date')).toBeVisible({ timeout: 3000 });
       await page.locator('#dlg-task-date .btn-primary').click();
@@ -175,7 +175,7 @@ test.describe('閲覧モード: ライフサイクル権限', () => {
   test.beforeEach(async ({ page }) => {
     await mockSupabase(page);
     await seedStorage(page, { admin: false });
-    await page.goto('/hatake_v24.html');
+    await page.goto('/hatake_v26.html');
     await dismissSplash(page);
   });
 
@@ -187,7 +187,7 @@ test.describe('閲覧モード: ライフサイクル権限', () => {
 
   test('タスク記録は閲覧モードでも可能', async ({ page }) => {
     await openManageScreen(page);
-    await page.locator('.tab-btn').filter({ hasText: 'ロードマップ' }).click();
+    await page.locator('.tab-btn').filter({ hasText: '工程表' }).click();
     await page.locator('.task-cb').first().check();
     await expect(page.locator('#dlg-task-date')).toBeVisible({ timeout: 3000 });
     await page.locator('#dlg-task-date .btn-primary').click();
