@@ -755,7 +755,7 @@ function vegIconHtml(veg, size) {
   if (!veg) return '';
   var preset = PRESET_VEGS.find(function(p){return p.id===veg.id;});
   var iconFile = veg.iconFile || (preset ? preset.iconFile : null) || null;
-  var src = iconFile ? (ICON_B64[iconFile] || customIcons[iconFile] || null) : null;
+  var src = iconFile ? (ICON_B64[iconFile] || masterData.customIcons[iconFile] || null) : null;
   if (src) {
     return '<img src="'+src+'" width="'+size+'" height="'+size+'" style="object-fit:contain;vertical-align:middle;flex-shrink:0;mix-blend-mode:multiply">';
   }
@@ -825,7 +825,11 @@ const permState={
   isSupervisor:false, // youtuber_supervisor以上（supervisor + admin 両方）
 };
 const MAX_UNDO=30;
-let vegMaster={},customIcons={},undoStack=[];
+let undoStack=[];
+// 栽培レシピ・カスタムアイコンのマスタデータ。vegMasterは保存データ内の
+// キー名として互換性のため維持。customIconsは別ストレージキーで丸ごと
+// 保存されるため外部キー名の制約はない。
+const masterData={vegMaster:{},customIcons:{}};
 // 区画データ（segIdキーで管理）。保存キー名（segTasks/actionLogs/harvestLogs/
 // segSummaryMemo/archivedSegs）はデータ互換のため変更しない。segsはcellsから
 // buildSegs()で毎回再構築される派生データで永続化されない。
@@ -844,7 +848,7 @@ const dragState={
 const farmMeta={name:'',font:'Kaisei Opti',icon:''};
 // 画面遷移状態：今どの区画/タブ/レシピを表示しているか
 const navState={seg:null,tab:'roadmap',masterVeg:null,masterTab:'roadmap'};
-// 「野菜を追加」ダイアログの一時入力状態。保存時にvegMasterへ書き込まれる前の下書き。
+// 「野菜を追加」ダイアログの一時入力状態。保存時にmasterData.vegMasterへ書き込まれる前の下書き。
 const addVegState={emoji:'🌱',iconFile:null,fromReg:false};
 
 // ===== 日付ユーティリティ =====
@@ -919,7 +923,7 @@ async function loadFromDB(){
     if(d&&d.cells&&Object.keys(d.cells).length>0){
       gridState.cells=d.cells;gridState.cols=d.COLS||8;gridState.rows=d.ROWS||6;
       segData.tasks=d.segTasks||{};segData.actionLogs=d.actionLogs||{};segData.harvestLogs=d.harvestLogs||{};
-      segData.summaryMemo=d.segSummaryMemo||{};vegMaster=d.vegMaster||{};
+      segData.summaryMemo=d.segSummaryMemo||{};masterData.vegMaster=d.vegMaster||{};
       segData.archived=d.archivedSegs||{};farmMeta.name=d.farmName||'';gridState.aisleRows=d.aisleRows||[];gridState.aisleCols=d.aisleCols||[];farmMeta.icon=d.farmIcon||'';
       return true;
     }
@@ -989,20 +993,20 @@ const _storage={
 };
 function saveLS(){
   try{
-    const d={cells:gridState.cells,COLS:gridState.cols,ROWS:gridState.rows,segTasks:segData.tasks,actionLogs:segData.actionLogs,harvestLogs:segData.harvestLogs,segSummaryMemo:segData.summaryMemo,vegMaster,archivedSegs:segData.archived,farmName:farmMeta.name,aisleRows:gridState.aisleRows,aisleCols:gridState.aisleCols,farmNameFont:farmMeta.font,farmIcon:farmMeta.icon};
+    const d={cells:gridState.cells,COLS:gridState.cols,ROWS:gridState.rows,segTasks:segData.tasks,actionLogs:segData.actionLogs,harvestLogs:segData.harvestLogs,segSummaryMemo:segData.summaryMemo,vegMaster:masterData.vegMaster,archivedSegs:segData.archived,farmName:farmMeta.name,aisleRows:gridState.aisleRows,aisleCols:gridState.aisleCols,farmNameFont:farmMeta.font,farmIcon:farmMeta.icon};
     _storage.setItem(LS_KEY,JSON.stringify(d));
-    _storage.setItem(LS_KEY+'_icons',JSON.stringify(customIcons));
+    _storage.setItem(LS_KEY+'_icons',JSON.stringify(masterData.customIcons));
     // Supabase保存：個人版は常に / コラボ版はサブスク加入後のみ
     if(_dataStrategy==='localStorage'||window.APP_SUBSCRIBED){saveToDB(d);}
     // セッション版未サブスク：保存バナーを表示
     if(_dataStrategy==='session'&&!window.APP_SUBSCRIBED){showSaveBanner();}
   }catch(e){}
 }
-function updateFarmNameDisplay(){const el=document.getElementById('farm-name-display');const sc=document.getElementById('farm-seg-count');const splashEl=document.getElementById('splash-farm-name');const iconEl=document.getElementById('farm-icon-display');const fontFamily=`'${farmMeta.font}',serif`;if(el)el.style.fontFamily=fontFamily;if(splashEl)splashEl.style.fontFamily=fontFamily;if(iconEl){const iconId=farmMeta.icon||'tomato';if(iconId&&vegMaster[iconId]){iconEl.innerHTML=vegIconHtml(vegMaster[iconId],28);iconEl.style.display='inline-flex';}else{iconEl.innerHTML='🍅';iconEl.style.display='inline-flex';}}if(el){el.textContent=farmMeta.name||((window.APP_CONFIG&&window.APP_CONFIG.appName)||'私の畑');el.style.display='block';}if(sc){buildSegs();const cnt=Object.keys(segData.segs).length;sc.textContent=cnt+'区画 管理中';sc.style.display='block';}}
+function updateFarmNameDisplay(){const el=document.getElementById('farm-name-display');const sc=document.getElementById('farm-seg-count');const splashEl=document.getElementById('splash-farm-name');const iconEl=document.getElementById('farm-icon-display');const fontFamily=`'${farmMeta.font}',serif`;if(el)el.style.fontFamily=fontFamily;if(splashEl)splashEl.style.fontFamily=fontFamily;if(iconEl){const iconId=farmMeta.icon||'tomato';if(iconId&&masterData.vegMaster[iconId]){iconEl.innerHTML=vegIconHtml(masterData.vegMaster[iconId],28);iconEl.style.display='inline-flex';}else{iconEl.innerHTML='🍅';iconEl.style.display='inline-flex';}}if(el){el.textContent=farmMeta.name||((window.APP_CONFIG&&window.APP_CONFIG.appName)||'私の畑');el.style.display='block';}if(sc){buildSegs();const cnt=Object.keys(segData.segs).length;sc.textContent=cnt+'区画 管理中';sc.style.display='block';}}
 function loadLS(){
-  try{const d=JSON.parse(_storage.getItem(LS_KEY)||'null');if(d&&d.cells){gridState.cells=d.cells;gridState.cols=d.COLS||8;gridState.rows=d.ROWS||6;segData.tasks=d.segTasks||{};segData.actionLogs=d.actionLogs||{};segData.harvestLogs=d.harvestLogs||{};segData.summaryMemo=d.segSummaryMemo||{};vegMaster=d.vegMaster||{};segData.archived=d.archivedSegs||{};farmMeta.name=d.farmName||'';gridState.aisleRows=d.aisleRows||[];gridState.aisleCols=d.aisleCols||[];farmMeta.font=d.farmNameFont||'Kaisei Opti';farmMeta.icon=d.farmIcon||'';}}catch(e){}
-  try{const ic=JSON.parse(_storage.getItem(LS_KEY+'_icons')||'null');if(ic)customIcons=ic;}catch(e){}
-  if(!vegMaster['tomato'])vegMaster['tomato']=JSON.parse(JSON.stringify(TOMATO_SAMPLE));
+  try{const d=JSON.parse(_storage.getItem(LS_KEY)||'null');if(d&&d.cells){gridState.cells=d.cells;gridState.cols=d.COLS||8;gridState.rows=d.ROWS||6;segData.tasks=d.segTasks||{};segData.actionLogs=d.actionLogs||{};segData.harvestLogs=d.harvestLogs||{};segData.summaryMemo=d.segSummaryMemo||{};masterData.vegMaster=d.vegMaster||{};segData.archived=d.archivedSegs||{};farmMeta.name=d.farmName||'';gridState.aisleRows=d.aisleRows||[];gridState.aisleCols=d.aisleCols||[];farmMeta.font=d.farmNameFont||'Kaisei Opti';farmMeta.icon=d.farmIcon||'';}}catch(e){}
+  try{const ic=JSON.parse(_storage.getItem(LS_KEY+'_icons')||'null');if(ic)masterData.customIcons=ic;}catch(e){}
+  if(!masterData.vegMaster['tomato'])masterData.vegMaster['tomato']=JSON.parse(JSON.stringify(TOMATO_SAMPLE));
   document.getElementById('s-cols').value=gridState.cols;document.getElementById('s-rows').value=gridState.rows;
   document.getElementById('s-farm-name').value=farmMeta.name;
   document.querySelectorAll('input[name="farm-font"]').forEach(r=>{r.checked=(r.value===farmMeta.font);});
@@ -1018,8 +1022,8 @@ function showSaveBanner(){
   clearTimeout(_saveBannerTimer);
   _saveBannerTimer=setTimeout(()=>{b.style.display='none';},6000);
 }
-function pushUndo(){undoStack.push(JSON.stringify({cells:gridState.cells,COLS:gridState.cols,ROWS:gridState.rows,segTasks:segData.tasks,actionLogs:segData.actionLogs,harvestLogs:segData.harvestLogs,segSummaryMemo:segData.summaryMemo,vegMaster,archivedSegs:segData.archived,aisleRows:gridState.aisleRows,aisleCols:gridState.aisleCols}));if(undoStack.length>MAX_UNDO)undoStack.shift();updUndoBtn()}
-function doUndo(){if(!undoStack.length)return;const s=JSON.parse(undoStack.pop());gridState.cells=s.cells;gridState.cols=s.COLS;gridState.rows=s.ROWS;segData.tasks=s.segTasks||{};segData.actionLogs=s.actionLogs||{};segData.harvestLogs=s.harvestLogs||{};segData.summaryMemo=s.segSummaryMemo||{};vegMaster=s.vegMaster||{};segData.archived=s.archivedSegs||{};gridState.aisleRows=s.aisleRows||[];gridState.aisleCols=s.aisleCols||[];buildSegs();renderGrid();if(navState.seg&&document.getElementById('screen-manage').classList.contains('active'))renderManage();saveLS();updUndoBtn()}
+function pushUndo(){undoStack.push(JSON.stringify({cells:gridState.cells,COLS:gridState.cols,ROWS:gridState.rows,segTasks:segData.tasks,actionLogs:segData.actionLogs,harvestLogs:segData.harvestLogs,segSummaryMemo:segData.summaryMemo,vegMaster:masterData.vegMaster,archivedSegs:segData.archived,aisleRows:gridState.aisleRows,aisleCols:gridState.aisleCols}));if(undoStack.length>MAX_UNDO)undoStack.shift();updUndoBtn()}
+function doUndo(){if(!undoStack.length)return;const s=JSON.parse(undoStack.pop());gridState.cells=s.cells;gridState.cols=s.COLS;gridState.rows=s.ROWS;segData.tasks=s.segTasks||{};segData.actionLogs=s.actionLogs||{};segData.harvestLogs=s.harvestLogs||{};segData.summaryMemo=s.segSummaryMemo||{};masterData.vegMaster=s.vegMaster||{};segData.archived=s.archivedSegs||{};gridState.aisleRows=s.aisleRows||[];gridState.aisleCols=s.aisleCols||[];buildSegs();renderGrid();if(navState.seg&&document.getElementById('screen-manage').classList.contains('active'))renderManage();saveLS();updUndoBtn()}
 function updUndoBtn(){const b=document.getElementById('undo-btn'),c=document.getElementById('undo-count');b.disabled=!undoStack.length;c.textContent=undoStack.length?`(${undoStack.length})`:''}
 document.getElementById('undo-btn').addEventListener('click',()=>{if(!undoStack.length)return;document.getElementById('dlg-undo-confirm').style.display='flex';});
 document.getElementById('btn-undo-cancel').addEventListener('click',()=>{document.getElementById('dlg-undo-confirm').style.display='none';});
@@ -1088,7 +1092,7 @@ document.getElementById('btn-open-master').addEventListener('click',()=>{closeSe
 
 // ===== 区画データ構造・作物ヘルパー =====
 function buildSegs(){segData.segs={};for(let r=0;r<gridState.rows;r++)for(let c=0;c<gridState.cols;c++){const k=K(r,c),cell=gridState.cells[k];if(!cell)continue;const sid=cell.segId;if(!segData.segs[sid])segData.segs[sid]={id:sid,row:r,cols:[],crop:cell.crop||null,plantDate:cell.plantDate||null};else if(!segData.segs[sid].plantDate&&cell.plantDate)segData.segs[sid].plantDate=cell.plantDate;segData.segs[sid].cols.push(c);}}
-function getVeg(id){return vegMaster[id]||null}
+function getVeg(id){return masterData.vegMaster[id]||null}
 function vegFamily(id){const v=getVeg(id);return v?v.family:null}
 function famStyle(fam){if(!fam)return null;return FAMILIES[fam]||FAMILIES['その他'];}
 // 連作障害の警告対象科。「その他」はここに含めない＝連作しても警告しない
@@ -1126,7 +1130,7 @@ function calcCellSize(){const wrap=document.getElementById('grid-wrap');const W=
 
 function populateCropSelect(){
   const sel=document.getElementById('dlg-crop');sel.innerHTML='<option value="">— 選択してください —</option>';
-  Object.values(vegMaster).sort((a,b)=>a.name.localeCompare(b.name,'ja')).forEach(v=>{const op=document.createElement('option');op.value=v.id;op.textContent=v.name+(v.variety?' ('+v.variety+')':'');sel.appendChild(op);});
+  Object.values(masterData.vegMaster).sort((a,b)=>a.name.localeCompare(b.name,'ja')).forEach(v=>{const op=document.createElement('option');op.value=v.id;op.textContent=v.name+(v.variety?' ('+v.variety+')':'');sel.appendChild(op);});
 }
 
 function renderGrid(){
@@ -1217,7 +1221,7 @@ function showRegDlg(){
   document.getElementById('dlg-date-input').value=todayISO();
   document.getElementById('dlg-save').disabled=true;
   const rw=document.getElementById('dlg-rotation-warn');rw.style.display='none';rw.innerHTML='';
-  const noVeg=!Object.keys(vegMaster).length;
+  const noVeg=!Object.keys(masterData.vegMaster).length;
   document.getElementById('dlg-crop-field').style.display=noVeg?'none':'';
   document.getElementById('dlg-date-field').style.display=noVeg?'none':'';
   document.getElementById('dlg-save').style.display=noVeg?'none':'';
@@ -1453,7 +1457,7 @@ function renderArchive(){
   });
 
   sorted.forEach(arch=>{
-    const veg=vegMaster[arch.cropId];
+    const veg=masterData.vegMaster[arch.cropId];
     const card=document.createElement('div');card.className='archive-card';
     const hdr=document.createElement('div');hdr.className='archive-card-header';
     hdr.innerHTML=`<span style="display:inline-flex;align-items:center;font-size:20px">${veg?vegIconHtml(veg,24):arch.cropName.slice(0,1)}</span><span class="archive-card-name">${arch.cropName}${arch.variety?' ('+arch.variety+')':''}</span><span class="archive-card-date">完了 ${isoShort(arch.completedDate)}</span>`;
@@ -1473,7 +1477,7 @@ function renderArchive(){
 
 function renderArchiveDetail(el,segId){
   const arch=segData.archived[segId];if(!arch)return;
-  const veg=vegMaster[arch.cropId];
+  const veg=masterData.vegMaster[arch.cropId];
 
   // 戻るリンク
   const backBtn=document.createElement('div');backBtn.className='archive-detail-back';backBtn.innerHTML='<i class="ti ti-arrow-left" style="font-size:var(--fs-sm)"></i>リストへ戻る';backBtn.addEventListener('click',()=>{archiveDetailSeg=null;renderArchive();});el.appendChild(backBtn);
@@ -1763,7 +1767,7 @@ function renderFarmIconPicker(){
   const picker=document.getElementById('farm-icon-picker');
   if(!picker)return;
   picker.innerHTML='';
-  const vegs=Object.values(vegMaster).filter(v=>v&&v.id);
+  const vegs=Object.values(masterData.vegMaster).filter(v=>v&&v.id);
   vegs.forEach(veg=>{
     const selected=(farmMeta.icon===veg.id);
     const btn=document.createElement('button');
@@ -1904,7 +1908,7 @@ function renderMarketDetail(){
 // ===== 栽培レシピ（マスタ）画面 =====
 function renderMasterList(){
   const el=document.getElementById('master-list-items');el.innerHTML='';
-  Object.values(vegMaster).sort((a,b)=>a.name.localeCompare(b.name,'ja')).forEach(veg=>{
+  Object.values(masterData.vegMaster).sort((a,b)=>a.name.localeCompare(b.name,'ja')).forEach(veg=>{
     const item=document.createElement('div');item.className='master-list-item'+(navState.masterVeg===veg.id?' active':'');const hasRM=veg.phases&&veg.phases.length>0;
     item.innerHTML=`<span style="display:inline-flex;align-items:center">${vegIconHtml(veg,20)}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--fs-sm)">${veg.name}${veg.variety?'<br><span style="font-size:var(--fs-xs);color:#9c9a93">'+veg.variety+'</span>':''}</span><span class="master-list-item-badge ${hasRM?'':'empty'}">${hasRM?'有':'未'}</span>`;
     item.addEventListener('click',()=>{navState.masterVeg=veg.id;renderMasterList();renderMasterDetail();});el.appendChild(item);
@@ -1915,10 +1919,10 @@ function renderMasterDetail(){
   const col=document.getElementById('master-detail-col');
   col.innerHTML='<div class="master-detail-scroll" id="master-detail-scroll"></div>';
   const scroll=document.getElementById('master-detail-scroll');
-  const veg=vegMaster[navState.masterVeg];
+  const veg=masterData.vegMaster[navState.masterVeg];
   if(!veg){scroll.innerHTML='<div class="master-detail-empty"><i class="ti ti-plant-2" style="font-size:24px;color:#9c9a93"></i>左のリストから野菜を選択</div>';const s=document.getElementById('master-toolbar-btns');if(s)s.style.display='none';return;}
   const hdr=document.createElement('div');hdr.className='master-detail-header';hdr.innerHTML=`<span class="master-detail-icon">${vegIconHtml(veg,30)}</span><div><div class="master-detail-name">${veg.name}</div><div class="master-detail-sub">${veg.variety||'標準'} ／ ${veg.family||'科未設定'}</div></div>`;
-  const growBlock=document.createElement('div');growBlock.classList.add('admin-only');growBlock.style.cssText='margin-bottom:12px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary)';const growLabel=document.createElement('div');growLabel.style.cssText='font-size:var(--fs-xs);font-weight:500;color:var(--color-text-secondary);margin-bottom:8px';growLabel.textContent='栽培設定';const growRow=document.createElement('div');growRow.style.cssText='display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end';const growMethodWrap=document.createElement('div');growMethodWrap.style.cssText='display:flex;flex-direction:column;gap:3px;flex:1;min-width:120px';const growMethodLbl=document.createElement('div');growMethodLbl.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary)';growMethodLbl.textContent='育成方法';const growMethodSel=document.createElement('select');growMethodSel.style.cssText='font-size:var(--fs-sm);padding:5px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)';[{v:'seedling',l:'苗から'},{v:'seed_pot',l:'種（ポット）から'},{v:'seed_ground',l:'種（地植え）から'}].forEach(opt=>{const o=document.createElement('option');o.value=opt.v;o.textContent=opt.l;if((veg.growMethod||'seedling')===opt.v)o.selected=true;growMethodSel.appendChild(o);});if(!permCanEditFarm())growMethodSel.disabled=true;else growMethodSel.addEventListener('change',()=>{vegMaster[veg.id].growMethod=growMethodSel.value;});growMethodWrap.append(growMethodLbl,growMethodSel);const refUrlWrap=document.createElement('div');refUrlWrap.style.cssText='display:flex;flex-direction:column;gap:3px;flex:2;min-width:160px';const refUrlLbl=document.createElement('div');refUrlLbl.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary)';refUrlLbl.innerHTML='<i class="ti ti-link" style="font-size:var(--fs-xs)"></i> 参考URL（AI生成に使用）';const refUrlIn=document.createElement('input');refUrlIn.type='url';refUrlIn.style.cssText='font-size:var(--fs-sm);padding:5px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);width:100%';refUrlIn.placeholder='https://...';refUrlIn.value=veg.referenceUrl||'';if(!permCanEditFarm())refUrlIn.readOnly=true;else refUrlIn.addEventListener('input',()=>{vegMaster[veg.id].referenceUrl=refUrlIn.value;});refUrlWrap.append(refUrlLbl,refUrlIn);growRow.append(growMethodWrap,refUrlWrap);growBlock.append(growLabel,growRow);scroll.appendChild(growBlock);const aiBanner=document.createElement('div');aiBanner.className='ai-banner';aiBanner.style.margin='0 0 12px';const hasRM=veg.phases&&veg.phases.length>0;
+  const growBlock=document.createElement('div');growBlock.classList.add('admin-only');growBlock.style.cssText='margin-bottom:12px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary)';const growLabel=document.createElement('div');growLabel.style.cssText='font-size:var(--fs-xs);font-weight:500;color:var(--color-text-secondary);margin-bottom:8px';growLabel.textContent='栽培設定';const growRow=document.createElement('div');growRow.style.cssText='display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end';const growMethodWrap=document.createElement('div');growMethodWrap.style.cssText='display:flex;flex-direction:column;gap:3px;flex:1;min-width:120px';const growMethodLbl=document.createElement('div');growMethodLbl.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary)';growMethodLbl.textContent='育成方法';const growMethodSel=document.createElement('select');growMethodSel.style.cssText='font-size:var(--fs-sm);padding:5px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)';[{v:'seedling',l:'苗から'},{v:'seed_pot',l:'種（ポット）から'},{v:'seed_ground',l:'種（地植え）から'}].forEach(opt=>{const o=document.createElement('option');o.value=opt.v;o.textContent=opt.l;if((veg.growMethod||'seedling')===opt.v)o.selected=true;growMethodSel.appendChild(o);});if(!permCanEditFarm())growMethodSel.disabled=true;else growMethodSel.addEventListener('change',()=>{masterData.vegMaster[veg.id].growMethod=growMethodSel.value;});growMethodWrap.append(growMethodLbl,growMethodSel);const refUrlWrap=document.createElement('div');refUrlWrap.style.cssText='display:flex;flex-direction:column;gap:3px;flex:2;min-width:160px';const refUrlLbl=document.createElement('div');refUrlLbl.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary)';refUrlLbl.innerHTML='<i class="ti ti-link" style="font-size:var(--fs-xs)"></i> 参考URL（AI生成に使用）';const refUrlIn=document.createElement('input');refUrlIn.type='url';refUrlIn.style.cssText='font-size:var(--fs-sm);padding:5px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);width:100%';refUrlIn.placeholder='https://...';refUrlIn.value=veg.referenceUrl||'';if(!permCanEditFarm())refUrlIn.readOnly=true;else refUrlIn.addEventListener('input',()=>{masterData.vegMaster[veg.id].referenceUrl=refUrlIn.value;});refUrlWrap.append(refUrlLbl,refUrlIn);growRow.append(growMethodWrap,refUrlWrap);growBlock.append(growLabel,growRow);scroll.appendChild(growBlock);const aiBanner=document.createElement('div');aiBanner.className='ai-banner';aiBanner.style.margin='0 0 12px';const hasRM=veg.phases&&veg.phases.length>0;
   if(permState.isAdmin){aiBanner.innerHTML=`<div class="ai-banner-text">${hasRM?'工程表・基礎情報が生成済みです。再生成で上書きできます。':'工程表と基礎情報がありません。AIで自動生成できます。'}</div><button class="btn-ai" id="btn-ai-gen"><i class="ti ti-sparkles"></i>${hasRM?'再生成':'AIで生成'}</button>`;aiBanner.querySelector('#btn-ai-gen').addEventListener('click',()=>aiGenerate(veg.id));scroll.append(hdr,aiBanner);}else{scroll.appendChild(hdr);}
   // タブバー（基礎知識 / 工程表）
   // end_userで basicInfo がない場合（手入力レシピ）は基礎知識タブを非表示
@@ -1949,7 +1953,7 @@ function renderMasterDetail(){
       if(multiline){inp=document.createElement('textarea');inp.style.cssText='width:100%;font-size:var(--fs-sm);padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);resize:vertical;min-height:60px;box-sizing:border-box';inp.rows=2;}
       else{inp=document.createElement('input');inp.type='text';inp.style.cssText='width:100%;font-size:var(--fs-sm);padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);box-sizing:border-box';}
       inp.value=val;inp.readOnly=!canEdit;
-      if(canEdit)inp.addEventListener('input',()=>{if(!vegMaster[veg.id].basicInfo)vegMaster[veg.id].basicInfo={};if(subkey){if(!vegMaster[veg.id].basicInfo[key])vegMaster[veg.id].basicInfo[key]={};vegMaster[veg.id].basicInfo[key][subkey]=inp.value;}else{vegMaster[veg.id].basicInfo[key]=inp.value;}});
+      if(canEdit)inp.addEventListener('input',()=>{if(!masterData.vegMaster[veg.id].basicInfo)masterData.vegMaster[veg.id].basicInfo={};if(subkey){if(!masterData.vegMaster[veg.id].basicInfo[key])masterData.vegMaster[veg.id].basicInfo[key]={};masterData.vegMaster[veg.id].basicInfo[key][subkey]=inp.value;}else{masterData.vegMaster[veg.id].basicInfo[key]=inp.value;}});
       wrap.append(lbl,inp);return wrap;
     }
     function biSection(title,icon){const s=document.createElement('div');s.style.cssText='margin-bottom:14px';const h=document.createElement('div');h.style.cssText='font-size:var(--fs-sm);font-weight:700;color:var(--color-text-secondary);margin-bottom:8px;display:flex;align-items:center;gap:5px;border-bottom:1px solid var(--color-border-tertiary);padding-bottom:4px';h.innerHTML=`<i class="ti ${icon}" style="font-size:var(--fs-base)"></i>${title}`;s.appendChild(h);return s;}
@@ -1973,8 +1977,8 @@ function renderMasterDetail(){
     function renderDiseaseSection(){
       s6.querySelectorAll('.disease-card,.disease-add-row').forEach(el=>el.remove());
       function diseaseBlock(typeKey,typeLabel){
-        if(!vegMaster[veg.id].basicInfo[typeKey])vegMaster[veg.id].basicInfo[typeKey]=[];
-        const items=vegMaster[veg.id].basicInfo[typeKey];
+        if(!masterData.vegMaster[veg.id].basicInfo[typeKey])masterData.vegMaster[veg.id].basicInfo[typeKey]=[];
+        const items=masterData.vegMaster[veg.id].basicInfo[typeKey];
         const badgeStyle=typeLabel==='病気'?'background:#FAECE7;color:#993C1D':'background:#FFF3E0;color:#92600B';
         items.forEach((item,idx)=>{
           const card=document.createElement('div');card.className='disease-card';card.style.cssText='border:0.5px solid var(--color-border-secondary);border-radius:8px;padding:8px 10px;margin-bottom:8px;background:var(--color-background-primary);position:relative';
@@ -1982,9 +1986,9 @@ function renderMasterDetail(){
           const badge=document.createElement('div');badge.style.cssText='font-size:var(--fs-xs);padding:1px 6px;border-radius:99px;'+badgeStyle;badge.textContent=typeLabel;
           topRow.appendChild(badge);
           if(canEdit){
-            const upBtn=document.createElement('button');upBtn.innerHTML='<i class="ti ti-chevron-up" style="font-size:var(--fs-xs)"></i>';upBtn.style.cssText='background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);padding:2px';upBtn.addEventListener('click',()=>{if(idx===0)return;const arr=vegMaster[veg.id].basicInfo[typeKey];[arr[idx-1],arr[idx]]=[arr[idx],arr[idx-1]];renderDiseaseSection();});
-            const downBtn=document.createElement('button');downBtn.innerHTML='<i class="ti ti-chevron-down" style="font-size:var(--fs-xs)"></i>';downBtn.style.cssText='background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);padding:2px';downBtn.addEventListener('click',()=>{const arr=vegMaster[veg.id].basicInfo[typeKey];if(idx>=arr.length-1)return;[arr[idx],arr[idx+1]]=[arr[idx+1],arr[idx]];renderDiseaseSection();});
-            const delBtn=document.createElement('button');delBtn.innerHTML='<i class="ti ti-x" style="font-size:var(--fs-xs)"></i>';delBtn.style.cssText='background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);padding:2px';delBtn.addEventListener('click',()=>{vegMaster[veg.id].basicInfo[typeKey].splice(idx,1);renderDiseaseSection();});
+            const upBtn=document.createElement('button');upBtn.innerHTML='<i class="ti ti-chevron-up" style="font-size:var(--fs-xs)"></i>';upBtn.style.cssText='background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);padding:2px';upBtn.addEventListener('click',()=>{if(idx===0)return;const arr=masterData.vegMaster[veg.id].basicInfo[typeKey];[arr[idx-1],arr[idx]]=[arr[idx],arr[idx-1]];renderDiseaseSection();});
+            const downBtn=document.createElement('button');downBtn.innerHTML='<i class="ti ti-chevron-down" style="font-size:var(--fs-xs)"></i>';downBtn.style.cssText='background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);padding:2px';downBtn.addEventListener('click',()=>{const arr=masterData.vegMaster[veg.id].basicInfo[typeKey];if(idx>=arr.length-1)return;[arr[idx],arr[idx+1]]=[arr[idx+1],arr[idx]];renderDiseaseSection();});
+            const delBtn=document.createElement('button');delBtn.innerHTML='<i class="ti ti-x" style="font-size:var(--fs-xs)"></i>';delBtn.style.cssText='background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);padding:2px';delBtn.addEventListener('click',()=>{masterData.vegMaster[veg.id].basicInfo[typeKey].splice(idx,1);renderDiseaseSection();});
             topRow.append(upBtn,downBtn,delBtn);
           }
           card.appendChild(topRow);
@@ -1993,7 +1997,7 @@ function renderMasterDetail(){
             const l=document.createElement('div');l.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-bottom:2px';l.textContent=label;
             const inp=document.createElement('input');inp.type='text';inp.style.cssText='width:100%;font-size:var(--fs-sm);padding:4px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);box-sizing:border-box';
             inp.value=item[key2]||'';inp.readOnly=!canEdit;
-            if(canEdit)inp.addEventListener('input',()=>{vegMaster[veg.id].basicInfo[typeKey][idx][key2]=inp.value;});
+            if(canEdit)inp.addEventListener('input',()=>{masterData.vegMaster[veg.id].basicInfo[typeKey][idx][key2]=inp.value;});
             w.append(l,inp);return w;
           }
           card.append(cardField('名前','name'),cardField('症状','symptoms'),cardField('対策','treatment'));
@@ -2008,7 +2012,7 @@ function renderMasterDetail(){
         ['病気','害虫'].forEach(label=>{
           const typeKey=label==='病気'?'diseases':'pests';
           const btn=document.createElement('button');btn.className='master-add-task-btn';btn.innerHTML=`<i class="ti ti-plus" style="font-size:var(--fs-xs)"></i>${label}を追加`;
-          btn.addEventListener('click',()=>{if(!vegMaster[veg.id].basicInfo[typeKey])vegMaster[veg.id].basicInfo[typeKey]=[];vegMaster[veg.id].basicInfo[typeKey].push({name:'',symptoms:'',treatment:''});renderDiseaseSection();});
+          btn.addEventListener('click',()=>{if(!masterData.vegMaster[veg.id].basicInfo[typeKey])masterData.vegMaster[veg.id].basicInfo[typeKey]=[];masterData.vegMaster[veg.id].basicInfo[typeKey].push({name:'',symptoms:'',treatment:''});renderDiseaseSection();});
           addRow.appendChild(btn);
         });
         s6.appendChild(addRow);
@@ -2036,21 +2040,21 @@ function renderMasterDetail(){
         tbody.append(memoLbl,memoIn,urlLbl,urlIn);tr.append(th,tbody);pb.appendChild(tr);
         if(!permRequireSupervisor()){nameIn.readOnly=true;dayIn.readOnly=true;memoIn.readOnly=true;urlIn.readOnly=true;upBtn.style.display='none';downBtn.style.display='none';delBtn.style.display='none';}else{
           const inUse=Object.values(gridState.cells).some(c=>c.crop===veg.id);
-          nameIn.addEventListener('input',()=>{vegMaster[veg.id].phases[pi].tasks[ti].name=nameIn.value;});
-          dayIn.addEventListener('input',()=>{vegMaster[veg.id].phases[pi].tasks[ti].day=parseInt(dayIn.value)||0;});
-          memoIn.addEventListener('input',()=>{vegMaster[veg.id].phases[pi].tasks[ti].memo=memoIn.value;});
-          urlIn.addEventListener('input',()=>{vegMaster[veg.id].phases[pi].tasks[ti].url=urlIn.value;});
-          upBtn.addEventListener('click',()=>{if(ti===0)return;const tasks=vegMaster[veg.id].phases[pi].tasks;[tasks[ti-1],tasks[ti]]=[tasks[ti],tasks[ti-1]];saveLS();renderMasterDetail();});
-          downBtn.addEventListener('click',()=>{const tasks=vegMaster[veg.id].phases[pi].tasks;if(ti>=tasks.length-1)return;[tasks[ti],tasks[ti+1]]=[tasks[ti+1],tasks[ti]];saveLS();renderMasterDetail();});
+          nameIn.addEventListener('input',()=>{masterData.vegMaster[veg.id].phases[pi].tasks[ti].name=nameIn.value;});
+          dayIn.addEventListener('input',()=>{masterData.vegMaster[veg.id].phases[pi].tasks[ti].day=parseInt(dayIn.value)||0;});
+          memoIn.addEventListener('input',()=>{masterData.vegMaster[veg.id].phases[pi].tasks[ti].memo=memoIn.value;});
+          urlIn.addEventListener('input',()=>{masterData.vegMaster[veg.id].phases[pi].tasks[ti].url=urlIn.value;});
+          upBtn.addEventListener('click',()=>{if(ti===0)return;const tasks=masterData.vegMaster[veg.id].phases[pi].tasks;[tasks[ti-1],tasks[ti]]=[tasks[ti],tasks[ti-1]];saveLS();renderMasterDetail();});
+          downBtn.addEventListener('click',()=>{const tasks=masterData.vegMaster[veg.id].phases[pi].tasks;if(ti>=tasks.length-1)return;[tasks[ti],tasks[ti+1]]=[tasks[ti+1],tasks[ti]];saveLS();renderMasterDetail();});
           delBtn.addEventListener('click',()=>{
-            const doDelete=()=>{vegMaster[veg.id].phases[pi].tasks.splice(ti,1);saveLS();renderMasterDetail();};
+            const doDelete=()=>{masterData.vegMaster[veg.id].phases[pi].tasks.splice(ti,1);saveLS();renderMasterDetail();};
             if(inUse){showConfirm(`このタスクを削除すると、この野菜を使用中の区画の記録が参照できなくなる場合があります。\n削除しますか？`,doDelete);return;}
             doDelete();
           });
         }
       });
-      const addTaskBtn=document.createElement('button');addTaskBtn.className='master-add-task-btn';addTaskBtn.innerHTML='<i class="ti ti-plus" style="font-size:var(--fs-xs)"></i>タスクを追加';addTaskBtn.classList.add('supervisor-only');if(permState.isSupervisor){addTaskBtn.addEventListener('click',()=>{vegMaster[veg.id].phases[pi].tasks.push({id:`t_${Date.now()}`,name:'',desc:'',day:0,memo:'',url:''});renderMasterDetail();});}
-      const addPestBtn=document.createElement('button');addPestBtn.className='master-add-task-btn';addPestBtn.style.cssText='color:#92400e;border-color:#f59e0b';addPestBtn.innerHTML='<i class="ti ti-bug" style="font-size:var(--fs-xs)"></i>病害虫チェックを追加';addPestBtn.classList.add('supervisor-only');if(permState.isSupervisor){addPestBtn.addEventListener('click',()=>{vegMaster[veg.id].phases[pi].tasks.push({id:`t_${Date.now()}`,name:'',desc:'',day:0,memo:'',url:'',type:'pest'});renderMasterDetail();});}
+      const addTaskBtn=document.createElement('button');addTaskBtn.className='master-add-task-btn';addTaskBtn.innerHTML='<i class="ti ti-plus" style="font-size:var(--fs-xs)"></i>タスクを追加';addTaskBtn.classList.add('supervisor-only');if(permState.isSupervisor){addTaskBtn.addEventListener('click',()=>{masterData.vegMaster[veg.id].phases[pi].tasks.push({id:`t_${Date.now()}`,name:'',desc:'',day:0,memo:'',url:''});renderMasterDetail();});}
+      const addPestBtn=document.createElement('button');addPestBtn.className='master-add-task-btn';addPestBtn.style.cssText='color:#92400e;border-color:#f59e0b';addPestBtn.innerHTML='<i class="ti ti-bug" style="font-size:var(--fs-xs)"></i>病害虫チェックを追加';addPestBtn.classList.add('supervisor-only');if(permState.isSupervisor){addPestBtn.addEventListener('click',()=>{masterData.vegMaster[veg.id].phases[pi].tasks.push({id:`t_${Date.now()}`,name:'',desc:'',day:0,memo:'',url:'',type:'pest'});renderMasterDetail();});}
       const btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:6px;flex-wrap:wrap';btnRow.append(addTaskBtn,addPestBtn);pb.appendChild(btnRow);scroll.appendChild(pb);
     });
   }
@@ -2062,7 +2066,7 @@ function renderMasterSaveBar(col,veg){
   if(!slot)return;
   slot.innerHTML='';
   if(!permCanEditFarm()){slot.style.display='none';return;}
-  const delBtn=document.createElement('button');delBtn.className='btn-delete-master';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>削除';delBtn.addEventListener('click',()=>{const usedCells=Object.values(gridState.cells).filter(c=>c&&c.crop===veg.id);if(usedCells.length>0){showAlert(`「${veg.name}」は現在${usedCells.length}つの区画で使用中のため削除できません。\n区画の管理画面から野菜を外すか、区画を削除してから再度お試しください。`);return;}showConfirm(`「${veg.name}」をレシピから削除しますか？`,()=>{delete vegMaster[veg.id];navState.masterVeg=null;saveLS();renderMasterList();renderMasterDetail();});});
+  const delBtn=document.createElement('button');delBtn.className='btn-delete-master';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>削除';delBtn.addEventListener('click',()=>{const usedCells=Object.values(gridState.cells).filter(c=>c&&c.crop===veg.id);if(usedCells.length>0){showAlert(`「${veg.name}」は現在${usedCells.length}つの区画で使用中のため削除できません。\n区画の管理画面から野菜を外すか、区画を削除してから再度お試しください。`);return;}showConfirm(`「${veg.name}」をレシピから削除しますか？`,()=>{delete masterData.vegMaster[veg.id];navState.masterVeg=null;saveLS();renderMasterList();renderMasterDetail();});});
   const saveBtn=document.createElement('button');saveBtn.className='btn-save-master';saveBtn.innerHTML='<i class="ti ti-device-floppy"></i>保存';saveBtn.addEventListener('click',()=>{saveLS();if(addVegState.fromReg){addVegState.fromReg=false;saveBtn.textContent='完了';setTimeout(()=>{closeMaster();populateCropSelect();document.getElementById('dlg-crop').value=navState.masterVeg||'';document.getElementById('dlg-save').disabled=!navState.masterVeg;document.getElementById('dlg-register').style.display='flex';},1200);}else{saveBtn.textContent='完了';setTimeout(()=>closeMaster(),1200);}});
   slot.append(delBtn,saveBtn);slot.style.display='flex';
 }
@@ -2070,7 +2074,7 @@ function renderMasterSaveBar(col,veg){
 const SUPABASE_FUNCTION_URL='https://rkubnugczjlsxskomknm.supabase.co/functions/v1/generate-roadmap';
 
 async function aiGenerate(vegId){
-  const veg=vegMaster[vegId];if(!veg)return;
+  const veg=masterData.vegMaster[vegId];if(!veg)return;
   const inUse=Object.values(gridState.cells).some(c=>c.crop===vegId);
   const doGenerate=async()=>{
     const btn=document.getElementById('btn-ai-gen');
@@ -2096,8 +2100,8 @@ async function aiGenerate(vegId){
         p.id=`p${pi+1}`;
         p.tasks.forEach((t,ti)=>{t.id=`t_${pi+1}_${ti+1}_${Math.random().toString(36).slice(2,5)}`;});
       });
-      vegMaster[vegId].phases=data.phases;
-      if(data.basicInfo)vegMaster[vegId].basicInfo=data.basicInfo;
+      masterData.vegMaster[vegId].phases=data.phases;
+      if(data.basicInfo)masterData.vegMaster[vegId].basicInfo=data.basicInfo;
       saveLS();renderMasterDetail();
       const basicInfoMsg=data.basicInfoSource==='existing'
         ?`基礎知識は「${veg.name}」の既存の初期値を使用しました（このレシピ内で自由に編集できます）。`
@@ -2373,18 +2377,18 @@ document.getElementById('av-icon-upload').addEventListener('change',e=>{
       const w=Math.round(img.width*scale),h=Math.round(img.height*scale);
       ctx.clearRect(0,0,SIZE,SIZE);ctx.drawImage(img,(SIZE-w)/2,(SIZE-h)/2,w,h);
       const b64=canvas.toDataURL('image/png');
-      const key='custom_'+Date.now();customIcons[key]=b64;saveLS();
+      const key='custom_'+Date.now();masterData.customIcons[key]=b64;saveLS();
       addVegState.iconFile=key;addVegState.emoji='';renderEmojiGrid();
     };img.src=ev.target.result;
   };reader.readAsDataURL(file);
 });
-function renderEmojiGrid(){const grid=document.getElementById('av-emoji-grid');grid.innerHTML='';const customEntries=Object.keys(customIcons).map(k=>({emoji:'',iconFile:k,isCustom:true}));[...ALL_ICONS,...customEntries].forEach(icon=>{const isSelected=icon.iconFile?icon.iconFile===addVegState.iconFile:(!addVegState.iconFile&&icon.emoji===addVegState.emoji);const opt=document.createElement('div');opt.className='emoji-opt'+(isSelected?' selected':'');opt.style.position='relative';const src=icon.iconFile?(ICON_B64[icon.iconFile]||customIcons[icon.iconFile]||null):null;if(src){opt.innerHTML=`<img src="${src}" width="24" height="24" style="object-fit:contain">`;}else{opt.textContent=icon.emoji;}if(icon.isCustom){const del=document.createElement('div');del.innerHTML='<i class="ti ti-x"></i>';del.style.cssText='position:absolute;top:-5px;right:-5px;width:14px;height:14px;border-radius:50%;background:#e53;color:#fff;font-size:8px;display:flex;align-items:center;justify-content:center;cursor:pointer';del.addEventListener('click',e=>{e.stopPropagation();delete customIcons[icon.iconFile];if(addVegState.iconFile===icon.iconFile){addVegState.iconFile=null;addVegState.emoji='🌱';}saveLS();renderEmojiGrid();});opt.appendChild(del);}opt.addEventListener('click',()=>{addVegState.emoji=icon.emoji;addVegState.iconFile=icon.iconFile||null;renderEmojiGrid();});grid.appendChild(opt);});}
+function renderEmojiGrid(){const grid=document.getElementById('av-emoji-grid');grid.innerHTML='';const customEntries=Object.keys(masterData.customIcons).map(k=>({emoji:'',iconFile:k,isCustom:true}));[...ALL_ICONS,...customEntries].forEach(icon=>{const isSelected=icon.iconFile?icon.iconFile===addVegState.iconFile:(!addVegState.iconFile&&icon.emoji===addVegState.emoji);const opt=document.createElement('div');opt.className='emoji-opt'+(isSelected?' selected':'');opt.style.position='relative';const src=icon.iconFile?(ICON_B64[icon.iconFile]||masterData.customIcons[icon.iconFile]||null):null;if(src){opt.innerHTML=`<img src="${src}" width="24" height="24" style="object-fit:contain">`;}else{opt.textContent=icon.emoji;}if(icon.isCustom){const del=document.createElement('div');del.innerHTML='<i class="ti ti-x"></i>';del.style.cssText='position:absolute;top:-5px;right:-5px;width:14px;height:14px;border-radius:50%;background:#e53;color:#fff;font-size:8px;display:flex;align-items:center;justify-content:center;cursor:pointer';del.addEventListener('click',e=>{e.stopPropagation();delete masterData.customIcons[icon.iconFile];if(addVegState.iconFile===icon.iconFile){addVegState.iconFile=null;addVegState.emoji='🌱';}saveLS();renderEmojiGrid();});opt.appendChild(del);}opt.addEventListener('click',()=>{addVegState.emoji=icon.emoji;addVegState.iconFile=icon.iconFile||null;renderEmojiGrid();});grid.appendChild(opt);});}
 document.getElementById('av-next').addEventListener('click',()=>{
   if(!permCanEditFarm())return;
   const name=document.getElementById('av-name').value.trim();const variety=document.getElementById('av-variety').value.trim();const presetId=document.getElementById('av-preset').value;const preset=PRESET_VEGS.find(v=>v.id===presetId);const purchased=_myPurchasedRecipes.find(r=>r.id===presetId);if(!name)return;
-  const id=purchased?`veg_${Date.now()}`:(presetId&&!vegMaster[presetId]?presetId:`veg_${Date.now()}`);
+  const id=purchased?`veg_${Date.now()}`:(presetId&&!masterData.vegMaster[presetId]?presetId:`veg_${Date.now()}`);
   const growMethod=document.getElementById('av-grow-method').value;const refUrl=document.getElementById('av-ref-url').value.trim();const season=document.getElementById('av-season').value;const region=document.getElementById('av-region').value;if(region)localStorage.setItem('hatake_last_region',region);
-  vegMaster[id]={id,name,emoji:addVegState.emoji,iconFile:addVegState.iconFile||undefined,family:purchased?purchased.family:(preset?preset.family:''),variety,growMethod,season,region,referenceUrl:refUrl,phases:purchased?JSON.parse(JSON.stringify(purchased.phases||[])):[],basicInfo:purchased?JSON.parse(JSON.stringify(purchased.basic_info||{})):undefined};
+  masterData.vegMaster[id]={id,name,emoji:addVegState.emoji,iconFile:addVegState.iconFile||undefined,family:purchased?purchased.family:(preset?preset.family:''),variety,growMethod,season,region,referenceUrl:refUrl,phases:purchased?JSON.parse(JSON.stringify(purchased.phases||[])):[],basicInfo:purchased?JSON.parse(JSON.stringify(purchased.basic_info||{})):undefined};
   navState.masterVeg=id;saveLS();document.getElementById('dlg-add-veg').style.display='none';renderMasterList();renderMasterDetail();
 });
 
@@ -2398,7 +2402,7 @@ loadLS();renderLegend();renderGrid();
 // ===== 初期データ読込後の反映 =====
 function _applyLoadedData(loaded){
   if(loaded){
-    if(!vegMaster['tomato'])vegMaster['tomato']=JSON.parse(JSON.stringify(TOMATO_SAMPLE));
+    if(!masterData.vegMaster['tomato'])masterData.vegMaster['tomato']=JSON.parse(JSON.stringify(TOMATO_SAMPLE));
     document.getElementById('s-cols').value=gridState.cols;
     document.getElementById('s-rows').value=gridState.rows;
     document.getElementById('s-farm-name').value=farmMeta.name;
