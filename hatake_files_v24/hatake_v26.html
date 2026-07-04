@@ -825,8 +825,10 @@ const permState={
   isSupervisor:false, // youtuber_supervisor以上（supervisor + admin 両方）
 };
 const MAX_UNDO=30;
-let COLS=8,ROWS=6,cells={},segs={},segTasks={},actionLogs={},harvestLogs={},segSummaryMemo={},vegMaster={},archivedSegs={},customIcons={},undoStack=[];
-let aisleRows=[],aisleCols=[];
+let segs={},segTasks={},actionLogs={},harvestLogs={},segSummaryMemo={},vegMaster={},archivedSegs={},customIcons={},undoStack=[];
+// グリッドの物理構造。保存キー名（cells/COLS/ROWS/aisleRows/aisleCols）は
+// データ互換のため変更しない。COLS/ROWSはcols/rowsに短縮する。
+const gridState={cells:{},cols:8,rows:6,aisleRows:[],aisleCols:[]};
 // グリッドのドラッグ範囲選択に関する一時状態。保存も他画面参照もされない。
 const dragState={
   dragging:false,row:-1,startCol:-1,endCol:-1,
@@ -911,10 +913,10 @@ async function loadFromDB(){
     const rows=await res.json();
     const d=rows[0]?.data;
     if(d&&d.cells&&Object.keys(d.cells).length>0){
-      cells=d.cells;COLS=d.COLS||8;ROWS=d.ROWS||6;
+      gridState.cells=d.cells;gridState.cols=d.COLS||8;gridState.rows=d.ROWS||6;
       segTasks=d.segTasks||{};actionLogs=d.actionLogs||{};harvestLogs=d.harvestLogs||{};
       segSummaryMemo=d.segSummaryMemo||{};vegMaster=d.vegMaster||{};
-      archivedSegs=d.archivedSegs||{};farmMeta.name=d.farmName||'';aisleRows=d.aisleRows||[];aisleCols=d.aisleCols||[];farmMeta.icon=d.farmIcon||'';
+      archivedSegs=d.archivedSegs||{};farmMeta.name=d.farmName||'';gridState.aisleRows=d.aisleRows||[];gridState.aisleCols=d.aisleCols||[];farmMeta.icon=d.farmIcon||'';
       return true;
     }
   }catch(e){console.error('DB load error',e);}
@@ -983,7 +985,7 @@ const _storage={
 };
 function saveLS(){
   try{
-    const d={cells,COLS,ROWS,segTasks,actionLogs,harvestLogs,segSummaryMemo,vegMaster,archivedSegs,farmName:farmMeta.name,aisleRows,aisleCols,farmNameFont:farmMeta.font,farmIcon:farmMeta.icon};
+    const d={cells:gridState.cells,COLS:gridState.cols,ROWS:gridState.rows,segTasks,actionLogs,harvestLogs,segSummaryMemo,vegMaster,archivedSegs,farmName:farmMeta.name,aisleRows:gridState.aisleRows,aisleCols:gridState.aisleCols,farmNameFont:farmMeta.font,farmIcon:farmMeta.icon};
     _storage.setItem(LS_KEY,JSON.stringify(d));
     _storage.setItem(LS_KEY+'_icons',JSON.stringify(customIcons));
     // Supabase保存：個人版は常に / コラボ版はサブスク加入後のみ
@@ -994,10 +996,10 @@ function saveLS(){
 }
 function updateFarmNameDisplay(){const el=document.getElementById('farm-name-display');const sc=document.getElementById('farm-seg-count');const splashEl=document.getElementById('splash-farm-name');const iconEl=document.getElementById('farm-icon-display');const fontFamily=`'${farmMeta.font}',serif`;if(el)el.style.fontFamily=fontFamily;if(splashEl)splashEl.style.fontFamily=fontFamily;if(iconEl){const iconId=farmMeta.icon||'tomato';if(iconId&&vegMaster[iconId]){iconEl.innerHTML=vegIconHtml(vegMaster[iconId],28);iconEl.style.display='inline-flex';}else{iconEl.innerHTML='🍅';iconEl.style.display='inline-flex';}}if(el){el.textContent=farmMeta.name||((window.APP_CONFIG&&window.APP_CONFIG.appName)||'私の畑');el.style.display='block';}if(sc){buildSegs();const cnt=Object.keys(segs).length;sc.textContent=cnt+'区画 管理中';sc.style.display='block';}}
 function loadLS(){
-  try{const d=JSON.parse(_storage.getItem(LS_KEY)||'null');if(d&&d.cells){cells=d.cells;COLS=d.COLS||8;ROWS=d.ROWS||6;segTasks=d.segTasks||{};actionLogs=d.actionLogs||{};harvestLogs=d.harvestLogs||{};segSummaryMemo=d.segSummaryMemo||{};vegMaster=d.vegMaster||{};archivedSegs=d.archivedSegs||{};farmMeta.name=d.farmName||'';aisleRows=d.aisleRows||[];aisleCols=d.aisleCols||[];farmMeta.font=d.farmNameFont||'Kaisei Opti';farmMeta.icon=d.farmIcon||'';}}catch(e){}
+  try{const d=JSON.parse(_storage.getItem(LS_KEY)||'null');if(d&&d.cells){gridState.cells=d.cells;gridState.cols=d.COLS||8;gridState.rows=d.ROWS||6;segTasks=d.segTasks||{};actionLogs=d.actionLogs||{};harvestLogs=d.harvestLogs||{};segSummaryMemo=d.segSummaryMemo||{};vegMaster=d.vegMaster||{};archivedSegs=d.archivedSegs||{};farmMeta.name=d.farmName||'';gridState.aisleRows=d.aisleRows||[];gridState.aisleCols=d.aisleCols||[];farmMeta.font=d.farmNameFont||'Kaisei Opti';farmMeta.icon=d.farmIcon||'';}}catch(e){}
   try{const ic=JSON.parse(_storage.getItem(LS_KEY+'_icons')||'null');if(ic)customIcons=ic;}catch(e){}
   if(!vegMaster['tomato'])vegMaster['tomato']=JSON.parse(JSON.stringify(TOMATO_SAMPLE));
-  document.getElementById('s-cols').value=COLS;document.getElementById('s-rows').value=ROWS;
+  document.getElementById('s-cols').value=gridState.cols;document.getElementById('s-rows').value=gridState.rows;
   document.getElementById('s-farm-name').value=farmMeta.name;
   document.querySelectorAll('input[name="farm-font"]').forEach(r=>{r.checked=(r.value===farmMeta.font);});
   renderFarmIconPicker();
@@ -1012,8 +1014,8 @@ function showSaveBanner(){
   clearTimeout(_saveBannerTimer);
   _saveBannerTimer=setTimeout(()=>{b.style.display='none';},6000);
 }
-function pushUndo(){undoStack.push(JSON.stringify({cells,COLS,ROWS,segTasks,actionLogs,harvestLogs,segSummaryMemo,vegMaster,archivedSegs,aisleRows,aisleCols}));if(undoStack.length>MAX_UNDO)undoStack.shift();updUndoBtn()}
-function doUndo(){if(!undoStack.length)return;const s=JSON.parse(undoStack.pop());cells=s.cells;COLS=s.COLS;ROWS=s.ROWS;segTasks=s.segTasks||{};actionLogs=s.actionLogs||{};harvestLogs=s.harvestLogs||{};segSummaryMemo=s.segSummaryMemo||{};vegMaster=s.vegMaster||{};archivedSegs=s.archivedSegs||{};aisleRows=s.aisleRows||[];aisleCols=s.aisleCols||[];buildSegs();renderGrid();if(navState.seg&&document.getElementById('screen-manage').classList.contains('active'))renderManage();saveLS();updUndoBtn()}
+function pushUndo(){undoStack.push(JSON.stringify({cells:gridState.cells,COLS:gridState.cols,ROWS:gridState.rows,segTasks,actionLogs,harvestLogs,segSummaryMemo,vegMaster,archivedSegs,aisleRows:gridState.aisleRows,aisleCols:gridState.aisleCols}));if(undoStack.length>MAX_UNDO)undoStack.shift();updUndoBtn()}
+function doUndo(){if(!undoStack.length)return;const s=JSON.parse(undoStack.pop());gridState.cells=s.cells;gridState.cols=s.COLS;gridState.rows=s.ROWS;segTasks=s.segTasks||{};actionLogs=s.actionLogs||{};harvestLogs=s.harvestLogs||{};segSummaryMemo=s.segSummaryMemo||{};vegMaster=s.vegMaster||{};archivedSegs=s.archivedSegs||{};gridState.aisleRows=s.aisleRows||[];gridState.aisleCols=s.aisleCols||[];buildSegs();renderGrid();if(navState.seg&&document.getElementById('screen-manage').classList.contains('active'))renderManage();saveLS();updUndoBtn()}
 function updUndoBtn(){const b=document.getElementById('undo-btn'),c=document.getElementById('undo-count');b.disabled=!undoStack.length;c.textContent=undoStack.length?`(${undoStack.length})`:''}
 document.getElementById('undo-btn').addEventListener('click',()=>{if(!undoStack.length)return;document.getElementById('dlg-undo-confirm').style.display='flex';});
 document.getElementById('btn-undo-cancel').addEventListener('click',()=>{document.getElementById('dlg-undo-confirm').style.display='none';});
@@ -1081,7 +1083,7 @@ document.querySelectorAll('input[name="farm-font"]').forEach(r=>{r.addEventListe
 document.getElementById('btn-open-master').addEventListener('click',()=>{closeSettings();openMaster();});
 
 // ===== 区画データ構造・作物ヘルパー =====
-function buildSegs(){segs={};for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){const k=K(r,c),cell=cells[k];if(!cell)continue;const sid=cell.segId;if(!segs[sid])segs[sid]={id:sid,row:r,cols:[],crop:cell.crop||null,plantDate:cell.plantDate||null};else if(!segs[sid].plantDate&&cell.plantDate)segs[sid].plantDate=cell.plantDate;segs[sid].cols.push(c);}}
+function buildSegs(){segs={};for(let r=0;r<gridState.rows;r++)for(let c=0;c<gridState.cols;c++){const k=K(r,c),cell=gridState.cells[k];if(!cell)continue;const sid=cell.segId;if(!segs[sid])segs[sid]={id:sid,row:r,cols:[],crop:cell.crop||null,plantDate:cell.plantDate||null};else if(!segs[sid].plantDate&&cell.plantDate)segs[sid].plantDate=cell.plantDate;segs[sid].cols.push(c);}}
 function getVeg(id){return vegMaster[id]||null}
 function vegFamily(id){const v=getVeg(id);return v?v.family:null}
 function famStyle(fam){if(!fam)return null;return FAMILIES[fam]||FAMILIES['その他'];}
@@ -1116,7 +1118,7 @@ function calcMajorStatus(sid,cropId){const v=getVeg(cropId);if(!v||!v.phases.len
 function addDays(dateStr,days){if(!dateStr)return null;const d=new Date(dateStr);d.setDate(d.getDate()+days);return `${d.getMonth()+1}/${d.getDate()}`}
 // ===== グリッド描画・ドラッグ操作 =====
 const AISLE_W=10,AISLE_H=10;
-function calcCellSize(){const wrap=document.getElementById('grid-wrap');const W=wrap.offsetWidth||600;const normalCols=COLS-aisleCols.length;const normalRows=ROWS-aisleRows.length;const usedW=12+3*(COLS+1)+aisleCols.length*AISLE_W;const cellW=Math.floor((W-usedW)/Math.max(1,normalCols));const cellH=Math.max(36,Math.min(58,Math.floor(cellW*0.94)));return{cellW,cellH,normalCols,normalRows}}
+function calcCellSize(){const wrap=document.getElementById('grid-wrap');const W=wrap.offsetWidth||600;const normalCols=gridState.cols-gridState.aisleCols.length;const normalRows=gridState.rows-gridState.aisleRows.length;const usedW=12+3*(gridState.cols+1)+gridState.aisleCols.length*AISLE_W;const cellW=Math.floor((W-usedW)/Math.max(1,normalCols));const cellH=Math.max(36,Math.min(58,Math.floor(cellW*0.94)));return{cellW,cellH,normalCols,normalRows}}
 
 function populateCropSelect(){
   const sel=document.getElementById('dlg-crop');sel.innerHTML='<option value="">— 選択してください —</option>';
@@ -1128,24 +1130,24 @@ function renderGrid(){
   // 列番号ヘッダ行
   const htr=document.createElement('tr');
   const corner=document.createElement('td');corner.className='col-num col-num-corner';corner.style.cssText=`width:10px;`;htr.appendChild(corner);
-  for(let c=0;c<COLS;c++){
-    const isAisleC=aisleCols.includes(c);
+  for(let c=0;c<gridState.cols;c++){
+    const isAisleC=gridState.aisleCols.includes(c);
     const ch=document.createElement('td');ch.className='col-num';
     ch.textContent=isAisleC?'':c+1;
     ch.style.cssText=`width:${isAisleC?AISLE_W:cellW}px;`;
     htr.appendChild(ch);
   }
   tbl.appendChild(htr);
-  for(let r=0;r<ROWS;r++){
-    const isAisleR=aisleRows.includes(r);
+  for(let r=0;r<gridState.rows;r++){
+    const isAisleR=gridState.aisleRows.includes(r);
     const rowH=isAisleR?AISLE_H:cellH;
     const tr=document.createElement('tr');
     const rn=document.createElement('td');rn.className='row-num';
     rn.textContent=isAisleR?'':String.fromCharCode(65+r);
     rn.style.cssText=`width:10px;height:${rowH}px;vertical-align:middle`;
     tr.appendChild(rn);
-    for(let c=0;c<COLS;c++){
-      const isAisleC=aisleCols.includes(c);
+    for(let c=0;c<gridState.cols;c++){
+      const isAisleC=gridState.aisleCols.includes(c);
       // 通路セル
       if(isAisleR||isAisleC){
         const td=document.createElement('td');td.dataset.r=r;td.dataset.c=c;
@@ -1154,12 +1156,12 @@ function renderGrid(){
         inner.style.cssText=`width:100%;height:100%;background:#f0efe9;border-radius:3px;`;
         td.appendChild(inner);tr.appendChild(td);continue;
       }
-      const k=K(r,c),cell=cells[k];const sid=cell?cell.segId:null,seg=sid?segs[sid]:null;
+      const k=K(r,c),cell=gridState.cells[k];const sid=cell?cell.segId:null,seg=sid?segs[sid]:null;
       const registered=seg?segIsRegistered(sid):false;
       if(registered&&seg&&c>Math.min(...seg.cols))continue;
       // colspanはアイル列を跨がない範囲に制限
       let span=registered&&seg?seg.cols.length:1;
-      if(span>1){const cols=seg.cols.slice().sort((a,b)=>a-b);span=0;for(const sc of cols){if(aisleCols.includes(sc))break;span++;}if(span===0)span=1;}
+      if(span>1){const cols=seg.cols.slice().sort((a,b)=>a-b);span=0;for(const sc of cols){if(gridState.aisleCols.includes(sc))break;span++;}if(span===0)span=1;}
       const selecting=dragState.dragging&&r===dragState.row&&c>=Math.min(dragState.startCol,dragState.endCol)&&c<=Math.max(dragState.startCol,dragState.endCol);
       const fs=famStyle(vegFamily(seg?seg.crop:null));const majorSt=registered?calcMajorStatus(sid,seg.crop):null;
       const td=document.createElement('td');td.dataset.r=r;td.dataset.c=c;
@@ -1196,11 +1198,11 @@ function renderGrid(){
   updateFarmNameDisplay();
   requestAnimationFrame(applyGridBg);
 }
-function onDown(r,c,e){e.preventDefault();if(!permCanEditFarm())return;if(aisleRows.includes(r)||aisleCols.includes(c))return;const k=K(r,c);if(cells[k]&&cells[k].crop)return;dragState.dragging=true;dragState.row=r;dragState.startCol=c;dragState.endCol=c;if(e.touches&&e.touches[0]){dragState.touchStartX=e.touches[0].clientX;dragState.touchStartY=e.touches[0].clientY;}document.addEventListener('mouseup',onUp,{once:true});document.addEventListener('touchend',onUp,{once:true});window.addEventListener('touchend',onUp,{once:true});
+function onDown(r,c,e){e.preventDefault();if(!permCanEditFarm())return;if(gridState.aisleRows.includes(r)||gridState.aisleCols.includes(c))return;const k=K(r,c);if(gridState.cells[k]&&gridState.cells[k].crop)return;dragState.dragging=true;dragState.row=r;dragState.startCol=c;dragState.endCol=c;if(e.touches&&e.touches[0]){dragState.touchStartX=e.touches[0].clientX;dragState.touchStartY=e.touches[0].clientY;}document.addEventListener('mouseup',onUp,{once:true});document.addEventListener('touchend',onUp,{once:true});window.addEventListener('touchend',onUp,{once:true});
   // DOM再構築せず直接ハイライト（iOS touchend対策）
   const tds=document.querySelectorAll('#grid-table td');tds.forEach(td=>{if(td.dataset.r==r&&td.dataset.c==c)td.style.background='var(--color-background-tertiary)';});
 }
-function onEnter(c){const dir=c>=dragState.startCol?1:-1;let end=dragState.startCol;for(let ci=dragState.startCol;ci!==c+dir;ci+=dir){if(ci<0||ci>=COLS)break;const k=K(dragState.row,ci);if(cells[k]&&cells[k].crop)break;end=ci;}if(end===dragState.endCol)return;dragState.endCol=end;const s=Math.min(dragState.startCol,dragState.endCol),e2=Math.max(dragState.startCol,dragState.endCol);document.querySelectorAll('#grid-table td[data-r]').forEach(td=>{const r2=+td.dataset.r,c2=+td.dataset.c;if(r2===dragState.row&&c2>=s&&c2<=e2){td.style.outline='2px solid #4A90E2';td.style.background='rgba(74,144,226,0.12)';}else if(!cells[K(r2,c2)]?.crop){td.style.outline='';td.style.background='';}});} 
+function onEnter(c){const dir=c>=dragState.startCol?1:-1;let end=dragState.startCol;for(let ci=dragState.startCol;ci!==c+dir;ci+=dir){if(ci<0||ci>=gridState.cols)break;const k=K(dragState.row,ci);if(gridState.cells[k]&&gridState.cells[k].crop)break;end=ci;}if(end===dragState.endCol)return;dragState.endCol=end;const s=Math.min(dragState.startCol,dragState.endCol),e2=Math.max(dragState.startCol,dragState.endCol);document.querySelectorAll('#grid-table td[data-r]').forEach(td=>{const r2=+td.dataset.r,c2=+td.dataset.c;if(r2===dragState.row&&c2>=s&&c2<=e2){td.style.outline='2px solid #4A90E2';td.style.background='rgba(74,144,226,0.12)';}else if(!gridState.cells[K(r2,c2)]?.crop){td.style.outline='';td.style.background='';}});} 
 function onUp(){if(!dragState.dragging){dragState.dragging=false;return;}dragState.dragging=false;const s=Math.min(dragState.startCol,dragState.endCol),e2=Math.max(dragState.startCol,dragState.endCol);if(dragState.row>=0&&s<=e2){dragState.pendingRow=dragState.row;dragState.pendingStart=s;dragState.pendingEnd=e2;showRegDlg();}renderGrid();}
 
 // ===== 区画登録ダイアログ =====
@@ -1241,7 +1243,7 @@ document.getElementById('dlg-save').addEventListener('click',()=>{
   const cropId=document.getElementById('dlg-crop').value,date=document.getElementById('dlg-date-input').value;if(!cropId)return;
   document.getElementById('dlg-register').style.display='none';pushUndo();
   const sid=`s_${dragState.pendingRow}_${dragState.pendingStart}_${Date.now()}`;
-  for(let c=dragState.pendingStart;c<=dragState.pendingEnd;c++){const k=K(dragState.pendingRow,c);if(!cells[k]||!cells[k].crop)cells[k]={segId:sid,crop:cropId,plantDate:date};}
+  for(let c=dragState.pendingStart;c<=dragState.pendingEnd;c++){const k=K(dragState.pendingRow,c);if(!gridState.cells[k]||!gridState.cells[k].crop)gridState.cells[k]={segId:sid,crop:cropId,plantDate:date};}
   dragState.pendingRow=-1;dragState.pendingStart=-1;dragState.pendingEnd=-1;buildSegs();renderGrid();saveLS();
 });
 
@@ -1503,7 +1505,7 @@ function renderArchiveDetail(el,segId){
   miniGridLabel.textContent='栽培エリア（完了時のグリッド状態）';
   miniGridWrap.appendChild(miniGridLabel);
   const gs=arch.gridSnapshot||[];
-  const gCols=arch.gridCOLS||COLS;const gRows=arch.gridROWS||ROWS;
+  const gCols=arch.gridCOLS||gridState.cols;const gRows=arch.gridROWS||gridState.rows;
   const cellMap={};
   gs.forEach(s=>s.cols.forEach(c=>{cellMap[s.row+','+c]={cropName:s.cropName,family:s.family,isSelf:s.isSelf};}));
   const selfFs=famStyle(arch.family);
@@ -1656,7 +1658,7 @@ function renderLogTab(el,seg){
   const periodStyle=permState.isAdmin?'cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;color:'+(periodNotSet?'#b4b2a9':'inherit'):'';
   const periodDispVal=periodNotSet&&permState.isAdmin?'未設定':workPeriodVal;
   periodStat.innerHTML='<div class="summary-stat-label">作業期間</div><div class="summary-stat-val" id="work-period-val" style="'+periodStyle+'">'+periodDispVal+'</div>'+(workPeriodSub?'<div class="summary-stat-sub">'+workPeriodSub+'</div>':'');
-  if(permState.isAdmin){periodStat.querySelector('#work-period-val').addEventListener('click',()=>{if(seg.plantDate){const menu=document.getElementById('task-chip-menu');menu.style.display='flex';document.getElementById('task-chip-menu-label').textContent='作業開始日';window._chipEdit=()=>{menu.style.display='none';showTaskDateDialog('作業開始日を変更','作業開始日',(dateVal)=>{if(!dateVal)return;pushUndo();Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===navState.seg)cells[k].plantDate=dateVal;});buildSegs();saveLS();renderManage();renderGrid();});};window._chipDelete=()=>{menu.style.display='none';pushUndo();Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===navState.seg)cells[k].plantDate=null;});buildSegs();saveLS();renderManage();renderGrid();};}else{showTaskDateDialog('作業開始日を設定','作業開始日',(dateVal)=>{if(!dateVal)return;pushUndo();Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===navState.seg)cells[k].plantDate=dateVal;});buildSegs();saveLS();renderManage();renderGrid();});}});}
+  if(permState.isAdmin){periodStat.querySelector('#work-period-val').addEventListener('click',()=>{if(seg.plantDate){const menu=document.getElementById('task-chip-menu');menu.style.display='flex';document.getElementById('task-chip-menu-label').textContent='作業開始日';window._chipEdit=()=>{menu.style.display='none';showTaskDateDialog('作業開始日を変更','作業開始日',(dateVal)=>{if(!dateVal)return;pushUndo();Object.keys(gridState.cells).forEach(k=>{if(gridState.cells[k]&&gridState.cells[k].segId===navState.seg)gridState.cells[k].plantDate=dateVal;});buildSegs();saveLS();renderManage();renderGrid();});};window._chipDelete=()=>{menu.style.display='none';pushUndo();Object.keys(gridState.cells).forEach(k=>{if(gridState.cells[k]&&gridState.cells[k].segId===navState.seg)gridState.cells[k].plantDate=null;});buildSegs();saveLS();renderManage();renderGrid();};}else{showTaskDateDialog('作業開始日を設定','作業開始日',(dateVal)=>{if(!dateVal)return;pushUndo();Object.keys(gridState.cells).forEach(k=>{if(gridState.cells[k]&&gridState.cells[k].segId===navState.seg)gridState.cells[k].plantDate=dateVal;});buildSegs();saveLS();renderManage();renderGrid();});}});}
   stats.innerHTML=`${seedHtml}${transplantHtml}<div class="summary-stat"><div class="summary-stat-label">合計収穫量</div><div class="summary-stat-val" style="color:#2e7a28">${harvestTotalStr(navState.seg)||'未記録'}</div></div>`;
   stats.insertBefore(periodStat,stats.firstChild);
   summary.appendChild(stats);
@@ -1671,7 +1673,7 @@ function renderLogTab(el,seg){
   completeBtn.addEventListener('click',()=>openCompleteConfirm(navState.seg));
   completeBar.appendChild(completeBtn);
   const delDivider=document.createElement('hr');delDivider.style.cssText='border:none;border-top:0.5px solid var(--color-border-tertiary);margin:16px 0';completeBar.appendChild(delDivider);
-  const deleteBtn=document.createElement('button');deleteBtn.style.cssText='margin-top:0;width:100%;font-size:var(--fs-sm);padding:8px;border-radius:var(--border-radius-md);border:0.5px solid #e57373;background:#fff5f5;color:#c62828;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px';deleteBtn.innerHTML='<i class="ti ti-trash"></i>この区画の登録を削除';deleteBtn.addEventListener('click',()=>{showConfirm('この区画の登録を削除します。\n作業記録や収穫記録も失われます。\nよろしいですか？',()=>{pushUndo();const sid=navState.seg;Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===sid)delete cells[k];});delete segTasks[sid];delete actionLogs[sid];delete harvestLogs[sid];delete segSummaryMemo[sid];buildSegs();saveLS();goBack();renderGrid();});});
+  const deleteBtn=document.createElement('button');deleteBtn.style.cssText='margin-top:0;width:100%;font-size:var(--fs-sm);padding:8px;border-radius:var(--border-radius-md);border:0.5px solid #e57373;background:#fff5f5;color:#c62828;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px';deleteBtn.innerHTML='<i class="ti ti-trash"></i>この区画の登録を削除';deleteBtn.addEventListener('click',()=>{showConfirm('この区画の登録を削除します。\n作業記録や収穫記録も失われます。\nよろしいですか？',()=>{pushUndo();const sid=navState.seg;Object.keys(gridState.cells).forEach(k=>{if(gridState.cells[k]&&gridState.cells[k].segId===sid)delete gridState.cells[k];});delete segTasks[sid];delete actionLogs[sid];delete harvestLogs[sid];delete segSummaryMemo[sid];buildSegs();saveLS();goBack();renderGrid();});});
   completeBar.appendChild(deleteBtn);el.appendChild(completeBar);
 }
 
@@ -1745,12 +1747,12 @@ function renderSegList(){
 
 function renderLegend(){const el=document.getElementById('family-legend');el.innerHTML='';Object.entries(FAMILIES).forEach(([name,style])=>{const item=document.createElement('div');item.className='legend-item';item.innerHTML=`<div class="legend-dot" style="background:${style.bg};border-color:${style.border}"></div>${name}`;el.appendChild(item);});}
 
-function applyGrid(){const nc=Math.min(20,Math.max(2,parseInt(document.getElementById('s-cols').value)||8));const nr=Math.min(20,Math.max(2,parseInt(document.getElementById('s-rows').value)||6));COLS=nc;ROWS=nr;const nc2={};for(const k in cells){const[ri,ci]=k.split(',').map(Number);if(ri<ROWS&&ci<COLS)nc2[k]=cells[k];}cells=nc2;renderGrid();saveLS();}
+function applyGrid(){const nc=Math.min(20,Math.max(2,parseInt(document.getElementById('s-cols').value)||8));const nr=Math.min(20,Math.max(2,parseInt(document.getElementById('s-rows').value)||6));gridState.cols=nc;gridState.rows=nr;const nc2={};for(const k in gridState.cells){const[ri,ci]=k.split(',').map(Number);if(ri<gridState.rows&&ci<gridState.cols)nc2[k]=gridState.cells[k];}gridState.cells=nc2;renderGrid();saveLS();}
 function parseAisleInput(str,max){return str.split(',').map(s=>parseInt(s.trim())-1).filter(n=>!isNaN(n)&&n>=0&&n<max);}
 function applyAisles(){
   pushUndo();
-  aisleRows=parseAisleInput(document.getElementById('s-aisle-rows').value,ROWS);
-  aisleCols=parseAisleInput(document.getElementById('s-aisle-cols').value,COLS);
+  gridState.aisleRows=parseAisleInput(document.getElementById('s-aisle-rows').value,gridState.rows);
+  gridState.aisleCols=parseAisleInput(document.getElementById('s-aisle-cols').value,gridState.cols);
   renderGrid();saveLS();
 }
 function renderFarmIconPicker(){
@@ -1768,10 +1770,10 @@ function renderFarmIconPicker(){
   });
 }
 function syncAisleInputs(){
-  document.getElementById('s-aisle-rows').value=aisleRows.map(r=>r+1).join(', ');
-  document.getElementById('s-aisle-cols').value=aisleCols.map(c=>c+1).join(', ');
+  document.getElementById('s-aisle-rows').value=gridState.aisleRows.map(r=>r+1).join(', ');
+  document.getElementById('s-aisle-cols').value=gridState.aisleCols.map(c=>c+1).join(', ');
 }
-function resetAll(){if(!permCanEditFarm())return;showConfirm('全データをリセットしますか？',()=>{cells={};segs={};segTasks={};actionLogs={};harvestLogs={};segSummaryMemo={};archivedSegs={};undoStack=[];renderGrid();updUndoBtn();saveLS();});}
+function resetAll(){if(!permCanEditFarm())return;showConfirm('全データをリセットしますか？',()=>{gridState.cells={};segs={};segTasks={};actionLogs={};harvestLogs={};segSummaryMemo={};archivedSegs={};undoStack=[];renderGrid();updUndoBtn();saveLS();});}
 
 function openMaster(){document.getElementById('screen-register').classList.remove('active');document.getElementById('screen-master').classList.add('active');renderMasterList();if(navState.masterVeg)renderMasterDetail();}
 function closeMaster(){document.getElementById('screen-master').classList.remove('active');document.getElementById('screen-register').classList.add('active');renderGrid();}
@@ -2029,7 +2031,7 @@ function renderMasterDetail(){
         const tbody=document.createElement('div');tbody.className='master-task-body';const memoLbl=document.createElement('div');memoLbl.className='master-task-label';memoLbl.textContent='作業メモ';const memoIn=document.createElement('textarea');memoIn.className='master-task-memo';memoIn.placeholder='作業内容の補足';memoIn.value=task.memo||'';const urlLbl=document.createElement('div');urlLbl.className='master-task-label';urlLbl.innerHTML='<i class="ti ti-brand-youtube" style="font-size:var(--fs-xs);margin-right:2px"></i>参考動画URL';const urlIn=document.createElement('input');urlIn.type='url';urlIn.className='master-task-url';urlIn.placeholder='https://...';urlIn.value=task.url||'';
         tbody.append(memoLbl,memoIn,urlLbl,urlIn);tr.append(th,tbody);pb.appendChild(tr);
         if(!permRequireSupervisor()){nameIn.readOnly=true;dayIn.readOnly=true;memoIn.readOnly=true;urlIn.readOnly=true;upBtn.style.display='none';downBtn.style.display='none';delBtn.style.display='none';}else{
-          const inUse=Object.values(cells).some(c=>c.crop===veg.id);
+          const inUse=Object.values(gridState.cells).some(c=>c.crop===veg.id);
           nameIn.addEventListener('input',()=>{vegMaster[veg.id].phases[pi].tasks[ti].name=nameIn.value;});
           dayIn.addEventListener('input',()=>{vegMaster[veg.id].phases[pi].tasks[ti].day=parseInt(dayIn.value)||0;});
           memoIn.addEventListener('input',()=>{vegMaster[veg.id].phases[pi].tasks[ti].memo=memoIn.value;});
@@ -2056,7 +2058,7 @@ function renderMasterSaveBar(col,veg){
   if(!slot)return;
   slot.innerHTML='';
   if(!permCanEditFarm()){slot.style.display='none';return;}
-  const delBtn=document.createElement('button');delBtn.className='btn-delete-master';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>削除';delBtn.addEventListener('click',()=>{const usedCells=Object.values(cells).filter(c=>c&&c.crop===veg.id);if(usedCells.length>0){showAlert(`「${veg.name}」は現在${usedCells.length}つの区画で使用中のため削除できません。\n区画の管理画面から野菜を外すか、区画を削除してから再度お試しください。`);return;}showConfirm(`「${veg.name}」をレシピから削除しますか？`,()=>{delete vegMaster[veg.id];navState.masterVeg=null;saveLS();renderMasterList();renderMasterDetail();});});
+  const delBtn=document.createElement('button');delBtn.className='btn-delete-master';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>削除';delBtn.addEventListener('click',()=>{const usedCells=Object.values(gridState.cells).filter(c=>c&&c.crop===veg.id);if(usedCells.length>0){showAlert(`「${veg.name}」は現在${usedCells.length}つの区画で使用中のため削除できません。\n区画の管理画面から野菜を外すか、区画を削除してから再度お試しください。`);return;}showConfirm(`「${veg.name}」をレシピから削除しますか？`,()=>{delete vegMaster[veg.id];navState.masterVeg=null;saveLS();renderMasterList();renderMasterDetail();});});
   const saveBtn=document.createElement('button');saveBtn.className='btn-save-master';saveBtn.innerHTML='<i class="ti ti-device-floppy"></i>保存';saveBtn.addEventListener('click',()=>{saveLS();if(addVegState.fromReg){addVegState.fromReg=false;saveBtn.textContent='完了';setTimeout(()=>{closeMaster();populateCropSelect();document.getElementById('dlg-crop').value=navState.masterVeg||'';document.getElementById('dlg-save').disabled=!navState.masterVeg;document.getElementById('dlg-register').style.display='flex';},1200);}else{saveBtn.textContent='完了';setTimeout(()=>closeMaster(),1200);}});
   slot.append(delBtn,saveBtn);slot.style.display='flex';
 }
@@ -2065,7 +2067,7 @@ const SUPABASE_FUNCTION_URL='https://rkubnugczjlsxskomknm.supabase.co/functions/
 
 async function aiGenerate(vegId){
   const veg=vegMaster[vegId];if(!veg)return;
-  const inUse=Object.values(cells).some(c=>c.crop===vegId);
+  const inUse=Object.values(gridState.cells).some(c=>c.crop===vegId);
   const doGenerate=async()=>{
     const btn=document.getElementById('btn-ai-gen');
     if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2"></i>生成中...';}
@@ -2272,12 +2274,12 @@ function executeComplete(sid){
     harvestStartDate:getMilestoneDate(sid,seg.crop,'harvest_start'),
     row:seg.row,
     cols:[...seg.cols],
-    gridCOLS:COLS,
-    gridROWS:ROWS,
+    gridCOLS:gridState.cols,
+    gridROWS:gridState.rows,
     gridSnapshot:Object.values(segs).map(s=>{const sv=getVeg(s.crop);return{segId:s.id,row:s.row,cols:[...s.cols],cropId:s.crop,cropName:sv?sv.name:'',family:sv?sv.family:'',isSelf:s.id===sid};}),
   };
-  // グリッドから解放（セルをcellsから削除）。actionLogs/harvestLogs/segSummaryMemo/segTasksはsegIdキーのまま保持し削除しない。
-  Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===sid)delete cells[k];});
+  // グリッドから解放（セルをgridState.cellsから削除）。actionLogs/harvestLogs/segSummaryMemo/segTasksはsegIdキーのまま保持し削除しない。
+  Object.keys(gridState.cells).forEach(k=>{if(gridState.cells[k]&&gridState.cells[k].segId===sid)delete gridState.cells[k];});
   saveLS();
   closeCompleteConfirm();
   goBack();
@@ -2393,8 +2395,8 @@ loadLS();renderLegend();renderGrid();
 function _applyLoadedData(loaded){
   if(loaded){
     if(!vegMaster['tomato'])vegMaster['tomato']=JSON.parse(JSON.stringify(TOMATO_SAMPLE));
-    document.getElementById('s-cols').value=COLS;
-    document.getElementById('s-rows').value=ROWS;
+    document.getElementById('s-cols').value=gridState.cols;
+    document.getElementById('s-rows').value=gridState.rows;
     document.getElementById('s-farm-name').value=farmMeta.name;
     updateFarmNameDisplay();
     buildSegs();renderGrid();renderSegList();
