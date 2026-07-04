@@ -818,8 +818,12 @@ if(IS_DEV)document.addEventListener('DOMContentLoaded',()=>{
   const h=b.offsetHeight;
   document.querySelectorAll('.toolbar').forEach(t=>{if(getComputedStyle(t).position==='sticky')t.style.top=h+'px';});
 });
-let permIsAdmin=false;
-let permIsSupervisor=false; // youtuber_supervisor以上（supervisor + admin 両方）
+// 権限状態をまとめたオブジェクト。grep "permState" で権限に関する
+// 読み書き箇所を一望できるようにする（バラバラなグローバル変数の代替）。
+const permState={
+  isAdmin:false,
+  isSupervisor:false, // youtuber_supervisor以上（supervisor + admin 両方）
+};
 const MAX_UNDO=30;
 let COLS=8,ROWS=6,cells={},segs={},segTasks={},actionLogs={},harvestLogs={},segSummaryMemo={},vegMaster={},archivedSegs={},customIcons={},undoStack=[];
 let aisleRows=[],aisleCols=[];
@@ -1020,11 +1024,11 @@ document.getElementById('dlg-settings').addEventListener('mousedown',e=>{if(e.ta
 // 全ユーザー可: タスク記録・収穫追加・全体メモ・画面閲覧
 // 管理者のみ  : 区画登録/編集、栽培レシピ追加/編集/削除、
 //               AI生成、設定変更、収穫削除、管理完了
-function permRequireAdmin(){return permIsAdmin;}
-function permRequireSupervisor(){return permIsSupervisor;}
+function permRequireAdmin(){return permState.isAdmin;}
+function permRequireSupervisor(){return permState.isSupervisor;}
 function permApply(){
   const st=document.getElementById('admin-status');
-  if(permIsAdmin){
+  if(permState.isAdmin){
     document.body.classList.remove('view-mode');
     document.body.classList.add('admin-mode');
     if(st){st.textContent='管理者モードで操作中';st.style.color='#e28a12';}
@@ -1040,14 +1044,14 @@ document.getElementById('btn-admin-login').addEventListener('click',()=>{
   if(_dataStrategy==='session')return; // マーケットプレイス版はパスワード方式を使わない（Supabase Authのroleのみで判定）
   const pw=document.getElementById('s-admin-pw').value;
   if(pw===ADMIN_PASSWORD){
-    permIsAdmin=true;
+    permState.isAdmin=true;
     // セッション版はlocalStorageに管理者フラグを書かない（セッション限定）
     if(_dataStrategy!=='session')localStorage.setItem('hatake_admin','1');
     permApply();
     document.getElementById('s-admin-pw').value='';
     showAlert('管理者モードになりました');
   }else if(pw===''){
-    permIsAdmin=false;
+    permState.isAdmin=false;
     localStorage.removeItem('hatake_admin');
     permApply();
   }else{showAlert('パスワードが違います');}
@@ -1056,8 +1060,8 @@ document.getElementById('btn-admin-login').addEventListener('click',()=>{
 // 個人版のみ、従来通りlocalStorageのhatake_adminフラグで判定する。
 if(_dataStrategy!=='session'){
   if(localStorage.getItem('hatake_admin')==='1'){
-    permIsAdmin=true;
-    permIsSupervisor=true;
+    permState.isAdmin=true;
+    permState.isSupervisor=true;
   }else{
     document.body.classList.add('view-mode');
   }
@@ -1642,10 +1646,10 @@ function renderLogTab(el,seg){
   const stats=document.createElement('div');stats.className='summary-stats';
   const periodStat=document.createElement('div');periodStat.className='summary-stat';
   const periodNotSet=!seg.plantDate&&workPeriodVal==='—';
-  const periodStyle=permIsAdmin?'cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;color:'+(periodNotSet?'#b4b2a9':'inherit'):'';
-  const periodDispVal=periodNotSet&&permIsAdmin?'未設定':workPeriodVal;
+  const periodStyle=permState.isAdmin?'cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;color:'+(periodNotSet?'#b4b2a9':'inherit'):'';
+  const periodDispVal=periodNotSet&&permState.isAdmin?'未設定':workPeriodVal;
   periodStat.innerHTML='<div class="summary-stat-label">作業期間</div><div class="summary-stat-val" id="work-period-val" style="'+periodStyle+'">'+periodDispVal+'</div>'+(workPeriodSub?'<div class="summary-stat-sub">'+workPeriodSub+'</div>':'');
-  if(permIsAdmin){periodStat.querySelector('#work-period-val').addEventListener('click',()=>{if(seg.plantDate){const menu=document.getElementById('task-chip-menu');menu.style.display='flex';document.getElementById('task-chip-menu-label').textContent='作業開始日';window._chipEdit=()=>{menu.style.display='none';showTaskDateDialog('作業開始日を変更','作業開始日',(dateVal)=>{if(!dateVal)return;pushUndo();Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===currentSeg)cells[k].plantDate=dateVal;});buildSegs();saveLS();renderManage();renderGrid();});};window._chipDelete=()=>{menu.style.display='none';pushUndo();Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===currentSeg)cells[k].plantDate=null;});buildSegs();saveLS();renderManage();renderGrid();};}else{showTaskDateDialog('作業開始日を設定','作業開始日',(dateVal)=>{if(!dateVal)return;pushUndo();Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===currentSeg)cells[k].plantDate=dateVal;});buildSegs();saveLS();renderManage();renderGrid();});}});}
+  if(permState.isAdmin){periodStat.querySelector('#work-period-val').addEventListener('click',()=>{if(seg.plantDate){const menu=document.getElementById('task-chip-menu');menu.style.display='flex';document.getElementById('task-chip-menu-label').textContent='作業開始日';window._chipEdit=()=>{menu.style.display='none';showTaskDateDialog('作業開始日を変更','作業開始日',(dateVal)=>{if(!dateVal)return;pushUndo();Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===currentSeg)cells[k].plantDate=dateVal;});buildSegs();saveLS();renderManage();renderGrid();});};window._chipDelete=()=>{menu.style.display='none';pushUndo();Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===currentSeg)cells[k].plantDate=null;});buildSegs();saveLS();renderManage();renderGrid();};}else{showTaskDateDialog('作業開始日を設定','作業開始日',(dateVal)=>{if(!dateVal)return;pushUndo();Object.keys(cells).forEach(k=>{if(cells[k]&&cells[k].segId===currentSeg)cells[k].plantDate=dateVal;});buildSegs();saveLS();renderManage();renderGrid();});}});}
   stats.innerHTML=`${seedHtml}${transplantHtml}<div class="summary-stat"><div class="summary-stat-label">合計収穫量</div><div class="summary-stat-val" style="color:#2e7a28">${harvestTotalStr(currentSeg)||'未記録'}</div></div>`;
   stats.insertBefore(periodStat,stats.firstChild);
   summary.appendChild(stats);
@@ -1902,13 +1906,13 @@ function renderMasterDetail(){
   if(!veg){scroll.innerHTML='<div class="master-detail-empty"><i class="ti ti-plant-2" style="font-size:24px;color:#9c9a93"></i>左のリストから野菜を選択</div>';const s=document.getElementById('master-toolbar-btns');if(s)s.style.display='none';return;}
   const hdr=document.createElement('div');hdr.className='master-detail-header';hdr.innerHTML=`<span class="master-detail-icon">${vegIconHtml(veg,30)}</span><div><div class="master-detail-name">${veg.name}</div><div class="master-detail-sub">${veg.variety||'標準'} ／ ${veg.family||'科未設定'}</div></div>`;
   const growBlock=document.createElement('div');growBlock.classList.add('admin-only');growBlock.style.cssText='margin-bottom:12px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary)';const growLabel=document.createElement('div');growLabel.style.cssText='font-size:var(--fs-xs);font-weight:500;color:var(--color-text-secondary);margin-bottom:8px';growLabel.textContent='栽培設定';const growRow=document.createElement('div');growRow.style.cssText='display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end';const growMethodWrap=document.createElement('div');growMethodWrap.style.cssText='display:flex;flex-direction:column;gap:3px;flex:1;min-width:120px';const growMethodLbl=document.createElement('div');growMethodLbl.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary)';growMethodLbl.textContent='育成方法';const growMethodSel=document.createElement('select');growMethodSel.style.cssText='font-size:var(--fs-sm);padding:5px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)';[{v:'seedling',l:'苗から'},{v:'seed_pot',l:'種（ポット）から'},{v:'seed_ground',l:'種（地植え）から'}].forEach(opt=>{const o=document.createElement('option');o.value=opt.v;o.textContent=opt.l;if((veg.growMethod||'seedling')===opt.v)o.selected=true;growMethodSel.appendChild(o);});if(!permCanEditFarm())growMethodSel.disabled=true;else growMethodSel.addEventListener('change',()=>{vegMaster[veg.id].growMethod=growMethodSel.value;});growMethodWrap.append(growMethodLbl,growMethodSel);const refUrlWrap=document.createElement('div');refUrlWrap.style.cssText='display:flex;flex-direction:column;gap:3px;flex:2;min-width:160px';const refUrlLbl=document.createElement('div');refUrlLbl.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary)';refUrlLbl.innerHTML='<i class="ti ti-link" style="font-size:var(--fs-xs)"></i> 参考URL（AI生成に使用）';const refUrlIn=document.createElement('input');refUrlIn.type='url';refUrlIn.style.cssText='font-size:var(--fs-sm);padding:5px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);width:100%';refUrlIn.placeholder='https://...';refUrlIn.value=veg.referenceUrl||'';if(!permCanEditFarm())refUrlIn.readOnly=true;else refUrlIn.addEventListener('input',()=>{vegMaster[veg.id].referenceUrl=refUrlIn.value;});refUrlWrap.append(refUrlLbl,refUrlIn);growRow.append(growMethodWrap,refUrlWrap);growBlock.append(growLabel,growRow);scroll.appendChild(growBlock);const aiBanner=document.createElement('div');aiBanner.className='ai-banner';aiBanner.style.margin='0 0 12px';const hasRM=veg.phases&&veg.phases.length>0;
-  if(permIsAdmin){aiBanner.innerHTML=`<div class="ai-banner-text">${hasRM?'工程表・基礎情報が生成済みです。再生成で上書きできます。':'工程表と基礎情報がありません。AIで自動生成できます。'}</div><button class="btn-ai" id="btn-ai-gen"><i class="ti ti-sparkles"></i>${hasRM?'再生成':'AIで生成'}</button>`;aiBanner.querySelector('#btn-ai-gen').addEventListener('click',()=>aiGenerate(veg.id));scroll.append(hdr,aiBanner);}else{scroll.appendChild(hdr);}
+  if(permState.isAdmin){aiBanner.innerHTML=`<div class="ai-banner-text">${hasRM?'工程表・基礎情報が生成済みです。再生成で上書きできます。':'工程表と基礎情報がありません。AIで自動生成できます。'}</div><button class="btn-ai" id="btn-ai-gen"><i class="ti ti-sparkles"></i>${hasRM?'再生成':'AIで生成'}</button>`;aiBanner.querySelector('#btn-ai-gen').addEventListener('click',()=>aiGenerate(veg.id));scroll.append(hdr,aiBanner);}else{scroll.appendChild(hdr);}
   // タブバー（基礎知識 / 工程表）
   // end_userで basicInfo がない場合（手入力レシピ）は基礎知識タブを非表示
   // 基礎知識タブは、監修者は常に表示（空の状態から書き込むため）。
   // end_userは basicInfo が存在する場合のみ表示する。end_userの手入力レシピには
   // basicInfoが無いため非表示になる（購入・転写したレシピはAI生成済みなので表示される）。
-  const showBasicTab=permIsSupervisor||(veg.basicInfo&&Object.keys(veg.basicInfo).length>0);
+  const showBasicTab=permState.isSupervisor||(veg.basicInfo&&Object.keys(veg.basicInfo).length>0);
   if(!showBasicTab&&masterDetailTab==='basic')masterDetailTab='roadmap';
   const tabBar=document.createElement('div');tabBar.className='tab-bar';tabBar.style.margin='0 0 12px';
   const tabDefs=showBasicTab?[{id:'basic',label:'基礎知識',icon:'ti-info-circle'},{id:'roadmap',label:'工程表',icon:'ti-road'}]:[{id:'roadmap',label:'工程表',icon:'ti-road'}];
@@ -2032,8 +2036,8 @@ function renderMasterDetail(){
           });
         }
       });
-      const addTaskBtn=document.createElement('button');addTaskBtn.className='master-add-task-btn';addTaskBtn.innerHTML='<i class="ti ti-plus" style="font-size:var(--fs-xs)"></i>タスクを追加';addTaskBtn.classList.add('supervisor-only');if(permIsSupervisor){addTaskBtn.addEventListener('click',()=>{vegMaster[veg.id].phases[pi].tasks.push({id:`t_${Date.now()}`,name:'',desc:'',day:0,memo:'',url:''});renderMasterDetail();});}
-      const addPestBtn=document.createElement('button');addPestBtn.className='master-add-task-btn';addPestBtn.style.cssText='color:#92400e;border-color:#f59e0b';addPestBtn.innerHTML='<i class="ti ti-bug" style="font-size:var(--fs-xs)"></i>病害虫チェックを追加';addPestBtn.classList.add('supervisor-only');if(permIsSupervisor){addPestBtn.addEventListener('click',()=>{vegMaster[veg.id].phases[pi].tasks.push({id:`t_${Date.now()}`,name:'',desc:'',day:0,memo:'',url:'',type:'pest'});renderMasterDetail();});}
+      const addTaskBtn=document.createElement('button');addTaskBtn.className='master-add-task-btn';addTaskBtn.innerHTML='<i class="ti ti-plus" style="font-size:var(--fs-xs)"></i>タスクを追加';addTaskBtn.classList.add('supervisor-only');if(permState.isSupervisor){addTaskBtn.addEventListener('click',()=>{vegMaster[veg.id].phases[pi].tasks.push({id:`t_${Date.now()}`,name:'',desc:'',day:0,memo:'',url:''});renderMasterDetail();});}
+      const addPestBtn=document.createElement('button');addPestBtn.className='master-add-task-btn';addPestBtn.style.cssText='color:#92400e;border-color:#f59e0b';addPestBtn.innerHTML='<i class="ti ti-bug" style="font-size:var(--fs-xs)"></i>病害虫チェックを追加';addPestBtn.classList.add('supervisor-only');if(permState.isSupervisor){addPestBtn.addEventListener('click',()=>{vegMaster[veg.id].phases[pi].tasks.push({id:`t_${Date.now()}`,name:'',desc:'',day:0,memo:'',url:'',type:'pest'});renderMasterDetail();});}
       const btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:6px;flex-wrap:wrap';btnRow.append(addTaskBtn,addPestBtn);pb.appendChild(btnRow);scroll.appendChild(pb);
     });
   }
@@ -2284,7 +2288,7 @@ function permCanEditFarm(){return permRequireAdmin()||_dataStrategy==='session';
 let _myPurchasedRecipes=[];
 async function _populateAddVegPreset(){
   const sel=document.getElementById('av-preset');const label=document.getElementById('av-preset-label');
-  if(_dataStrategy==='session'&&!permIsAdmin&&!permIsSupervisor&&_marketUserId){
+  if(_dataStrategy==='session'&&!permState.isAdmin&&!permState.isSupervisor&&_marketUserId){
     label.textContent='購入したレシピから選ぶ';
     sel.innerHTML='<option value="">— 購入したレシピ —</option>';
     _myPurchasedRecipes=[];
@@ -2522,8 +2526,8 @@ loadFromDB().then(_applyLoadedData);
 
       if(!rows || rows.length === 0) {
         // 会員登録（サブスク決済）が完了していない
-        permIsAdmin = false;
-        permIsSupervisor = false;
+        permState.isAdmin = false;
+        permState.isSupervisor = false;
         window.APP_SUBSCRIBED = false;
         _marketUserId = null;
         _marketAccessToken = null;
@@ -2531,15 +2535,15 @@ loadFromDB().then(_applyLoadedData);
         _updateAuthUI(user, false, null);
       } else {
         const row = rows[0];
-        permIsAdmin = (row.role === 'platform_admin');
-        permIsSupervisor = (row.role === 'youtuber_supervisor' || permIsAdmin);
+        permState.isAdmin = (row.role === 'platform_admin');
+        permState.isSupervisor = (row.role === 'youtuber_supervisor' || permState.isAdmin);
         window.APP_SUBSCRIBED = true; // usersに行がある＝会員
         _marketUserId = row.id;
         _marketAccessToken = accessToken;
-        if(permIsAdmin) {
+        if(permState.isAdmin) {
           document.body.classList.remove('view-mode','supervisor-mode');
           document.body.classList.add('admin-mode');
-        } else if(permIsSupervisor) {
+        } else if(permState.isSupervisor) {
           document.body.classList.remove('view-mode','admin-mode');
           document.body.classList.add('supervisor-mode');
         } else {
