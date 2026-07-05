@@ -747,8 +747,12 @@ body{
 <script src="data/icons_b64.js"></script>
 <script src="data/preset_vegs.js"></script>
 <script type="module" src="js/state.js"></script>
+<script type="module" src="js/date-utils.js"></script>
+<script type="module" src="js/dialogs.js"></script>
 <script type="module">
 import { SUPABASE_URL, SUPABASE_ANON_KEY, ADMIN_PASSWORD, IS_DEV, LS_KEY, DB_ID, SUPABASE_TABLE, permState, MAX_UNDO, undoStack, masterData, segData, gridState, dragState, farmMeta, navState, addVegState } from './js/state.js';
+import { K, todayISO, initDateSelects, getDateFromSelects, todayDisp, isoFull, isoShort, daysBetween } from './js/date-utils.js';
+import { dispToISO, showMilestoneDialog, showConfirm, showAlert, showTaskDateDialog } from './js/dialogs.js';
 
 // ===== 共通ヘルパー・マスタデータ =====
 // アイコン表示ヘルパー: iconFileがあれば<img>、なければ絵文字にフォールバック
@@ -803,31 +807,6 @@ const TOMATO_SAMPLE={
   ]
 };
 
-// ===== 日付ユーティリティ =====
-const K=(r,c)=>`${r},${c}`;
-const todayISO=()=>new Date().toISOString().slice(0,10);
-function initDateSelects(yId,mId,dId,isoVal){
-  const now=isoVal?new Date(isoVal):new Date();
-  const curY=now.getFullYear(),curM=now.getMonth()+1,curD=now.getDate();
-  const yEl=document.getElementById(yId);
-  const mEl=document.getElementById(mId);
-  const dEl=document.getElementById(dId);
-  if(!yEl||!mEl||!dEl)return;
-  yEl.innerHTML='';for(let y=curY-2;y<=curY+2;y++){const o=document.createElement('option');o.value=y;o.textContent=y+'年';if(y===curY)o.selected=true;yEl.appendChild(o);}
-  mEl.innerHTML='';for(let m=1;m<=12;m++){const o=document.createElement('option');o.value=String(m).padStart(2,'0');o.textContent=m+'月';if(m===curM)o.selected=true;mEl.appendChild(o);}
-  dEl.innerHTML='';for(let d=1;d<=31;d++){const o=document.createElement('option');o.value=String(d).padStart(2,'0');o.textContent=d+'日';if(d===curD)o.selected=true;dEl.appendChild(o);}
-}
-function getDateFromSelects(yId,mId,dId){
-  const y=document.getElementById(yId)?.value;
-  const m=document.getElementById(mId)?.value;
-  const d=document.getElementById(dId)?.value;
-  return(y&&m&&d)?`${y}-${m}-${d}`:'';
-}
-const todayDisp=()=>{const d=new Date();return `${d.getMonth()+1}/${d.getDate()}`};
-const isoFull=s=>{if(!s)return '';const[y,m,d]=s.split('-');return `${y}年${parseInt(m)}月${parseInt(d)}日`};
-const isoShort=s=>{if(!s)return '';const[y,m,d]=s.split('-');return `${y}/${parseInt(m)}/${parseInt(d)}`};
-const daysBetween=(a,b)=>Math.round((new Date(b)-new Date(a))/86400000);
-
 // v25シナリオ2: テーブルごとに保存・読込のクエリを切り替える
 // app_data（個人版）: id カラムで識別  PATCH（従来通り、匿名anonキーのみ）
 // user_records（マーケットプレイス版）: user_id（=users.id）で識別  UPSERT
@@ -881,57 +860,6 @@ async function loadFromDB(){
     }
   }catch(e){console.error('DB load error',e);}
   return false;
-}
-// ===== 日付変換・汎用ダイアログ =====
-function dispToISO(disp){
-  if(!disp)return null;
-  const year=new Date().getFullYear();
-  const parts=disp.split('/');
-  if(parts.length!==2)return null;
-  return `${year}-${parts[0].padStart(2,'0')}-${parts[1].padStart(2,'0')}`;
-}
-function showMilestoneDialog(type){
-  const dlg=document.getElementById('dlg-milestone');
-  const img=document.getElementById('dlg-milestone-img');
-  const title=document.getElementById('dlg-milestone-title');
-  const msg=document.getElementById('dlg-milestone-msg');
-  if(type==='germination'){
-    img.src='images/milestone_germination.png';
-    title.textContent='🌱 発芽しました！';
-    msg.textContent='小さな命が土から顔を出しましたね。ここからが本番です。大切に育てていきましょう！';
-  }else if(type==='firstHarvest'){
-    img.src='images/milestone_firstharvest.png';
-    title.textContent='🎉 初収穫おめでとうございます！';
-    msg.textContent='ここまで育ててきた努力が実を結びました。よく頑張りましたね。お疲れ様でした！';
-  }
-  dlg.style.display='flex';
-}
-function showConfirm(msg, onOk){
-  document.getElementById('dlg-custom-confirm-msg').textContent=msg;
-  const dlg=document.getElementById('dlg-custom-confirm');
-  const okBtn=document.getElementById('dlg-custom-confirm-ok');
-  const cancelBtn=document.getElementById('dlg-custom-confirm-cancel');
-  const close=()=>{dlg.style.display='none';okBtn.onclick=null;cancelBtn.onclick=null;};
-  okBtn.onclick=()=>{close();onOk();};
-  cancelBtn.onclick=()=>close();
-  dlg.style.display='flex';
-}
-function showAlert(msg, onOk){
-  document.getElementById('dlg-custom-alert-msg').textContent=msg;
-  const dlg=document.getElementById('dlg-custom-alert');
-  const okBtn=document.getElementById('dlg-custom-alert-ok');
-  const close=()=>{dlg.style.display='none';okBtn.onclick=null;if(onOk)onOk();};
-  okBtn.onclick=()=>close();
-  dlg.style.display='flex';
-}
-function showTaskDateDialog(title, taskName, onConfirm, onCancel){
-  const dlg=document.getElementById('dlg-task-date');
-  document.getElementById('dlg-task-date-title').textContent=title;
-  document.getElementById('dlg-task-date-name').textContent=taskName;
-  document.getElementById('dlg-task-date-input').value=todayISO();
-  window._taskDateConfirm=onConfirm;
-  window._taskDateCancel=onCancel||null;
-  dlg.style.display='flex';
 }
 // ===== ローカルストレージ・Undo管理 =====
 // v25: ストレージ抽象化
