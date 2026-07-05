@@ -60,5 +60,7 @@ document.getElementById('btn-undo-ok').addEventListener('click',()=>{document.ge
 document.getElementById('dlg-undo-confirm').addEventListener('mousedown',e=>{if(e.target===e.currentTarget)document.getElementById('dlg-undo-confirm').style.display='none';});
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();if(!undoStack.length)return;document.getElementById('dlg-undo-confirm').style.display='flex';}});
 
-// openArchiveはjs/archive.js抽出までのwindow経由の一時ブリッジ
+// openArchiveはstorage.js→archive.js→segments.js→storage.jsの3者循環を避けるため
+// window経由で参照する（恒久的。segments.js⇄storage.js間の循環importは実際は問題なく
+// 動作しているが、これ以上輪を広げないための予防的判断）
 document.getElementById('btn-open-archive').addEventListener('click',()=>{window.openArchive();});
