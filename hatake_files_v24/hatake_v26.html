@@ -756,6 +756,7 @@ body{
 <script type="module" src="js/storage.js"></script>
 <script type="module" src="js/settings-dialog.js"></script>
 <script type="module" src="js/segments.js"></script>
+<script type="module" src="js/registration-dialog.js"></script>
 <script type="module">
 import { SUPABASE_URL, SUPABASE_ANON_KEY, ADMIN_PASSWORD, IS_DEV, LS_KEY, DB_ID, SUPABASE_TABLE, permState, MAX_UNDO, undoStack, masterData, segData, gridState, dragState, farmMeta, navState, addVegState } from './js/state.js';
 import { K, todayISO, initDateSelects, getDateFromSelects, todayDisp, isoFull, isoShort, daysBetween } from './js/date-utils.js';
@@ -765,6 +766,7 @@ import { permRequireAdmin, permRequireSupervisor } from './js/permissions.js';
 import { marketAuth, saveToDB, loadFromDB } from './js/db.js';
 import { _dataStrategy, saveLS, updateFarmNameDisplay, loadLS, showSaveBanner, pushUndo, doUndo, updUndoBtn } from './js/storage.js';
 import { buildSegs, getVeg, vegFamily, famStyle, ROTATION_FAMILIES, checkRotation, segIsRegistered, getTaskState, setTaskState, getMilestoneDate, getHarvestSummary, harvestTotalStr, getMergedLogsByDate, getNextTask, calcProgress, calcMajorStatus, addDays } from './js/segments.js';
+import { showRegDlg } from './js/registration-dialog.js';
 
 // ===== モジュール化ブリッジ =====
 // type="module"化により関数宣言が自動でwindowグローバルにならなくなったため、
@@ -789,6 +791,7 @@ window.renderGrid=renderGrid;
 window.renderFarmIconPicker=renderFarmIconPicker;
 window.openArchive=openArchive;
 window.syncAisleInputs=syncAisleInputs;
+window.populateCropSelect=populateCropSelect;
 
 // ===== グリッド描画・ドラッグ操作 =====
 const AISLE_W=10,AISLE_H=10;
@@ -878,48 +881,6 @@ function onDown(r,c,e){e.preventDefault();if(!permCanEditFarm())return;if(gridSt
 }
 function onEnter(c){const dir=c>=dragState.startCol?1:-1;let end=dragState.startCol;for(let ci=dragState.startCol;ci!==c+dir;ci+=dir){if(ci<0||ci>=gridState.cols)break;const k=K(dragState.row,ci);if(gridState.cells[k]&&gridState.cells[k].crop)break;end=ci;}if(end===dragState.endCol)return;dragState.endCol=end;const s=Math.min(dragState.startCol,dragState.endCol),e2=Math.max(dragState.startCol,dragState.endCol);document.querySelectorAll('#grid-table td[data-r]').forEach(td=>{const r2=+td.dataset.r,c2=+td.dataset.c;if(r2===dragState.row&&c2>=s&&c2<=e2){td.style.outline='2px solid #4A90E2';td.style.background='rgba(74,144,226,0.12)';}else if(!gridState.cells[K(r2,c2)]?.crop){td.style.outline='';td.style.background='';}});} 
 function onUp(){if(!dragState.dragging){dragState.dragging=false;return;}dragState.dragging=false;const s=Math.min(dragState.startCol,dragState.endCol),e2=Math.max(dragState.startCol,dragState.endCol);if(dragState.row>=0&&s<=e2){dragState.pendingRow=dragState.row;dragState.pendingStart=s;dragState.pendingEnd=e2;showRegDlg();}renderGrid();}
-
-// ===== 区画登録ダイアログ =====
-function showRegDlg(){
-  populateCropSelect();
-  document.getElementById('dlg-preview').textContent=`${dragState.pendingRow+1}行 / ${dragState.pendingStart+1}〜${dragState.pendingEnd+1}列（${dragState.pendingEnd-dragState.pendingStart+1}マス）`;
-  document.getElementById('dlg-crop').value='';
-  document.getElementById('dlg-date-input').value=todayISO();
-  document.getElementById('dlg-save').disabled=true;
-  const rw=document.getElementById('dlg-rotation-warn');rw.style.display='none';rw.innerHTML='';
-  const noVeg=!Object.keys(masterData.vegMaster).length;
-  document.getElementById('dlg-crop-field').style.display=noVeg?'none':'';
-  document.getElementById('dlg-date-field').style.display=noVeg?'none':'';
-  document.getElementById('dlg-save').style.display=noVeg?'none':'';
-  document.getElementById('dlg-no-veg').style.display=noVeg?'block':'none';
-  document.getElementById('dlg-register').style.display='flex';
-  window._regDlgOpenTime=Date.now();
-}
-document.getElementById('dlg-crop').addEventListener('change',()=>{
-  const cropId=document.getElementById('dlg-crop').value;
-  document.getElementById('dlg-save').disabled=!cropId;
-  const warn=document.getElementById('dlg-rotation-warn');
-  warn.style.display='none';warn.innerHTML='';
-  if(!cropId||dragState.pendingRow<0)return;
-  const veg=getVeg(cropId);if(!veg||!ROTATION_FAMILIES.has(veg.family))return;
-  const cols=Array.from({length:dragState.pendingEnd-dragState.pendingStart+1},(_,i)=>dragState.pendingStart+i);
-  const hits=checkRotation(dragState.pendingRow,cols).filter(a=>a.family===veg.family);
-  if(!hits.length)return;
-  const h=hits[0];const months=Math.round(daysBetween(h.completedDate,todayISO())/30);
-  warn.innerHTML=`<i class="ti ti-alert-triangle" style="font-size:var(--fs-xs);margin-right:3px"></i>このエリアでは<strong>${months}ヶ月前</strong>に${h.family}（${h.cropName}）を栽培していました。連作障害に注意してください。`;
-  warn.style.display='block';
-});
-document.getElementById('btn-dlg-cancel').addEventListener('click',()=>{document.getElementById('dlg-register').style.display='none';dragState.pendingRow=-1;dragState.pendingStart=-1;dragState.pendingEnd=-1;renderGrid();});
-document.getElementById('dlg-go-master').addEventListener('click',()=>{document.getElementById('dlg-register').style.display='none';dragState.pendingRow=-1;dragState.pendingStart=-1;dragState.pendingEnd=-1;openMaster();});
-document.getElementById('dlg-add-new-veg').addEventListener('click',()=>{document.getElementById('dlg-register').style.display='none';addVegState.fromReg=true;openMaster();document.getElementById('btn-add-veg').click();});
-document.getElementById('dlg-register').addEventListener('mousedown',e=>{if(e.target===e.currentTarget&&Date.now()-(window._regDlgOpenTime||0)>500){document.getElementById('dlg-register').style.display='none';dragState.pendingRow=-1;dragState.pendingStart=-1;dragState.pendingEnd=-1;renderGrid();}});
-document.getElementById('dlg-save').addEventListener('click',()=>{
-  const cropId=document.getElementById('dlg-crop').value,date=document.getElementById('dlg-date-input').value;if(!cropId)return;
-  document.getElementById('dlg-register').style.display='none';pushUndo();
-  const sid=`s_${dragState.pendingRow}_${dragState.pendingStart}_${Date.now()}`;
-  for(let c=dragState.pendingStart;c<=dragState.pendingEnd;c++){const k=K(dragState.pendingRow,c);if(!gridState.cells[k]||!gridState.cells[k].crop)gridState.cells[k]={segId:sid,crop:cropId,plantDate:date};}
-  dragState.pendingRow=-1;dragState.pendingStart=-1;dragState.pendingEnd=-1;buildSegs();renderGrid();saveLS();
-});
 
 let archiveSortKey='completedDate',archiveSortDir='desc',archiveDetailSeg=null,currentSnapshotIdx=0;
 
