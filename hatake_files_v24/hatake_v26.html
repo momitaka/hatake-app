@@ -746,7 +746,7 @@ body{
 
 <script src="data/icons_b64.js"></script>
 <script src="data/preset_vegs.js"></script>
-<script>
+<script type="module">
 
 // ===== 共通ヘルパー・マスタデータ =====
 // アイコン表示ヘルパー: iconFileがあれば<img>、なければ絵文字にフォールバック
@@ -2725,6 +2725,20 @@ loadFromDB().then(_applyLoadedData);
   // supabase-js が onAuthStateChange で検知するため追加処理不要
 })();
 
+// ===== モジュール化ブリッジ =====
+// type="module"化により関数宣言が自動でwindowグローバルにならなくなったため、
+// HTML側のインラインonclick等から直接呼ばれる関数はここで明示的にwindowへ登録する。
+// 各関数を個別モジュールへ抽出する際は、抽出先ファイル側にこのwindow割当を移設しここから削除する。
+window.applyGrid=applyGrid;
+window.applyAisles=applyAisles;
+window.resetAll=resetAll;
+window.closeArchive=closeArchive;
+window.closeMaster=closeMaster;
+window.closeMarketList=closeMarketList;
+window.backToMarketList=backToMarketList;
+window.goBack=goBack;
+window.renderManage=renderManage;
+window.navState=navState;
 </script>
 </body>
 </html>
