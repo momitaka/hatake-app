@@ -49,7 +49,8 @@ export function showSaveBanner(){
 export function pushUndo(){undoStack.push(JSON.stringify({cells:gridState.cells,COLS:gridState.cols,ROWS:gridState.rows,segTasks:segData.tasks,actionLogs:segData.actionLogs,harvestLogs:segData.harvestLogs,segSummaryMemo:segData.summaryMemo,vegMaster:masterData.vegMaster,archivedSegs:segData.archived,aisleRows:gridState.aisleRows,aisleCols:gridState.aisleCols}));if(undoStack.length>MAX_UNDO)undoStack.shift();updUndoBtn()}
 export function doUndo(){
   if(!undoStack.length)return;const s=JSON.parse(undoStack.pop());gridState.cells=s.cells;gridState.cols=s.COLS;gridState.rows=s.ROWS;segData.tasks=s.segTasks||{};segData.actionLogs=s.actionLogs||{};segData.harvestLogs=s.harvestLogs||{};segData.summaryMemo=s.segSummaryMemo||{};masterData.vegMaster=s.vegMaster||{};segData.archived=s.archivedSegs||{};gridState.aisleRows=s.aisleRows||[];gridState.aisleCols=s.aisleCols||[];
-  // renderGrid/renderManageはjs/grid.js・js/manage.js抽出までのwindow経由の一時ブリッジ
+  // renderGridはgrid.js⇄storage.jsの相互依存（grid.jsがupdateFarmNameDisplayを使う）のため
+  // 循環import回避のためwindow経由。renderManageはjs/manage.js抽出までのwindow経由の一時ブリッジ
   buildSegs();window.renderGrid();if(navState.seg&&document.getElementById('screen-manage').classList.contains('active'))window.renderManage();saveLS();updUndoBtn();
 }
 export function updUndoBtn(){const b=document.getElementById('undo-btn'),c=document.getElementById('undo-count');b.disabled=!undoStack.length;c.textContent=undoStack.length?`(${undoStack.length})`:''}

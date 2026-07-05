@@ -6,7 +6,8 @@ import { getVeg, ROTATION_FAMILIES, checkRotation, buildSegs } from './segments.
 import { saveLS, pushUndo } from './storage.js';
 
 export function showRegDlg(){
-  // populateCropSelectはjs/grid.js抽出までのwindow経由の一時ブリッジ
+  // grid.js⇄registration-dialog.jsは相互依存（grid.jsがshowRegDlgを使う）のため
+  // 循環import回避のためpopulateCropSelect/renderGridはwindow経由で参照する
   window.populateCropSelect();
   document.getElementById('dlg-preview').textContent=`${dragState.pendingRow+1}行 / ${dragState.pendingStart+1}〜${dragState.pendingEnd+1}列（${dragState.pendingEnd-dragState.pendingStart+1}マス）`;
   document.getElementById('dlg-crop').value='';
@@ -35,7 +36,7 @@ document.getElementById('dlg-crop').addEventListener('change',()=>{
   warn.innerHTML=`<i class="ti ti-alert-triangle" style="font-size:var(--fs-xs);margin-right:3px"></i>このエリアでは<strong>${months}ヶ月前</strong>に${h.family}（${h.cropName}）を栽培していました。連作障害に注意してください。`;
   warn.style.display='block';
 });
-// renderGrid/openMasterはjs/grid.js・js/master-recipes.js抽出までのwindow経由の一時ブリッジ
+// openMasterはjs/master-recipes.js抽出までのwindow経由の一時ブリッジ
 document.getElementById('btn-dlg-cancel').addEventListener('click',()=>{document.getElementById('dlg-register').style.display='none';dragState.pendingRow=-1;dragState.pendingStart=-1;dragState.pendingEnd=-1;window.renderGrid();});
 document.getElementById('dlg-go-master').addEventListener('click',()=>{document.getElementById('dlg-register').style.display='none';dragState.pendingRow=-1;dragState.pendingStart=-1;dragState.pendingEnd=-1;window.openMaster();});
 document.getElementById('dlg-add-new-veg').addEventListener('click',()=>{document.getElementById('dlg-register').style.display='none';addVegState.fromReg=true;window.openMaster();document.getElementById('btn-add-veg').click();});
