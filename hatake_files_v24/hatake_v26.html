@@ -754,6 +754,7 @@ body{
 <script type="module" src="js/permissions.js"></script>
 <script type="module" src="js/db.js"></script>
 <script type="module" src="js/storage.js"></script>
+<script type="module" src="js/settings-dialog.js"></script>
 <script type="module">
 import { SUPABASE_URL, SUPABASE_ANON_KEY, ADMIN_PASSWORD, IS_DEV, LS_KEY, DB_ID, SUPABASE_TABLE, permState, MAX_UNDO, undoStack, masterData, segData, gridState, dragState, farmMeta, navState, addVegState } from './js/state.js';
 import { K, todayISO, initDateSelects, getDateFromSelects, todayDisp, isoFull, isoShort, daysBetween } from './js/date-utils.js';
@@ -780,20 +781,13 @@ window.closeMarketList=closeMarketList;
 window.backToMarketList=backToMarketList;
 window.goBack=goBack;
 window.renderManage=renderManage;
-window.closeSettings=closeSettings;
 window.openMaster=openMaster;
 window.renderMasterDetail=renderMasterDetail;
 window.buildSegs=buildSegs;
 window.renderGrid=renderGrid;
 window.renderFarmIconPicker=renderFarmIconPicker;
 window.openArchive=openArchive;
-
-// ===== 設定ダイアログ =====
-function openSettings(){document.getElementById('dlg-settings').style.display='flex';syncAisleInputs();}
-function closeSettings(){document.getElementById('dlg-settings').style.display='none';}
-document.getElementById('btn-settings').addEventListener('click',openSettings);
-document.getElementById('btn-close-settings').addEventListener('click',closeSettings);
-document.getElementById('dlg-settings').addEventListener('mousedown',e=>{if(e.target===e.currentTarget)closeSettings();});
+window.syncAisleInputs=syncAisleInputs;
 
 // ===== 区画データ構造・作物ヘルパー =====
 function buildSegs(){segData.segs={};for(let r=0;r<gridState.rows;r++)for(let c=0;c<gridState.cols;c++){const k=K(r,c),cell=gridState.cells[k];if(!cell)continue;const sid=cell.segId;if(!segData.segs[sid])segData.segs[sid]={id:sid,row:r,cols:[],crop:cell.crop||null,plantDate:cell.plantDate||null};else if(!segData.segs[sid].plantDate&&cell.plantDate)segData.segs[sid].plantDate=cell.plantDate;segData.segs[sid].cols.push(c);}}

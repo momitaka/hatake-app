@@ -6,6 +6,7 @@
 import { permState, navState, farmMeta, ADMIN_PASSWORD } from './state.js';
 import { showAlert } from './dialogs.js';
 import { _dataStrategy, saveLS, updateFarmNameDisplay } from './storage.js';
+import { closeSettings } from './settings-dialog.js';
 
 /** @returns {boolean} */
 export function permRequireAdmin(){return permState.isAdmin;}
@@ -54,7 +55,7 @@ if(_dataStrategy!=='session'){
 }else{
   document.body.classList.add('view-mode');
 }
-// closeSettingsは設定ダイアログセクション抽出まで、openMasterはjs/master-recipes.js抽出までの一時ブリッジ
+// openMasterはjs/master-recipes.js抽出までの一時ブリッジ
 document.getElementById('btn-save-farm-name').addEventListener('click',()=>{farmMeta.name=document.getElementById('s-farm-name').value.trim();saveLS();updateFarmNameDisplay();const btn=document.getElementById('btn-save-farm-name');btn.textContent='保存しました';setTimeout(()=>{btn.textContent='保存';},1200);});
 document.querySelectorAll('input[name="farm-font"]').forEach(r=>{r.addEventListener('change',()=>{farmMeta.font=r.value;saveLS();updateFarmNameDisplay();});});
-document.getElementById('btn-open-master').addEventListener('click',()=>{window.closeSettings();window.openMaster();});
+document.getElementById('btn-open-master').addEventListener('click',()=>{closeSettings();window.openMaster();});
