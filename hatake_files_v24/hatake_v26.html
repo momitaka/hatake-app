@@ -759,6 +759,7 @@ body{
 <script type="module" src="js/registration-dialog.js"></script>
 <script type="module" src="js/complete.js"></script>
 <script type="module" src="js/add-veg.js"></script>
+<script type="module" src="js/data-loading.js"></script>
 <script type="module">
 import { SUPABASE_URL, SUPABASE_ANON_KEY, ADMIN_PASSWORD, IS_DEV, LS_KEY, DB_ID, SUPABASE_TABLE, permState, MAX_UNDO, undoStack, masterData, segData, gridState, dragState, farmMeta, navState, addVegState } from './js/state.js';
 import { K, todayISO, initDateSelects, getDateFromSelects, todayDisp, isoFull, isoShort, daysBetween } from './js/date-utils.js';
@@ -771,6 +772,7 @@ import { buildSegs, getVeg, vegFamily, famStyle, ROTATION_FAMILIES, checkRotatio
 import { showRegDlg } from './js/registration-dialog.js';
 import { openCompleteConfirm } from './js/complete.js';
 import { permCanEditFarm, _openAddVegFromPurchase } from './js/add-veg.js';
+import { _applyLoadedData } from './js/data-loading.js';
 
 // ===== モジュール化ブリッジ =====
 // type="module"化により関数宣言が自動でwindowグローバルにならなくなったため、
@@ -793,6 +795,8 @@ window.openMaster=openMaster;
 window.renderMasterDetail=renderMasterDetail;
 window.renderMasterList=renderMasterList;
 window.openMarketList=openMarketList;
+window.renderLegend=renderLegend;
+window.renderSegList=renderSegList;
 window.renderGrid=renderGrid;
 window.renderFarmIconPicker=renderFarmIconPicker;
 window.openArchive=openArchive;
@@ -1889,19 +1893,6 @@ loadLS();renderLegend();renderGrid();
 // DB から最新データを読み込み（非管理者でも最新を表示）
 // マーケットプレイス版はログイン（会員確認）が済むまでmarketAuth.userIdが無いため、
 // ここでは何もせずfalseが返る。ログイン後にAuth処理側から改めて呼び出す。
-// ===== 初期データ読込後の反映 =====
-function _applyLoadedData(loaded){
-  if(loaded){
-    if(!masterData.vegMaster['tomato'])masterData.vegMaster['tomato']=JSON.parse(JSON.stringify(TOMATO_SAMPLE));
-    document.getElementById('s-cols').value=gridState.cols;
-    document.getElementById('s-rows').value=gridState.rows;
-    document.getElementById('s-farm-name').value=farmMeta.name;
-    updateFarmNameDisplay();
-    buildSegs();renderGrid();renderSegList();
-    const splashNameEl=document.getElementById('splash-farm-name');
-    if(splashNameEl)splashNameEl.textContent=farmMeta.name||((window.APP_CONFIG&&window.APP_CONFIG.appName)||'私の畑');
-  }
-}
 loadFromDB().then(_applyLoadedData);
 
 
