@@ -5,6 +5,7 @@ import { todayISO } from './date-utils.js';
 import { vegIconHtml } from './helpers.js';
 import { getVeg, harvestTotalStr, getMilestoneDate } from './segments.js';
 import { saveLS, pushUndo } from './storage.js';
+import { goBack } from './manage.js';
 
 let pendingCompleteSeg=null;
 export function openCompleteConfirm(sid){
@@ -48,8 +49,7 @@ export function executeComplete(sid){
   Object.keys(gridState.cells).forEach(k=>{if(gridState.cells[k]&&gridState.cells[k].segId===sid)delete gridState.cells[k];});
   saveLS();
   closeCompleteConfirm();
-  // goBackはjs/manage.js抽出までのwindow経由の一時ブリッジ
-  window.goBack();
+  goBack();
   showArchiveDone();
 }
 document.getElementById('btn-complete-cancel').addEventListener('click',closeCompleteConfirm);

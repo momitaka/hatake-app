@@ -8,6 +8,7 @@ import { buildSegs, segIsRegistered, famStyle, vegFamily, calcMajorStatus, getVe
 import { updateFarmNameDisplay } from './storage.js';
 import { permCanEditFarm } from './add-veg.js';
 import { showRegDlg } from './registration-dialog.js';
+import { openManage } from './manage.js';
 
 const AISLE_W=10,AISLE_H=10;
 export function calcCellSize(){const wrap=document.getElementById('grid-wrap');const W=wrap.offsetWidth||600;const normalCols=gridState.cols-gridState.aisleCols.length;const normalRows=gridState.rows-gridState.aisleRows.length;const usedW=12+3*(gridState.cols+1)+gridState.aisleCols.length*AISLE_W;const cellW=Math.floor((W-usedW)/Math.max(1,normalCols));const cellH=Math.max(36,Math.min(58,Math.floor(cellW*0.94)));return{cellW,cellH,normalCols,normalRows}}
@@ -80,8 +81,7 @@ export function renderGrid(){
         {let dtDisp='';if(seg.plantDate){dtDisp=seg.plantDate.slice(5).replace('-','/')+'〜';}else{const veg2=getVeg(seg.crop);const allT=(veg2&&veg2.phases)?veg2.phases.flatMap(p=>p.tasks):[];let earliest='';allT.forEach(t=>{(getTaskState(seg.id,t.id).doneDates||[]).forEach(d=>{const iso=dispToISO(d);if(iso&&(!earliest||iso<earliest))earliest=iso;});});if(earliest)dtDisp=earliest.slice(5).replace('-','/')+'〜';}if(dtDisp){const dtLbl=document.createElement('div');dtLbl.style.cssText='font-size:7px;color:#9c9a93;line-height:1.2;margin-top:1px';dtLbl.textContent=dtDisp;inner.appendChild(dtLbl);}}
       }
       td.appendChild(inner);
-      // openManageはjs/manage.js抽出までのwindow経由の一時ブリッジ
-      if(registered){td.style.cursor='pointer';td.addEventListener('click',()=>window.openManage(sid));}
+      if(registered){td.style.cursor='pointer';td.addEventListener('click',()=>openManage(sid));}
       else{td.style.cursor='crosshair';td.addEventListener('mousedown',e=>{if(e.button!==0)return;onDown(r,c,e)});td.addEventListener('mouseenter',()=>{if(dragState.dragging&&r===dragState.row)onEnter(c)});td.addEventListener('touchstart',e=>{e.preventDefault();onDown(r,c,e)},{passive:false});td.addEventListener('touchmove',e=>{e.preventDefault();const t=e.touches[0];if(Math.abs(t.clientX-dragState.touchStartX)<10&&Math.abs(t.clientY-dragState.touchStartY)<10)return;const el2=document.elementFromPoint(t.clientX,t.clientY);const td2=el2&&el2.closest('td');if(td2)td2.dispatchEvent(new MouseEvent('mouseenter'));},{passive:false});}
       tr.appendChild(td);
     }
