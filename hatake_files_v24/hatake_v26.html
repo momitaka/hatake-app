@@ -757,6 +757,7 @@ body{
 <script type="module" src="js/settings-dialog.js"></script>
 <script type="module" src="js/segments.js"></script>
 <script type="module" src="js/registration-dialog.js"></script>
+<script type="module" src="js/complete.js"></script>
 <script type="module">
 import { SUPABASE_URL, SUPABASE_ANON_KEY, ADMIN_PASSWORD, IS_DEV, LS_KEY, DB_ID, SUPABASE_TABLE, permState, MAX_UNDO, undoStack, masterData, segData, gridState, dragState, farmMeta, navState, addVegState } from './js/state.js';
 import { K, todayISO, initDateSelects, getDateFromSelects, todayDisp, isoFull, isoShort, daysBetween } from './js/date-utils.js';
@@ -767,6 +768,7 @@ import { marketAuth, saveToDB, loadFromDB } from './js/db.js';
 import { _dataStrategy, saveLS, updateFarmNameDisplay, loadLS, showSaveBanner, pushUndo, doUndo, updUndoBtn } from './js/storage.js';
 import { buildSegs, getVeg, vegFamily, famStyle, ROTATION_FAMILIES, checkRotation, segIsRegistered, getTaskState, setTaskState, getMilestoneDate, getHarvestSummary, harvestTotalStr, getMergedLogsByDate, getNextTask, calcProgress, calcMajorStatus, addDays } from './js/segments.js';
 import { showRegDlg } from './js/registration-dialog.js';
+import { openCompleteConfirm } from './js/complete.js';
 
 // ===== モジュール化ブリッジ =====
 // type="module"化により関数宣言が自動でwindowグローバルにならなくなったため、
@@ -1874,55 +1876,6 @@ function renderBasicTab(el,veg){
   el.appendChild(wrap);
 }
 
-// ===== 完了機能（区画のアーカイブ化） =====
-let pendingCompleteSeg=null;
-function openCompleteConfirm(sid){
-  const seg=segData.segs[sid];if(!seg)return;const veg=getVeg(seg.crop);
-  pendingCompleteSeg=sid;
-  const label=`${veg?vegIconHtml(veg,18)+' '+veg.name:'不明'}（${seg.row+1}行 ${Math.min(...seg.cols)+1}〜${Math.max(...seg.cols)+1}列）`;
-  document.getElementById('dlg-complete-target').innerHTML=label;
-  document.getElementById('dlg-complete-confirm').style.display='flex';
-}
-function showArchiveDone(){document.getElementById('dlg-archive-done').style.display='flex';}
-function closeCompleteConfirm(){pendingCompleteSeg=null;document.getElementById('dlg-complete-confirm').style.display='none';}
-function executeComplete(sid){
-  const seg=segData.segs[sid];if(!seg)return;const veg=getVeg(seg.crop);
-  pushUndo();
-  const taskLogs=segData.actionLogs[sid]||[];
-  const allLogDates=taskLogs.map(l=>l.date).sort();
-  const lastLogDate=allLogDates[allLogDates.length-1]||null;
-  segData.archived[sid]={
-    segId:sid,
-    cropId:seg.crop,
-    cropName:veg?veg.name:'不明',
-    family:veg?veg.family:'',
-    variety:veg?(veg.variety||''):'',
-    plantDate:seg.plantDate||null,
-    completedDate:todayISO(),
-    lastLogDate,
-    workCount:taskLogs.length,
-    harvestTotal:harvestTotalStr(sid)||null,
-    growMethod:veg?veg.growMethod||'seedling':'seedling',
-    sowingDate:getMilestoneDate(sid,seg.crop,'sowing'),
-    germinationDate:getMilestoneDate(sid,seg.crop,'germination'),
-    plantingDate:getMilestoneDate(sid,seg.crop,'planting'),
-    harvestStartDate:getMilestoneDate(sid,seg.crop,'harvest_start'),
-    row:seg.row,
-    cols:[...seg.cols],
-    gridCOLS:gridState.cols,
-    gridROWS:gridState.rows,
-    gridSnapshot:Object.values(segData.segs).map(s=>{const sv=getVeg(s.crop);return{segId:s.id,row:s.row,cols:[...s.cols],cropId:s.crop,cropName:sv?sv.name:'',family:sv?sv.family:'',isSelf:s.id===sid};}),
-  };
-  // グリッドから解放（セルをgridState.cellsから削除）。segData.actionLogs/segData.harvestLogs/segData.summaryMemo/segData.tasksはsegIdキーのまま保持し削除しない。
-  Object.keys(gridState.cells).forEach(k=>{if(gridState.cells[k]&&gridState.cells[k].segId===sid)delete gridState.cells[k];});
-  saveLS();
-  closeCompleteConfirm();
-  goBack();
-  showArchiveDone();
-}
-document.getElementById('btn-complete-cancel').addEventListener('click',closeCompleteConfirm);
-document.getElementById('dlg-complete-confirm').addEventListener('mousedown',e=>{if(e.target===e.currentTarget)closeCompleteConfirm();});
-document.getElementById('btn-complete-execute').addEventListener('click',()=>{if(pendingCompleteSeg)executeComplete(pendingCompleteSeg);});
 
 // ===== 野菜追加フロー（畑編集権限チェック含む） =====
 // マーケットプレイス版では、お試し中の未ログイン訪問者も含めて
