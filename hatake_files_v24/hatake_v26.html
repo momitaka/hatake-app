@@ -746,7 +746,9 @@ body{
 
 <script src="data/icons_b64.js"></script>
 <script src="data/preset_vegs.js"></script>
+<script type="module" src="js/state.js"></script>
 <script type="module">
+import { SUPABASE_URL, SUPABASE_ANON_KEY, ADMIN_PASSWORD, IS_DEV, LS_KEY, DB_ID, SUPABASE_TABLE, permState, MAX_UNDO, undoStack, masterData, segData, gridState, dragState, farmMeta, navState, addVegState } from './js/state.js';
 
 // ===== 共通ヘルパー・マスタデータ =====
 // アイコン表示ヘルパー: iconFileがあれば<img>、なければ絵文字にフォールバック
@@ -800,56 +802,6 @@ const TOMATO_SAMPLE={
     ]},
   ]
 };
-
-// ===== グローバル状態・定数 =====
-const SUPABASE_URL='https://rkubnugczjlsxskomknm.supabase.co';
-const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrdWJudWdjempsc3hza29ta25tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5NjEzODgsImV4cCI6MjA5NzUzNzM4OH0.JaLpL82VNtoBMXXjJXIdv0k8ZJH2yOIeKGg4s8vU310';
-// v25: 設定ファイルから読み込む値（APP_CONFIG が確定するまでデフォルト値で動作）
-const ADMIN_PASSWORD=(window.APP_CONFIG&&window.APP_CONFIG.adminPassword)||'hatake2026';
-const IS_DEV=new URLSearchParams(location.search).get('dev')==='1';
-const _cfgLsKey=(window.APP_CONFIG&&window.APP_CONFIG.lsKey)||'hatake_v21';
-const LS_KEY=IS_DEV?_cfgLsKey+'_dev':_cfgLsKey;
-const _cfgDbId=(window.APP_CONFIG&&window.APP_CONFIG.dbId)||'main';
-const DB_ID=IS_DEV?_cfgDbId+'_dev':_cfgDbId;
-const SUPABASE_TABLE=(window.APP_CONFIG&&window.APP_CONFIG.supabaseTable)||'app_data';
-if(IS_DEV)document.addEventListener('DOMContentLoaded',()=>{
-  const b=document.getElementById('dev-banner');
-  b.style.display='block';
-  const h=b.offsetHeight;
-  document.querySelectorAll('.toolbar').forEach(t=>{if(getComputedStyle(t).position==='sticky')t.style.top=h+'px';});
-});
-// 権限状態をまとめたオブジェクト。grep "permState" で権限に関する
-// 読み書き箇所を一望できるようにする（バラバラなグローバル変数の代替）。
-const permState={
-  isAdmin:false,
-  isSupervisor:false, // youtuber_supervisor以上（supervisor + admin 両方）
-};
-const MAX_UNDO=30;
-let undoStack=[];
-// 栽培レシピ・カスタムアイコンのマスタデータ。vegMasterは保存データ内の
-// キー名として互換性のため維持。customIconsは別ストレージキーで丸ごと
-// 保存されるため外部キー名の制約はない。
-const masterData={vegMaster:{},customIcons:{}};
-// 区画データ（segIdキーで管理）。保存キー名（segTasks/actionLogs/harvestLogs/
-// segSummaryMemo/archivedSegs）はデータ互換のため変更しない。segsはcellsから
-// buildSegs()で毎回再構築される派生データで永続化されない。
-const segData={segs:{},tasks:{},actionLogs:{},harvestLogs:{},summaryMemo:{},archived:{}};
-// グリッドの物理構造。保存キー名（cells/COLS/ROWS/aisleRows/aisleCols）は
-// データ互換のため変更しない。COLS/ROWSはcols/rowsに短縮する。
-const gridState={cells:{},cols:8,rows:6,aisleRows:[],aisleCols:[]};
-// グリッドのドラッグ範囲選択に関する一時状態。保存も他画面参照もされない。
-const dragState={
-  dragging:false,row:-1,startCol:-1,endCol:-1,
-  pendingRow:-1,pendingStart:-1,pendingEnd:-1,
-  touchStartX:0,touchStartY:0,
-};
-// 農園設定。保存キー名（farmName/farmNameFont/farmIcon）はデータ互換のため
-// 変更しない。プロパティ名はname/font/iconに短縮する。
-const farmMeta={name:'',font:'Kaisei Opti',icon:''};
-// 画面遷移状態：今どの区画/タブ/レシピを表示しているか
-const navState={seg:null,tab:'roadmap',masterVeg:null,masterTab:'roadmap'};
-// 「野菜を追加」ダイアログの一時入力状態。保存時にmasterData.vegMasterへ書き込まれる前の下書き。
-const addVegState={emoji:'🌱',iconFile:null,fromReg:false};
 
 // ===== 日付ユーティリティ =====
 const K=(r,c)=>`${r},${c}`;
@@ -1781,7 +1733,7 @@ function syncAisleInputs(){
   document.getElementById('s-aisle-rows').value=gridState.aisleRows.map(r=>r+1).join(', ');
   document.getElementById('s-aisle-cols').value=gridState.aisleCols.map(c=>c+1).join(', ');
 }
-function resetAll(){if(!permCanEditFarm())return;showConfirm('全データをリセットしますか？',()=>{gridState.cells={};segData.segs={};segData.tasks={};segData.actionLogs={};segData.harvestLogs={};segData.summaryMemo={};segData.archived={};undoStack=[];renderGrid();updUndoBtn();saveLS();});}
+function resetAll(){if(!permCanEditFarm())return;showConfirm('全データをリセットしますか？',()=>{gridState.cells={};segData.segs={};segData.tasks={};segData.actionLogs={};segData.harvestLogs={};segData.summaryMemo={};segData.archived={};undoStack.length=0;renderGrid();updUndoBtn();saveLS();});}
 
 function openMaster(){document.getElementById('screen-register').classList.remove('active');document.getElementById('screen-master').classList.add('active');renderMasterList();if(navState.masterVeg)renderMasterDetail();}
 function closeMaster(){document.getElementById('screen-master').classList.remove('active');document.getElementById('screen-register').classList.add('active');renderGrid();}
@@ -2738,7 +2690,6 @@ window.closeMarketList=closeMarketList;
 window.backToMarketList=backToMarketList;
 window.goBack=goBack;
 window.renderManage=renderManage;
-window.navState=navState;
 </script>
 </body>
 </html>
