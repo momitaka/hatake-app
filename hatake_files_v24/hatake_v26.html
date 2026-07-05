@@ -752,67 +752,15 @@ body{
 <script type="module" src="js/dialogs.js"></script>
 <script type="module" src="js/helpers.js"></script>
 <script type="module" src="js/permissions.js"></script>
+<script type="module" src="js/db.js"></script>
 <script type="module">
 import { SUPABASE_URL, SUPABASE_ANON_KEY, ADMIN_PASSWORD, IS_DEV, LS_KEY, DB_ID, SUPABASE_TABLE, permState, MAX_UNDO, undoStack, masterData, segData, gridState, dragState, farmMeta, navState, addVegState } from './js/state.js';
 import { K, todayISO, initDateSelects, getDateFromSelects, todayDisp, isoFull, isoShort, daysBetween } from './js/date-utils.js';
 import { dispToISO, showMilestoneDialog, showConfirm, showAlert, showTaskDateDialog } from './js/dialogs.js';
 import { vegIconHtml, FAMILIES, MAJOR_STATUS, UNITS, ALL_ICONS, TOMATO_SAMPLE } from './js/helpers.js';
 import { permRequireAdmin, permRequireSupervisor } from './js/permissions.js';
+import { marketAuth, saveToDB, loadFromDB } from './js/db.js';
 
-// v25シナリオ2: テーブルごとに保存・読込のクエリを切り替える
-// app_data（個人版）: id カラムで識別  PATCH（従来通り、匿名anonキーのみ）
-// user_records（マーケットプレイス版）: user_id（=users.id）で識別  UPSERT
-// マーケットプレイス版は channel_id で分離しない（1ユーザー1行）。
-// 未ログイン（会員でない）間は _marketUserId が null のため保存・読込とも何もしない
-// ===== DB保存・読込 =====
-let _marketUserId=null,_marketAccessToken=null;
-async function saveToDB(data){
-  try{
-    if(SUPABASE_TABLE==='app_data'){
-      // 個人版：従来通り PATCH
-      await fetch(SUPABASE_URL+'/rest/v1/app_data?id=eq.'+DB_ID,{
-        method:'PATCH',
-        headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
-        body:JSON.stringify({data,updated_at:new Date().toISOString()})
-      });
-    }else{
-      // マーケットプレイス版：会員のみ user_records に UPSERT（user_id をキーに）
-      if(!_marketUserId||!_marketAccessToken)return;
-      await fetch(SUPABASE_URL+'/rest/v1/'+SUPABASE_TABLE,{
-        method:'POST',
-        headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+_marketAccessToken,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},
-        body:JSON.stringify({user_id:_marketUserId,data,updated_at:new Date().toISOString()})
-      });
-    }
-  }catch(e){console.error('DB save error',e);}
-}
-async function loadFromDB(){
-  try{
-    let res;
-    if(SUPABASE_TABLE==='app_data'){
-      // 個人版：従来通り
-      res=await fetch(SUPABASE_URL+'/rest/v1/app_data?id=eq.'+DB_ID+'&select=data',{
-        headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY}
-      });
-    }else{
-      // マーケットプレイス版：会員のみ user_id で取得
-      if(!_marketUserId||!_marketAccessToken)return false;
-      res=await fetch(SUPABASE_URL+'/rest/v1/'+SUPABASE_TABLE+'?user_id=eq.'+_marketUserId+'&select=data',{
-        headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+_marketAccessToken}
-      });
-    }
-    const rows=await res.json();
-    const d=rows[0]?.data;
-    if(d&&d.cells&&Object.keys(d.cells).length>0){
-      gridState.cells=d.cells;gridState.cols=d.COLS||8;gridState.rows=d.ROWS||6;
-      segData.tasks=d.segTasks||{};segData.actionLogs=d.actionLogs||{};segData.harvestLogs=d.harvestLogs||{};
-      segData.summaryMemo=d.segSummaryMemo||{};masterData.vegMaster=d.vegMaster||{};
-      segData.archived=d.archivedSegs||{};farmMeta.name=d.farmName||'';gridState.aisleRows=d.aisleRows||[];gridState.aisleCols=d.aisleCols||[];farmMeta.icon=d.farmIcon||'';
-      return true;
-    }
-  }catch(e){console.error('DB load error',e);}
-  return false;
-}
 // ===== ローカルストレージ・Undo管理 =====
 // v25: ストレージ抽象化
 // freeDataStrategy='session' → sessionStorage（バックグラウンドで破棄）
@@ -1618,10 +1566,10 @@ async function renderMarketList(){
     const rows=await res.json();
 
     let ownedIds=new Set();
-    if(_marketUserId&&_marketAccessToken){
+    if(marketAuth.userId&&marketAuth.accessToken){
       try{
-        const ownedRes=await fetch(SUPABASE_URL+'/rest/v1/user_recipes?user_id=eq.'+_marketUserId+'&select=source_recipe_id',{
-          headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+_marketAccessToken}
+        const ownedRes=await fetch(SUPABASE_URL+'/rest/v1/user_recipes?user_id=eq.'+marketAuth.userId+'&select=source_recipe_id',{
+          headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+marketAuth.accessToken}
         });
         if(ownedRes.ok){
           const ownedRows=await ownedRes.json();
@@ -2086,13 +2034,13 @@ function permCanEditFarm(){return permRequireAdmin()||_dataStrategy==='session';
 let _myPurchasedRecipes=[];
 async function _populateAddVegPreset(){
   const sel=document.getElementById('av-preset');const label=document.getElementById('av-preset-label');
-  if(_dataStrategy==='session'&&!permState.isAdmin&&!permState.isSupervisor&&_marketUserId){
+  if(_dataStrategy==='session'&&!permState.isAdmin&&!permState.isSupervisor&&marketAuth.userId){
     label.textContent='購入したレシピから選ぶ';
     sel.innerHTML='<option value="">— 購入したレシピ —</option>';
     _myPurchasedRecipes=[];
     try{
-      const res=await fetch(SUPABASE_URL+'/rest/v1/user_recipes?user_id=eq.'+_marketUserId+'&select=id,name,emoji,veg_key,family,grow_method,season,phases,basic_info,reference_video_url',{
-        headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+_marketAccessToken}
+      const res=await fetch(SUPABASE_URL+'/rest/v1/user_recipes?user_id=eq.'+marketAuth.userId+'&select=id,name,emoji,veg_key,family,grow_method,season,phases,basic_info,reference_video_url',{
+        headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+marketAuth.accessToken}
       });
       if(res.ok)_myPurchasedRecipes=await res.json();
     }catch(e){console.error('user_recipes load error',e);}
@@ -2178,7 +2126,7 @@ window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setT
 
 loadLS();renderLegend();renderGrid();
 // DB から最新データを読み込み（非管理者でも最新を表示）
-// マーケットプレイス版はログイン（会員確認）が済むまで_marketUserIdが無いため、
+// マーケットプレイス版はログイン（会員確認）が済むまでmarketAuth.userIdが無いため、
 // ここでは何もせずfalseが返る。ログイン後にAuth処理側から改めて呼び出す。
 // ===== 初期データ読込後の反映 =====
 function _applyLoadedData(loaded){
@@ -2250,8 +2198,8 @@ loadFromDB().then(_applyLoadedData);
         permState.isAdmin = false;
         permState.isSupervisor = false;
         window.APP_SUBSCRIBED = false;
-        _marketUserId = null;
-        _marketAccessToken = null;
+        marketAuth.userId = null;
+        marketAuth.accessToken = null;
         document.body.classList.add('view-mode');
         _updateAuthUI(user, false, null);
       } else {
@@ -2259,8 +2207,8 @@ loadFromDB().then(_applyLoadedData);
         permState.isAdmin = (row.role === 'platform_admin');
         permState.isSupervisor = (row.role === 'youtuber_supervisor' || permState.isAdmin);
         window.APP_SUBSCRIBED = true; // usersに行がある＝会員
-        _marketUserId = row.id;
-        _marketAccessToken = accessToken;
+        marketAuth.userId = row.id;
+        marketAuth.accessToken = accessToken;
         if(permState.isAdmin) {
           document.body.classList.remove('view-mode','supervisor-mode');
           document.body.classList.add('admin-mode');
