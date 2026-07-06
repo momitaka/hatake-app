@@ -121,7 +121,7 @@ export function renderLogTab(el,seg){
 export function renderHarvestTab(el,seg){
   const logs=segData.harvestLogs[navState.seg]||[];const inputRow=document.createElement('div');inputRow.className='harvest-input-row';
   const gDate=document.createElement('div');gDate.className='harvest-input-group';gDate.innerHTML='<label>収穫日</label>';const iDate=document.createElement('input');iDate.type='date';iDate.value=todayISO();gDate.appendChild(iDate);
-  const gAmt=document.createElement('div');gAmt.className='harvest-input-group';gAmt.innerHTML='<label>量</label>';const iAmt=document.createElement('input');iAmt.type='number';iAmt.min='0';iAmt.step='0.1';iAmt.value='1';gAmt.appendChild(iAmt);
+  const gAmt=document.createElement('div');gAmt.className='harvest-input-group';gAmt.innerHTML='<label>量</label>';const iAmt=document.createElement('input');iAmt.type='number';iAmt.inputMode='decimal';iAmt.min='0';iAmt.step='0.1';iAmt.value='1';gAmt.appendChild(iAmt);
   const gUnit=document.createElement('div');gUnit.className='harvest-input-group';gUnit.innerHTML='<label>単位</label>';const iUnit=document.createElement('select');UNITS.forEach(u=>{const op=document.createElement('option');op.value=u;op.textContent=u;iUnit.appendChild(op);});
   const cropId=seg.crop;const lastUnit=Object.entries(segData.harvestLogs).flatMap(([sid,ls])=>(segData.segs[sid]&&segData.segs[sid].crop===cropId)?ls:[]).sort((a,b)=>b.date.localeCompare(a.date))[0]?.unit;
   if(lastUnit)iUnit.value=lastUnit;
