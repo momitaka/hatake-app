@@ -1,14 +1,15 @@
 // @ts-check
 // ===== 天気表示（畑の位置の過去7日実績・今後7日予報） =====
 // データ元: Open-Meteo（無料・APIキー不要）
-import { farmMeta } from './state.js';
+import { farmMeta, permState } from './state.js';
 import { saveLS } from './storage.js';
+import { openSettings } from './settings-dialog.js';
 
 const WEATHER_CACHE_KEY='hatake_weather_cache_v2';
 const CACHE_MS=3*60*60*1000; // 3時間キャッシュ
 const WEEKDAYS=['日','月','火','水','木','金','土'];
 
-let expanded=false;
+let expanded=true; // デフォルトで展開表示
 
 /** @param {number} code WMO weather code @returns {string} */
 function weatherEmoji(code){
@@ -55,17 +56,30 @@ async function getWeather(lat,lng){
   return data;
 }
 
-function updateToggleIcon(){
-  const icon=document.getElementById('weather-toggle-icon');
-  if(icon)icon.className='ti '+(expanded?'ti-chevron-up':'ti-chevron-down');
+/** @param {string} emoji @param {string} text @returns {string} */
+function buildSummaryHtml(emoji,text){
+  return `<span>${emoji}</span><span class="weather-summary-text">${text}</span><i class="ti ${expanded?'ti-chevron-up':'ti-chevron-down'}" id="weather-toggle-icon"></i>`;
+}
+function buildSetupHtml(){
+  return `<i class="ti ti-map-pin"></i><span class="weather-summary-text weather-summary-cta">前後7日間の天気情報を設定する</span><i class="ti ti-chevron-right"></i>`;
 }
 
 /** @returns {Promise<{resolvedLat:number,resolvedLng:number}|null>} */
 export async function renderWeatherBar(){
   const widget=document.getElementById('weather-widget');
+  const summaryRow=document.getElementById('weather-summary');
   const detail=document.getElementById('weather-detail');
-  if(!widget||!detail)return null;
-  if(farmMeta.lat==null||farmMeta.lng==null){widget.style.display='none';return null;}
+  if(!widget||!summaryRow||!detail)return null;
+
+  if(farmMeta.lat==null||farmMeta.lng==null){
+    if(!permState.isAdmin){widget.style.display='none';return null;}
+    widget.style.display='block';
+    detail.style.display='none';
+    detail.innerHTML='';
+    summaryRow.innerHTML=buildSetupHtml();
+    return null;
+  }
+
   const result=await getWeather(farmMeta.lat,farmMeta.lng);
   if(!result||!result.daily||!result.daily.time){widget.style.display='none';return null;}
   const data=result.daily;
@@ -75,11 +89,8 @@ export async function renderWeatherBar(){
   if(todayIdx<0)todayIdx=0;
   const pastTotal=data.precipitation_sum.slice(0,todayIdx).reduce((a,b)=>a+b,0);
   const futureTotal=data.precipitation_sum.slice(todayIdx).reduce((a,b)=>a+b,0);
-
-  const summaryEmoji=document.getElementById('weather-summary-emoji');
-  const summaryText=document.getElementById('weather-summary-text');
-  if(summaryEmoji)summaryEmoji.textContent=weatherEmoji(data.weathercode[todayIdx]);
-  if(summaryText)summaryText.textContent=`今日 ${Math.round(data.temperature_2m_max[todayIdx])}°/${Math.round(data.temperature_2m_min[todayIdx])}° ・ 過去7日 ${fmtPrecip(pastTotal)} ・ これから7日 ${fmtPrecip(futureTotal)}`;
+  const summaryText=`今日 ${Math.round(data.temperature_2m_max[todayIdx])}°/${Math.round(data.temperature_2m_min[todayIdx])}° ・ 過去7日 ${fmtPrecip(pastTotal)} ・ これから7日 ${fmtPrecip(futureTotal)}`;
+  summaryRow.innerHTML=buildSummaryHtml(weatherEmoji(data.weathercode[todayIdx]),summaryText);
 
   detail.innerHTML='';
   data.time.forEach((iso,i)=>{
@@ -94,7 +105,6 @@ export async function renderWeatherBar(){
     detail.appendChild(cell);
   });
   detail.style.display=expanded?'flex':'none';
-  updateToggleIcon();
   if(expanded){
     requestAnimationFrame(()=>{
       const todayEl=detail.querySelector('.weather-day-today');
@@ -105,10 +115,23 @@ export async function renderWeatherBar(){
 }
 
 document.getElementById('weather-summary')?.addEventListener('click',()=>{
+  if(farmMeta.lat==null||farmMeta.lng==null){
+    openSettings();
+    requestAnimationFrame(()=>{
+      const row=document.getElementById('weather-loc-settings-row');
+      if(row){
+        row.scrollIntoView({block:'center',behavior:'smooth'});
+        row.classList.add('settings-highlight');
+        setTimeout(()=>row.classList.remove('settings-highlight'),2000);
+      }
+    });
+    return;
+  }
   expanded=!expanded;
   const detail=document.getElementById('weather-detail');
   if(detail)detail.style.display=expanded?'flex':'none';
-  updateToggleIcon();
+  const icon=document.getElementById('weather-toggle-icon');
+  if(icon)icon.className='ti '+(expanded?'ti-chevron-up':'ti-chevron-down');
   if(expanded&&detail){
     requestAnimationFrame(()=>{
       const todayEl=detail.querySelector('.weather-day-today');
