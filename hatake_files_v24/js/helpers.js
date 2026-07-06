@@ -21,6 +21,7 @@ export const MAJOR_STATUS=[{id:'ready',name:'準備中',color:'#854F0B',bg:'#FAE
 export const UNITS=['個','g','kg','袋','束','本'];
 
 
+/** @type {Array<{emoji:string,iconFile:string|null,isCustom?:boolean}>} */
 export const ALL_ICONS=PRESET_VEGS.map(p=>({emoji:p.emoji,iconFile:p.iconFile||null})).concat([{emoji:'🌱',iconFile:null},{emoji:'🍀',iconFile:null},{emoji:'🌾',iconFile:null},{emoji:'🥜',iconFile:null},{emoji:'🍄',iconFile:null},{emoji:'🌰',iconFile:null}]);
 
 export const TOMATO_SAMPLE={

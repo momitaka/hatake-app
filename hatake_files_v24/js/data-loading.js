@@ -11,9 +11,9 @@ import { renderSegList } from './grid-settings.js';
 export function _applyLoadedData(loaded){
   if(loaded){
     if(!masterData.vegMaster['tomato'])masterData.vegMaster['tomato']=JSON.parse(JSON.stringify(TOMATO_SAMPLE));
-    document.getElementById('s-cols').value=gridState.cols;
-    document.getElementById('s-rows').value=gridState.rows;
-    document.getElementById('s-farm-name').value=farmMeta.name;
+    /** @type {HTMLInputElement} */ (document.getElementById('s-cols')).value=String(gridState.cols);
+    /** @type {HTMLInputElement} */ (document.getElementById('s-rows')).value=String(gridState.rows);
+    /** @type {HTMLInputElement} */ (document.getElementById('s-farm-name')).value=farmMeta.name;
     updateFarmNameDisplay();
     buildSegs();
     renderGrid();

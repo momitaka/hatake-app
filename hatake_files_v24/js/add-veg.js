@@ -33,14 +33,14 @@ async function _populateAddVegPreset(){
     PRESET_VEGS.forEach(v=>{const op=document.createElement('option');op.value=v.id;op.textContent=`${v.emoji} ${v.name}`;sel.appendChild(op);});
   }
 }
-document.getElementById('btn-add-veg').addEventListener('click',()=>{if(!permCanEditFarm())return;document.getElementById('av-name').value='';document.getElementById('av-variety').value='';document.getElementById('av-ref-url').value='';document.getElementById('av-grow-method').value='seedling';document.getElementById('av-season').value='';document.getElementById('av-region').value=localStorage.getItem('hatake_last_region')||'';addVegState.emoji='🌱';addVegState.iconFile=null;renderEmojiGrid();document.getElementById('av-next').disabled=true;_populateAddVegPreset();document.getElementById('dlg-add-veg').style.display='flex';});
+document.getElementById('btn-add-veg').addEventListener('click',()=>{if(!permCanEditFarm())return;/** @type {HTMLInputElement} */ (document.getElementById('av-name')).value='';/** @type {HTMLInputElement} */ (document.getElementById('av-variety')).value='';/** @type {HTMLInputElement} */ (document.getElementById('av-ref-url')).value='';/** @type {HTMLSelectElement} */ (document.getElementById('av-grow-method')).value='seedling';/** @type {HTMLSelectElement} */ (document.getElementById('av-season')).value='';/** @type {HTMLSelectElement} */ (document.getElementById('av-region')).value=localStorage.getItem('hatake_last_region')||'';addVegState.emoji='🌱';addVegState.iconFile=null;renderEmojiGrid();/** @type {HTMLButtonElement} */ (document.getElementById('av-next')).disabled=true;_populateAddVegPreset();document.getElementById('dlg-add-veg').style.display='flex';});
 // 購入直後、「購入したレシピから選ぶ」を手動で選び直す手間を省き、
 // そのまま内容が反映された状態で「野菜を追加」ダイアログを開く
 export async function _openAddVegFromPurchase(userRecipe){
-  document.getElementById('av-name').value='';document.getElementById('av-variety').value='';document.getElementById('av-ref-url').value='';document.getElementById('av-grow-method').value='seedling';document.getElementById('av-season').value='';document.getElementById('av-region').value=localStorage.getItem('hatake_last_region')||'';addVegState.emoji='🌱';addVegState.iconFile=null;renderEmojiGrid();
-  document.getElementById('av-next').disabled=true;
+  /** @type {HTMLInputElement} */ (document.getElementById('av-name')).value='';/** @type {HTMLInputElement} */ (document.getElementById('av-variety')).value='';/** @type {HTMLInputElement} */ (document.getElementById('av-ref-url')).value='';/** @type {HTMLSelectElement} */ (document.getElementById('av-grow-method')).value='seedling';/** @type {HTMLSelectElement} */ (document.getElementById('av-season')).value='';/** @type {HTMLSelectElement} */ (document.getElementById('av-region')).value=localStorage.getItem('hatake_last_region')||'';addVegState.emoji='🌱';addVegState.iconFile=null;renderEmojiGrid();
+  /** @type {HTMLButtonElement} */ (document.getElementById('av-next')).disabled=true;
   await _populateAddVegPreset();
-  const sel=document.getElementById('av-preset');
+  const sel=/** @type {HTMLSelectElement} */ (document.getElementById('av-preset'));
   if(userRecipe&&userRecipe.id&&_myPurchasedRecipes.some(r=>r.id===userRecipe.id)){
     sel.value=userRecipe.id;
     sel.dispatchEvent(new Event('change'));
@@ -52,28 +52,29 @@ document.getElementById('dlg-add-veg').addEventListener('mousedown',e=>{if(e.tar
 // openMarketListはjs/marketplace.js抽出までのwindow経由の一時ブリッジ
 document.getElementById('btn-open-market').addEventListener('click',()=>openMarketList());
 document.getElementById('av-preset').addEventListener('change',()=>{
-  const val=document.getElementById('av-preset').value;
+  const val=/** @type {HTMLSelectElement} */ (document.getElementById('av-preset')).value;
   const purchased=_myPurchasedRecipes.find(r=>r.id===val);
   if(purchased){
-    document.getElementById('av-name').value=purchased.name;
+    /** @type {HTMLInputElement} */ (document.getElementById('av-name')).value=purchased.name;
     const vegPreset=PRESET_VEGS.find(v=>v.id===purchased.veg_key);
     if(vegPreset){addVegState.emoji=vegPreset.emoji;addVegState.iconFile=vegPreset.iconFile||null;}
     else{addVegState.emoji=purchased.emoji||'🌱';addVegState.iconFile=null;}
     renderEmojiGrid();
-    document.getElementById('av-grow-method').value=purchased.grow_method||'seedling';
-    document.getElementById('av-season').value=purchased.season||'';
-    document.getElementById('av-ref-url').value=purchased.reference_video_url||'';
+    /** @type {HTMLSelectElement} */ (document.getElementById('av-grow-method')).value=purchased.grow_method||'seedling';
+    /** @type {HTMLSelectElement} */ (document.getElementById('av-season')).value=purchased.season||'';
+    /** @type {HTMLInputElement} */ (document.getElementById('av-ref-url')).value=purchased.reference_video_url||'';
   }else{
     const preset=PRESET_VEGS.find(v=>v.id===val);
-    if(preset){document.getElementById('av-name').value=preset.name;addVegState.emoji=preset.emoji;addVegState.iconFile=preset.iconFile||null;renderEmojiGrid();}
+    if(preset){/** @type {HTMLInputElement} */ (document.getElementById('av-name')).value=preset.name;addVegState.emoji=preset.emoji;addVegState.iconFile=preset.iconFile||null;renderEmojiGrid();}
   }
   checkAddVegValid();
 });
 document.getElementById('av-name').addEventListener('input',checkAddVegValid);
-export function checkAddVegValid(){document.getElementById('av-next').disabled=!document.getElementById('av-name').value.trim();}
+export function checkAddVegValid(){/** @type {HTMLButtonElement} */ (document.getElementById('av-next')).disabled=!/** @type {HTMLInputElement} */ (document.getElementById('av-name')).value.trim();}
 document.getElementById('btn-upload-icon').addEventListener('click',()=>document.getElementById('av-icon-upload').click());
 document.getElementById('av-icon-upload').addEventListener('change',e=>{
-  const file=e.target.files[0];e.target.value='';const errEl=document.getElementById('upload-icon-error');errEl.style.display='none';
+  const targetEl=/** @type {HTMLInputElement} */ (e.target);
+  const file=targetEl.files[0];targetEl.value='';const errEl=document.getElementById('upload-icon-error');errEl.style.display='none';
   if(!file)return;
   const allowed=['image/jpeg','image/png','image/webp'];
   if(!allowed.includes(file.type)){errEl.textContent='JPEG・PNG・WebP 形式の画像を選択してください。';errEl.style.display='block';return;}
@@ -90,15 +91,15 @@ document.getElementById('av-icon-upload').addEventListener('change',e=>{
       const b64=canvas.toDataURL('image/png');
       const key='custom_'+Date.now();masterData.customIcons[key]=b64;saveLS();
       addVegState.iconFile=key;addVegState.emoji='';renderEmojiGrid();
-    };img.src=ev.target.result;
+    };img.src=/** @type {string} */(ev.target.result);
   };reader.readAsDataURL(file);
 });
 export function renderEmojiGrid(){const grid=document.getElementById('av-emoji-grid');grid.innerHTML='';const customEntries=Object.keys(masterData.customIcons).map(k=>({emoji:'',iconFile:k,isCustom:true}));[...ALL_ICONS,...customEntries].forEach(icon=>{const isSelected=icon.iconFile?icon.iconFile===addVegState.iconFile:(!addVegState.iconFile&&icon.emoji===addVegState.emoji);const opt=document.createElement('div');opt.className='emoji-opt'+(isSelected?' selected':'');opt.style.position='relative';const src=icon.iconFile?(ICON_B64[icon.iconFile]||masterData.customIcons[icon.iconFile]||null):null;if(src){opt.innerHTML=`<img src="${src}" width="24" height="24" style="object-fit:contain">`;}else{opt.textContent=icon.emoji;}if(icon.isCustom){const del=document.createElement('div');del.innerHTML='<i class="ti ti-x"></i>';del.style.cssText='position:absolute;top:-5px;right:-5px;width:14px;height:14px;border-radius:50%;background:#e53;color:#fff;font-size:8px;display:flex;align-items:center;justify-content:center;cursor:pointer';del.addEventListener('click',e=>{e.stopPropagation();delete masterData.customIcons[icon.iconFile];if(addVegState.iconFile===icon.iconFile){addVegState.iconFile=null;addVegState.emoji='🌱';}saveLS();renderEmojiGrid();});opt.appendChild(del);}opt.addEventListener('click',()=>{addVegState.emoji=icon.emoji;addVegState.iconFile=icon.iconFile||null;renderEmojiGrid();});grid.appendChild(opt);});}
 document.getElementById('av-next').addEventListener('click',()=>{
   if(!permCanEditFarm())return;
-  const name=document.getElementById('av-name').value.trim();const variety=document.getElementById('av-variety').value.trim();const presetId=document.getElementById('av-preset').value;const preset=PRESET_VEGS.find(v=>v.id===presetId);const purchased=_myPurchasedRecipes.find(r=>r.id===presetId);if(!name)return;
+  const name=/** @type {HTMLInputElement} */ (document.getElementById('av-name')).value.trim();const variety=/** @type {HTMLInputElement} */ (document.getElementById('av-variety')).value.trim();const presetId=/** @type {HTMLSelectElement} */ (document.getElementById('av-preset')).value;const preset=PRESET_VEGS.find(v=>v.id===presetId);const purchased=_myPurchasedRecipes.find(r=>r.id===presetId);if(!name)return;
   const id=purchased?`veg_${Date.now()}`:(presetId&&!masterData.vegMaster[presetId]?presetId:`veg_${Date.now()}`);
-  const growMethod=document.getElementById('av-grow-method').value;const refUrl=document.getElementById('av-ref-url').value.trim();const season=document.getElementById('av-season').value;const region=document.getElementById('av-region').value;if(region)localStorage.setItem('hatake_last_region',region);
+  const growMethod=/** @type {HTMLSelectElement} */ (document.getElementById('av-grow-method')).value;const refUrl=/** @type {HTMLInputElement} */ (document.getElementById('av-ref-url')).value.trim();const season=/** @type {HTMLSelectElement} */ (document.getElementById('av-season')).value;const region=/** @type {HTMLSelectElement} */ (document.getElementById('av-region')).value;if(region)localStorage.setItem('hatake_last_region',region);
   masterData.vegMaster[id]={id,name,emoji:addVegState.emoji,iconFile:addVegState.iconFile||undefined,family:purchased?purchased.family:(preset?preset.family:''),variety,growMethod,season,region,referenceUrl:refUrl,phases:purchased?JSON.parse(JSON.stringify(purchased.phases||[])):[],basicInfo:purchased?JSON.parse(JSON.stringify(purchased.basic_info||{})):undefined};
   navState.masterVeg=id;saveLS();document.getElementById('dlg-add-veg').style.display='none';
   renderMasterList();renderMasterDetail();

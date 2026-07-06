@@ -157,7 +157,7 @@ export function openSnapshotCalendar(snaps){
       const isSelected=snaps[currentSnapshotIdx].completedDate===dateStr;
       const cell=document.createElement('div');
       cell.style.cssText=`text-align:center;padding:6px 2px;border-radius:6px;font-size:var(--fs-base);cursor:${hasSnap?'pointer':'default'};color:${hasSnap?(isSelected?'#fff':'var(--color-text-primary)'):'var(--color-border-secondary)'};background:${isSelected?'#5aad4e':hasSnap?'var(--color-background-secondary)':'transparent'};font-weight:${hasSnap?'500':'400'}`;
-      cell.textContent=d;
+      cell.textContent=String(d);
       if(hasSnap){
         if(!isSelected){
           const dot=document.createElement('div');dot.style.cssText='width:4px;height:4px;border-radius:50%;background:#5aad4e;margin:1px auto 0';cell.appendChild(dot);

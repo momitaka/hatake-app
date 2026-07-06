@@ -11,9 +11,9 @@ export function showRegDlg(){
   // 循環import回避のためpopulateCropSelect/renderGridはwindow経由で参照する
   window.populateCropSelect();
   document.getElementById('dlg-preview').textContent=`${dragState.pendingRow+1}行 / ${dragState.pendingStart+1}〜${dragState.pendingEnd+1}列（${dragState.pendingEnd-dragState.pendingStart+1}マス）`;
-  document.getElementById('dlg-crop').value='';
-  document.getElementById('dlg-date-input').value=todayISO();
-  document.getElementById('dlg-save').disabled=true;
+  /** @type {HTMLSelectElement} */ (document.getElementById('dlg-crop')).value='';
+  /** @type {HTMLInputElement} */ (document.getElementById('dlg-date-input')).value=todayISO();
+  /** @type {HTMLButtonElement} */ (document.getElementById('dlg-save')).disabled=true;
   const rw=document.getElementById('dlg-rotation-warn');rw.style.display='none';rw.innerHTML='';
   const noVeg=!Object.keys(masterData.vegMaster).length;
   document.getElementById('dlg-crop-field').style.display=noVeg?'none':'';
@@ -24,8 +24,8 @@ export function showRegDlg(){
   window._regDlgOpenTime=Date.now();
 }
 document.getElementById('dlg-crop').addEventListener('change',()=>{
-  const cropId=document.getElementById('dlg-crop').value;
-  document.getElementById('dlg-save').disabled=!cropId;
+  const cropId=/** @type {HTMLSelectElement} */ (document.getElementById('dlg-crop')).value;
+  /** @type {HTMLButtonElement} */ (document.getElementById('dlg-save')).disabled=!cropId;
   const warn=document.getElementById('dlg-rotation-warn');
   warn.style.display='none';warn.innerHTML='';
   if(!cropId||dragState.pendingRow<0)return;
@@ -42,7 +42,7 @@ document.getElementById('dlg-go-master').addEventListener('click',()=>{document.
 document.getElementById('dlg-add-new-veg').addEventListener('click',()=>{document.getElementById('dlg-register').style.display='none';addVegState.fromReg=true;openMaster();document.getElementById('btn-add-veg').click();});
 document.getElementById('dlg-register').addEventListener('mousedown',e=>{if(e.target===e.currentTarget&&Date.now()-(window._regDlgOpenTime||0)>500){document.getElementById('dlg-register').style.display='none';dragState.pendingRow=-1;dragState.pendingStart=-1;dragState.pendingEnd=-1;window.renderGrid();}});
 document.getElementById('dlg-save').addEventListener('click',()=>{
-  const cropId=document.getElementById('dlg-crop').value,date=document.getElementById('dlg-date-input').value;if(!cropId)return;
+  const cropId=/** @type {HTMLSelectElement} */ (document.getElementById('dlg-crop')).value,date=/** @type {HTMLInputElement} */ (document.getElementById('dlg-date-input')).value;if(!cropId)return;
   document.getElementById('dlg-register').style.display='none';pushUndo();
   const sid=`s_${dragState.pendingRow}_${dragState.pendingStart}_${Date.now()}`;
   for(let c=dragState.pendingStart;c<=dragState.pendingEnd;c++){const k=K(dragState.pendingRow,c);if(!gridState.cells[k]||!gridState.cells[k].crop)gridState.cells[k]={segId:sid,crop:cropId,plantDate:date};}

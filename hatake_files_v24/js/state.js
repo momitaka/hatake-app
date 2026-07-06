@@ -17,7 +17,7 @@ if(IS_DEV)document.addEventListener('DOMContentLoaded',()=>{
   const b=document.getElementById('dev-banner');
   b.style.display='block';
   const h=b.offsetHeight;
-  document.querySelectorAll('.toolbar').forEach(t=>{if(getComputedStyle(t).position==='sticky')t.style.top=h+'px';});
+  /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('.toolbar')).forEach(t=>{if(getComputedStyle(t).position==='sticky')t.style.top=h+'px';});
 });
 // 権限状態をまとめたオブジェクト。grep "permState" で権限に関する
 // 読み書き箇所を一望できるようにする（バラバラなグローバル変数の代替）。

@@ -27,7 +27,7 @@ export function renderGrid(){
   for(let c=0;c<gridState.cols;c++){
     const isAisleC=gridState.aisleCols.includes(c);
     const ch=document.createElement('td');ch.className='col-num';
-    ch.textContent=isAisleC?'':c+1;
+    ch.textContent=isAisleC?'':String(c+1);
     ch.style.cssText=`width:${isAisleC?AISLE_W:cellW}px;`;
     htr.appendChild(ch);
   }
@@ -44,7 +44,7 @@ export function renderGrid(){
       const isAisleC=gridState.aisleCols.includes(c);
       // 通路セル
       if(isAisleR||isAisleC){
-        const td=document.createElement('td');td.dataset.r=r;td.dataset.c=c;
+        const td=document.createElement('td');td.dataset.r=String(r);td.dataset.c=String(c);
         td.style.cssText=`width:${isAisleC?AISLE_W:cellW}px;height:${rowH}px;min-width:0;padding:0;box-sizing:border-box;`;
         const inner=document.createElement('div');
         inner.style.cssText=`width:100%;height:100%;background:#f0efe9;border-radius:3px;`;
@@ -58,7 +58,7 @@ export function renderGrid(){
       if(span>1){const cols=seg.cols.slice().sort((a,b)=>a-b);span=0;for(const sc of cols){if(gridState.aisleCols.includes(sc))break;span++;}if(span===0)span=1;}
       const selecting=dragState.dragging&&r===dragState.row&&c>=Math.min(dragState.startCol,dragState.endCol)&&c<=Math.max(dragState.startCol,dragState.endCol);
       const fs=famStyle(vegFamily(seg?seg.crop:null));const majorSt=registered?calcMajorStatus(sid,seg.crop):null;
-      const td=document.createElement('td');td.dataset.r=r;td.dataset.c=c;
+      const td=document.createElement('td');td.dataset.r=String(r);td.dataset.c=String(c);
       if(span>1)td.setAttribute('colspan',span);
       const isActive=selecting||(registered&&fs);
       td.style.cssText=`width:${cellW*span}px;height:${cellH}px;min-width:0;border:0.5px solid ${isActive?'#e8e6df':'#ede9e1'};padding:${isActive?'2':'0'}px;box-sizing:border-box`;
@@ -69,7 +69,7 @@ export function renderGrid(){
       } else if(registered&&fs){
         inner.style.background=fs.bg;inner.style.borderTop=`3px solid ${fs.border}`;inner.style.boxShadow='0 1px 4px rgba(0,0,0,0.08)';
       } else {
-        inner.style.backgroundColor='transparent';inner.style.borderRadius='3px';inner.classList.add('cell-empty-bg');inner.dataset.row=r;
+        inner.style.backgroundColor='transparent';inner.style.borderRadius='3px';inner.classList.add('cell-empty-bg');inner.dataset.row=String(r);
       }
       if(selecting)inner.style.backgroundImage='repeating-linear-gradient(45deg,transparent,transparent 5px,rgba(55,138,221,0.2) 5px,rgba(55,138,221,0.2) 7px)';
       else if(cell&&!registered)inner.style.backgroundImage='repeating-linear-gradient(45deg,transparent,transparent 5px,rgba(0,0,0,0.10) 5px,rgba(0,0,0,0.10) 7px)';
@@ -94,7 +94,7 @@ export function renderGrid(){
 }
 export function onDown(r,c,e){e.preventDefault();if(!permCanEditFarm())return;if(gridState.aisleRows.includes(r)||gridState.aisleCols.includes(c))return;const k=K(r,c);if(gridState.cells[k]&&gridState.cells[k].crop)return;dragState.dragging=true;dragState.row=r;dragState.startCol=c;dragState.endCol=c;if(e.touches&&e.touches[0]){dragState.touchStartX=e.touches[0].clientX;dragState.touchStartY=e.touches[0].clientY;}document.addEventListener('mouseup',onUp,{once:true});document.addEventListener('touchend',onUp,{once:true});window.addEventListener('touchend',onUp,{once:true});
   // DOM再構築せず直接ハイライト（iOS touchend対策）
-  const tds=document.querySelectorAll('#grid-table td');tds.forEach(td=>{if(td.dataset.r==r&&td.dataset.c==c)td.style.background='var(--color-background-tertiary)';});
+  const tds=/** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('#grid-table td'));tds.forEach(td=>{if(td.dataset.r==r&&td.dataset.c==c)td.style.background='var(--color-background-tertiary)';});
 }
-export function onEnter(c){const dir=c>=dragState.startCol?1:-1;let end=dragState.startCol;for(let ci=dragState.startCol;ci!==c+dir;ci+=dir){if(ci<0||ci>=gridState.cols)break;const k=K(dragState.row,ci);if(gridState.cells[k]&&gridState.cells[k].crop)break;end=ci;}if(end===dragState.endCol)return;dragState.endCol=end;const s=Math.min(dragState.startCol,dragState.endCol),e2=Math.max(dragState.startCol,dragState.endCol);document.querySelectorAll('#grid-table td[data-r]').forEach(td=>{const r2=+td.dataset.r,c2=+td.dataset.c;if(r2===dragState.row&&c2>=s&&c2<=e2){td.style.outline='2px solid #4A90E2';td.style.background='rgba(74,144,226,0.12)';}else if(!gridState.cells[K(r2,c2)]?.crop){td.style.outline='';td.style.background='';}});}
+export function onEnter(c){const dir=c>=dragState.startCol?1:-1;let end=dragState.startCol;for(let ci=dragState.startCol;ci!==c+dir;ci+=dir){if(ci<0||ci>=gridState.cols)break;const k=K(dragState.row,ci);if(gridState.cells[k]&&gridState.cells[k].crop)break;end=ci;}if(end===dragState.endCol)return;dragState.endCol=end;const s=Math.min(dragState.startCol,dragState.endCol),e2=Math.max(dragState.startCol,dragState.endCol);/** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('#grid-table td[data-r]')).forEach(td=>{const r2=+td.dataset.r,c2=+td.dataset.c;if(r2===dragState.row&&c2>=s&&c2<=e2){td.style.outline='2px solid #4A90E2';td.style.background='rgba(74,144,226,0.12)';}else if(!gridState.cells[K(r2,c2)]?.crop){td.style.outline='';td.style.background='';}});}
 export function onUp(){if(!dragState.dragging){dragState.dragging=false;return;}dragState.dragging=false;const s=Math.min(dragState.startCol,dragState.endCol),e2=Math.max(dragState.startCol,dragState.endCol);if(dragState.row>=0&&s<=e2){dragState.pendingRow=dragState.row;dragState.pendingStart=s;dragState.pendingEnd=e2;showRegDlg();}renderGrid();}

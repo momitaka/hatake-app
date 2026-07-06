@@ -53,7 +53,7 @@ import { farmMeta } from './state.js';
   document.getElementById('splash-quote').textContent = quote;
 
   // スプラッシュ画像: config の splashImage が指定されていれば優先、なければ月別画像
-  const img = document.getElementById('splash-img');
+  const img = /** @type {HTMLImageElement} */ (document.getElementById('splash-img'));
   const ph = document.getElementById('splash-placeholder');
   const cfgSplash = window.APP_CONFIG && window.APP_CONFIG.splashImage;
   if(cfgSplash) {

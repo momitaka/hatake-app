@@ -24,7 +24,7 @@ export function applyGridBg(){
   const scale=wr.width/imgW*zoom;
   const dw=imgW*scale,dh=imgH*scale;
   const cx=(dw-wr.width)/2;
-  const els=document.querySelectorAll('.cell-empty-bg');
+  const els=/** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('.cell-empty-bg'));
   let maxBottom=0,rowBTop=Infinity;
   els.forEach(el=>{const r=el.getBoundingClientRect();maxBottom=Math.max(maxBottom,r.bottom-wr.top);if(parseInt(el.dataset.row)===1&&r.top-wr.top<rowBTop)rowBTop=r.top-wr.top;});
   const imgTop=Math.max(rowBTop,maxBottom-dh+40);
@@ -64,12 +64,12 @@ export function renderSegList(){
 
 export function renderLegend(){const el=document.getElementById('family-legend');el.innerHTML='';Object.entries(FAMILIES).forEach(([name,style])=>{const item=document.createElement('div');item.className='legend-item';item.innerHTML=`<div class="legend-dot" style="background:${style.bg};border-color:${style.border}"></div>${name}`;el.appendChild(item);});}
 
-export function applyGrid(){const nc=Math.min(20,Math.max(2,parseInt(document.getElementById('s-cols').value)||8));const nr=Math.min(20,Math.max(2,parseInt(document.getElementById('s-rows').value)||6));gridState.cols=nc;gridState.rows=nr;const nc2={};for(const k in gridState.cells){const[ri,ci]=k.split(',').map(Number);if(ri<gridState.rows&&ci<gridState.cols)nc2[k]=gridState.cells[k];}gridState.cells=nc2;renderGrid();saveLS();}
+export function applyGrid(){const nc=Math.min(20,Math.max(2,parseInt(/** @type {HTMLInputElement} */ (document.getElementById('s-cols')).value)||8));const nr=Math.min(20,Math.max(2,parseInt(/** @type {HTMLInputElement} */ (document.getElementById('s-rows')).value)||6));gridState.cols=nc;gridState.rows=nr;const nc2={};for(const k in gridState.cells){const[ri,ci]=k.split(',').map(Number);if(ri<gridState.rows&&ci<gridState.cols)nc2[k]=gridState.cells[k];}gridState.cells=nc2;renderGrid();saveLS();}
 function parseAisleInput(str,max){return str.split(',').map(s=>parseInt(s.trim())-1).filter(n=>!isNaN(n)&&n>=0&&n<max);}
 export function applyAisles(){
   pushUndo();
-  gridState.aisleRows=parseAisleInput(document.getElementById('s-aisle-rows').value,gridState.rows);
-  gridState.aisleCols=parseAisleInput(document.getElementById('s-aisle-cols').value,gridState.cols);
+  gridState.aisleRows=parseAisleInput(/** @type {HTMLInputElement} */ (document.getElementById('s-aisle-rows')).value,gridState.rows);
+  gridState.aisleCols=parseAisleInput(/** @type {HTMLInputElement} */ (document.getElementById('s-aisle-cols')).value,gridState.cols);
   renderGrid();saveLS();
 }
 export function renderFarmIconPicker(){
@@ -87,8 +87,8 @@ export function renderFarmIconPicker(){
   });
 }
 export function syncAisleInputs(){
-  document.getElementById('s-aisle-rows').value=gridState.aisleRows.map(r=>r+1).join(', ');
-  document.getElementById('s-aisle-cols').value=gridState.aisleCols.map(c=>c+1).join(', ');
+  /** @type {HTMLInputElement} */ (document.getElementById('s-aisle-rows')).value=gridState.aisleRows.map(r=>r+1).join(', ');
+  /** @type {HTMLInputElement} */ (document.getElementById('s-aisle-cols')).value=gridState.aisleCols.map(c=>c+1).join(', ');
 }
 export function resetAll(){if(!permCanEditFarm())return;showConfirm('全データをリセットしますか？',()=>{gridState.cells={};segData.segs={};segData.tasks={};segData.actionLogs={};segData.harvestLogs={};segData.summaryMemo={};segData.archived={};undoStack.length=0;renderGrid();updUndoBtn();saveLS();});}
 

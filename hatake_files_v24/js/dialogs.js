@@ -13,7 +13,7 @@ export function dispToISO(disp){
 /** @param {'germination'|'firstHarvest'} type */
 export function showMilestoneDialog(type){
   const dlg=document.getElementById('dlg-milestone');
-  const img=document.getElementById('dlg-milestone-img');
+  const img=/** @type {HTMLImageElement} */ (document.getElementById('dlg-milestone-img'));
   const title=document.getElementById('dlg-milestone-title');
   const msg=document.getElementById('dlg-milestone-msg');
   if(type==='germination'){
@@ -52,7 +52,7 @@ export function showTaskDateDialog(title, taskName, onConfirm, onCancel){
   const dlg=document.getElementById('dlg-task-date');
   document.getElementById('dlg-task-date-title').textContent=title;
   document.getElementById('dlg-task-date-name').textContent=taskName;
-  document.getElementById('dlg-task-date-input').value=todayISO();
+  /** @type {HTMLInputElement} */ (document.getElementById('dlg-task-date-input')).value=todayISO();
   window._taskDateConfirm=onConfirm;
   window._taskDateCancel=onCancel||null;
   dlg.style.display='flex';

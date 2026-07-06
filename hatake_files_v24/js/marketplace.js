@@ -107,7 +107,7 @@ export function renderMarketDetail(){
     <div style="font-size:var(--fs-xs);color:var(--color-text-danger);line-height:1.6;margin-bottom:14px">退会すると、購入したレシピも含めて全データが削除されます。再度ご利用には購入し直しが必要です。</div>
     <button class="btn-primary" id="btn-market-purchase" style="width:100%;justify-content:center">${_effectivePrice(r)}円で購入する</button>`;
   document.getElementById('btn-market-purchase').addEventListener('click',async()=>{
-    const btn=document.getElementById('btn-market-purchase');
+    const btn=/** @type {HTMLButtonElement} */ (document.getElementById('btn-market-purchase'));
     if(!window._sbClient){showAlert('ログインが必要です。');return;}
     btn.disabled=true;btn.textContent='購入処理中...';
     try{

@@ -30,13 +30,13 @@ export function permApply(){
 }
 document.getElementById('btn-admin-login').addEventListener('click',()=>{
   if(_dataStrategy==='session')return; // マーケットプレイス版はパスワード方式を使わない（Supabase Authのroleのみで判定）
-  const pw=document.getElementById('s-admin-pw').value;
+  const pw=/** @type {HTMLInputElement} */ (document.getElementById('s-admin-pw')).value;
   if(pw===ADMIN_PASSWORD){
     permState.isAdmin=true;
     // セッション版はlocalStorageに管理者フラグを書かない（セッション限定）
     if(_dataStrategy!=='session')localStorage.setItem('hatake_admin','1');
     permApply();
-    document.getElementById('s-admin-pw').value='';
+    /** @type {HTMLInputElement} */ (document.getElementById('s-admin-pw')).value='';
     showAlert('管理者モードになりました');
   }else if(pw===''){
     permState.isAdmin=false;
@@ -56,6 +56,6 @@ if(_dataStrategy!=='session'){
 }else{
   document.body.classList.add('view-mode');
 }
-document.getElementById('btn-save-farm-name').addEventListener('click',()=>{farmMeta.name=document.getElementById('s-farm-name').value.trim();saveLS();updateFarmNameDisplay();const btn=document.getElementById('btn-save-farm-name');btn.textContent='保存しました';setTimeout(()=>{btn.textContent='保存';},1200);});
-document.querySelectorAll('input[name="farm-font"]').forEach(r=>{r.addEventListener('change',()=>{farmMeta.font=r.value;saveLS();updateFarmNameDisplay();});});
+document.getElementById('btn-save-farm-name').addEventListener('click',()=>{farmMeta.name=/** @type {HTMLInputElement} */ (document.getElementById('s-farm-name')).value.trim();saveLS();updateFarmNameDisplay();const btn=document.getElementById('btn-save-farm-name');btn.textContent='保存しました';setTimeout(()=>{btn.textContent='保存';},1200);});
+/** @type {NodeListOf<HTMLInputElement>} */ (document.querySelectorAll('input[name="farm-font"]')).forEach(r=>{r.addEventListener('change',()=>{farmMeta.font=r.value;saveLS();updateFarmNameDisplay();});});
 document.getElementById('btn-open-master').addEventListener('click',()=>{closeSettings();openMaster();});

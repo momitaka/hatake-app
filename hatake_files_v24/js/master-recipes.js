@@ -170,7 +170,7 @@ export function renderMasterSaveBar(col,veg){
   slot.innerHTML='';
   if(!permCanEditFarm()){slot.style.display='none';return;}
   const delBtn=document.createElement('button');delBtn.className='btn-delete-master';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>削除';delBtn.addEventListener('click',()=>{const usedCells=Object.values(gridState.cells).filter(c=>c&&c.crop===veg.id);if(usedCells.length>0){showAlert(`「${veg.name}」は現在${usedCells.length}つの区画で使用中のため削除できません。\n区画の管理画面から野菜を外すか、区画を削除してから再度お試しください。`);return;}showConfirm(`「${veg.name}」をレシピから削除しますか？`,()=>{delete masterData.vegMaster[veg.id];navState.masterVeg=null;saveLS();renderMasterList();renderMasterDetail();});});
-  const saveBtn=document.createElement('button');saveBtn.className='btn-save-master';saveBtn.innerHTML='<i class="ti ti-device-floppy"></i>保存';saveBtn.addEventListener('click',()=>{saveLS();if(addVegState.fromReg){addVegState.fromReg=false;saveBtn.textContent='完了';setTimeout(()=>{closeMaster();populateCropSelect();document.getElementById('dlg-crop').value=navState.masterVeg||'';document.getElementById('dlg-save').disabled=!navState.masterVeg;document.getElementById('dlg-register').style.display='flex';},1200);}else{saveBtn.textContent='完了';setTimeout(()=>closeMaster(),1200);}});
+  const saveBtn=document.createElement('button');saveBtn.className='btn-save-master';saveBtn.innerHTML='<i class="ti ti-device-floppy"></i>保存';saveBtn.addEventListener('click',()=>{saveLS();if(addVegState.fromReg){addVegState.fromReg=false;saveBtn.textContent='完了';setTimeout(()=>{closeMaster();populateCropSelect();/** @type {HTMLSelectElement} */ (document.getElementById('dlg-crop')).value=navState.masterVeg||'';/** @type {HTMLButtonElement} */ (document.getElementById('dlg-save')).disabled=!navState.masterVeg;document.getElementById('dlg-register').style.display='flex';},1200);}else{saveBtn.textContent='完了';setTimeout(()=>closeMaster(),1200);}});
   slot.append(delBtn,saveBtn);slot.style.display='flex';
 }
 
@@ -180,7 +180,7 @@ export async function aiGenerate(vegId){
   const veg=masterData.vegMaster[vegId];if(!veg)return;
   const inUse=Object.values(gridState.cells).some(c=>c.crop===vegId);
   const doGenerate=async()=>{
-    const btn=document.getElementById('btn-ai-gen');
+    const btn=/** @type {HTMLButtonElement|null} */ (document.getElementById('btn-ai-gen'));
     if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2"></i>生成中...';}
     try{
       const res=await fetch(SUPABASE_FUNCTION_URL,{

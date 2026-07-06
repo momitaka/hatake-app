@@ -1,0 +1,15 @@
+#!/bin/sh
+# コミット前に tsc --checkJs を実行し、型エラーがあればコミットを中止する。
+# 有効化: npm install（package.json の "prepare" スクリプトが自動設定）
+
+npm run --silent typecheck
+status=$?
+
+if [ $status -ne 0 ]; then
+  echo ""
+  echo "✗ 型チェック(tsc --checkJs)でエラーが見つかったためコミットを中止しました。"
+  echo "  上記のエラーを修正するか、緊急時は git commit --no-verify で回避してください。"
+  exit 1
+fi
+
+exit 0

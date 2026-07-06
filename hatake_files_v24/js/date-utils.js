@@ -14,15 +14,15 @@ export function initDateSelects(yId,mId,dId,isoVal){
   const mEl=document.getElementById(mId);
   const dEl=document.getElementById(dId);
   if(!yEl||!mEl||!dEl)return;
-  yEl.innerHTML='';for(let y=curY-2;y<=curY+2;y++){const o=document.createElement('option');o.value=y;o.textContent=y+'年';if(y===curY)o.selected=true;yEl.appendChild(o);}
+  yEl.innerHTML='';for(let y=curY-2;y<=curY+2;y++){const o=document.createElement('option');o.value=String(y);o.textContent=y+'年';if(y===curY)o.selected=true;yEl.appendChild(o);}
   mEl.innerHTML='';for(let m=1;m<=12;m++){const o=document.createElement('option');o.value=String(m).padStart(2,'0');o.textContent=m+'月';if(m===curM)o.selected=true;mEl.appendChild(o);}
   dEl.innerHTML='';for(let d=1;d<=31;d++){const o=document.createElement('option');o.value=String(d).padStart(2,'0');o.textContent=d+'日';if(d===curD)o.selected=true;dEl.appendChild(o);}
 }
 /** @param {string} yId @param {string} mId @param {string} dId @returns {string} */
 export function getDateFromSelects(yId,mId,dId){
-  const y=document.getElementById(yId)?.value;
-  const m=document.getElementById(mId)?.value;
-  const d=document.getElementById(dId)?.value;
+  const y=/** @type {HTMLSelectElement|null} */ (document.getElementById(yId))?.value;
+  const m=/** @type {HTMLSelectElement|null} */ (document.getElementById(mId))?.value;
+  const d=/** @type {HTMLSelectElement|null} */ (document.getElementById(dId))?.value;
   return(y&&m&&d)?`${y}-${m}-${d}`:'';
 }
 /** @returns {string} 今日の日付を"M/D"形式で返す */
@@ -32,4 +32,4 @@ export const isoFull=s=>{if(!s)return '';const[y,m,d]=s.split('-');return `${y}�
 /** @param {string} s YYYY-MM-DD @returns {string} */
 export const isoShort=s=>{if(!s)return '';const[y,m,d]=s.split('-');return `${y}/${parseInt(m)}/${parseInt(d)}`};
 /** @param {string} a @param {string} b @returns {number} */
-export const daysBetween=(a,b)=>Math.round((new Date(b)-new Date(a))/86400000);
+export const daysBetween=(a,b)=>Math.round((new Date(b).getTime()-new Date(a).getTime())/86400000);

@@ -179,9 +179,9 @@ import { _applyLoadedData } from './data-loading.js';
   };
 
   window.sendMagicLink = async function() {
-    const email = (document.getElementById('auth-email-input').value || '').trim();
+    const email = (/** @type {HTMLInputElement} */ (document.getElementById('auth-email-input')).value || '').trim();
     const msg   = document.getElementById('auth-msg');
-    const btn   = document.getElementById('auth-magic-btn');
+    const btn   = /** @type {HTMLButtonElement} */ (document.getElementById('auth-magic-btn'));
     if(!email) { if(msg) msg.textContent = 'メールアドレスを入力してください'; return; }
     if(btn) { btn.textContent = '送信中...'; btn.disabled = true; }
     const {error} = await _sb.auth.signInWithOtp({ email });
@@ -191,7 +191,7 @@ import { _applyLoadedData } from './data-loading.js';
     } else {
       document.getElementById('auth-email-form').style.display = 'none';
       document.getElementById('auth-sent-msg').style.display   = 'block';
-      const otpInput=document.getElementById('auth-otp-input');
+      const otpInput=/** @type {HTMLInputElement} */ (document.getElementById('auth-otp-input'));
       const otpMsg=document.getElementById('auth-otp-msg');
       if(otpInput)otpInput.value='';
       if(otpMsg)otpMsg.textContent='';
@@ -202,10 +202,10 @@ import { _applyLoadedData } from './data-loading.js';
   // v26: メールのリンクではなく、メールに記載されたコードを手入力してログインする
   // （メールアプリのセキュリティスキャンでリンクが自動消費される問題を回避するため）
   window.verifyOtpCode = async function() {
-    const email = (document.getElementById('auth-email-input').value || '').trim();
-    const code  = (document.getElementById('auth-otp-input').value || '').trim();
+    const email = (/** @type {HTMLInputElement} */ (document.getElementById('auth-email-input')).value || '').trim();
+    const code  = (/** @type {HTMLInputElement} */ (document.getElementById('auth-otp-input')).value || '').trim();
     const msg   = document.getElementById('auth-otp-msg');
-    const btn   = document.getElementById('auth-verify-btn');
+    const btn   = /** @type {HTMLButtonElement} */ (document.getElementById('auth-verify-btn'));
     if(!code) { if(msg) msg.textContent = 'コードを入力してください'; return; }
     if(btn) { btn.textContent = '確認中...'; btn.disabled = true; }
     const {error} = await _sb.auth.verifyOtp({ email, token: code, type: 'email' });

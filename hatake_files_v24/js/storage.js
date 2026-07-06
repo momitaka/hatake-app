@@ -31,9 +31,9 @@ export function loadLS(){
   try{const d=JSON.parse(_storage.getItem(LS_KEY)||'null');if(d&&d.cells){gridState.cells=d.cells;gridState.cols=d.COLS||8;gridState.rows=d.ROWS||6;segData.tasks=d.segTasks||{};segData.actionLogs=d.actionLogs||{};segData.harvestLogs=d.harvestLogs||{};segData.summaryMemo=d.segSummaryMemo||{};masterData.vegMaster=d.vegMaster||{};segData.archived=d.archivedSegs||{};farmMeta.name=d.farmName||'';gridState.aisleRows=d.aisleRows||[];gridState.aisleCols=d.aisleCols||[];farmMeta.font=d.farmNameFont||'Kaisei Opti';farmMeta.icon=d.farmIcon||'';}}catch(e){}
   try{const ic=JSON.parse(_storage.getItem(LS_KEY+'_icons')||'null');if(ic)masterData.customIcons=ic;}catch(e){}
   if(!masterData.vegMaster['tomato'])masterData.vegMaster['tomato']=JSON.parse(JSON.stringify(TOMATO_SAMPLE));
-  document.getElementById('s-cols').value=gridState.cols;document.getElementById('s-rows').value=gridState.rows;
-  document.getElementById('s-farm-name').value=farmMeta.name;
-  document.querySelectorAll('input[name="farm-font"]').forEach(r=>{r.checked=(r.value===farmMeta.font);});
+  /** @type {HTMLInputElement} */ (document.getElementById('s-cols')).value=String(gridState.cols);/** @type {HTMLInputElement} */ (document.getElementById('s-rows')).value=String(gridState.rows);
+  /** @type {HTMLInputElement} */ (document.getElementById('s-farm-name')).value=farmMeta.name;
+  /** @type {NodeListOf<HTMLInputElement>} */ (document.querySelectorAll('input[name="farm-font"]')).forEach(r=>{r.checked=(r.value===farmMeta.font);});
   renderFarmIconPicker();
   updateFarmNameDisplay();
 }
@@ -54,7 +54,7 @@ export function doUndo(){
   // どちらも循環import回避の恒久的なwindow経由参照とする
   buildSegs();window.renderGrid();if(navState.seg&&document.getElementById('screen-manage').classList.contains('active'))window.renderManage();saveLS();updUndoBtn();
 }
-export function updUndoBtn(){const b=document.getElementById('undo-btn'),c=document.getElementById('undo-count');b.disabled=!undoStack.length;c.textContent=undoStack.length?`(${undoStack.length})`:''}
+export function updUndoBtn(){const b=/** @type {HTMLButtonElement} */ (document.getElementById('undo-btn')),c=document.getElementById('undo-count');b.disabled=!undoStack.length;c.textContent=undoStack.length?`(${undoStack.length})`:''}
 document.getElementById('undo-btn').addEventListener('click',()=>{if(!undoStack.length)return;document.getElementById('dlg-undo-confirm').style.display='flex';});
 document.getElementById('btn-undo-cancel').addEventListener('click',()=>{document.getElementById('dlg-undo-confirm').style.display='none';});
 document.getElementById('btn-undo-ok').addEventListener('click',()=>{document.getElementById('dlg-undo-confirm').style.display='none';doUndo();});
