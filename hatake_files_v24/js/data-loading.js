@@ -5,6 +5,7 @@ import { TOMATO_SAMPLE } from './helpers.js';
 import { buildSegs } from './segments.js';
 import { updateFarmNameDisplay } from './storage.js';
 import { renderGrid } from './grid.js';
+import { renderSegList } from './grid-settings.js';
 
 /** @param {boolean} loaded */
 export function _applyLoadedData(loaded){
@@ -16,8 +17,7 @@ export function _applyLoadedData(loaded){
     updateFarmNameDisplay();
     buildSegs();
     renderGrid();
-    // renderSegListはjs/archive.js抽出までのwindow経由の一時ブリッジ
-    window.renderSegList();
+    renderSegList();
     const splashNameEl=document.getElementById('splash-farm-name');
     if(splashNameEl)splashNameEl.textContent=farmMeta.name||((window.APP_CONFIG&&window.APP_CONFIG.appName)||'私の畑');
   }

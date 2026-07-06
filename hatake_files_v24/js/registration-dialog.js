@@ -4,6 +4,7 @@ import { dragState, masterData, gridState, addVegState } from './state.js';
 import { K, todayISO, daysBetween } from './date-utils.js';
 import { getVeg, ROTATION_FAMILIES, checkRotation, buildSegs } from './segments.js';
 import { saveLS, pushUndo } from './storage.js';
+import { openMaster } from './grid-settings.js';
 
 export function showRegDlg(){
   // grid.js⇄registration-dialog.jsは相互依存（grid.jsがshowRegDlgを使う）のため
@@ -36,10 +37,9 @@ document.getElementById('dlg-crop').addEventListener('change',()=>{
   warn.innerHTML=`<i class="ti ti-alert-triangle" style="font-size:var(--fs-xs);margin-right:3px"></i>このエリアでは<strong>${months}ヶ月前</strong>に${h.family}（${h.cropName}）を栽培していました。連作障害に注意してください。`;
   warn.style.display='block';
 });
-// openMasterはjs/master-recipes.js抽出までのwindow経由の一時ブリッジ
 document.getElementById('btn-dlg-cancel').addEventListener('click',()=>{document.getElementById('dlg-register').style.display='none';dragState.pendingRow=-1;dragState.pendingStart=-1;dragState.pendingEnd=-1;window.renderGrid();});
-document.getElementById('dlg-go-master').addEventListener('click',()=>{document.getElementById('dlg-register').style.display='none';dragState.pendingRow=-1;dragState.pendingStart=-1;dragState.pendingEnd=-1;window.openMaster();});
-document.getElementById('dlg-add-new-veg').addEventListener('click',()=>{document.getElementById('dlg-register').style.display='none';addVegState.fromReg=true;window.openMaster();document.getElementById('btn-add-veg').click();});
+document.getElementById('dlg-go-master').addEventListener('click',()=>{document.getElementById('dlg-register').style.display='none';dragState.pendingRow=-1;dragState.pendingStart=-1;dragState.pendingEnd=-1;openMaster();});
+document.getElementById('dlg-add-new-veg').addEventListener('click',()=>{document.getElementById('dlg-register').style.display='none';addVegState.fromReg=true;openMaster();document.getElementById('btn-add-veg').click();});
 document.getElementById('dlg-register').addEventListener('mousedown',e=>{if(e.target===e.currentTarget&&Date.now()-(window._regDlgOpenTime||0)>500){document.getElementById('dlg-register').style.display='none';dragState.pendingRow=-1;dragState.pendingStart=-1;dragState.pendingEnd=-1;window.renderGrid();}});
 document.getElementById('dlg-save').addEventListener('click',()=>{
   const cropId=document.getElementById('dlg-crop').value,date=document.getElementById('dlg-date-input').value;if(!cropId)return;

@@ -8,6 +8,7 @@ import { LS_KEY, MAX_UNDO, undoStack, masterData, segData, gridState, farmMeta, 
 import { TOMATO_SAMPLE, vegIconHtml } from './helpers.js';
 import { saveToDB } from './db.js';
 import { buildSegs } from './segments.js';
+import { renderFarmIconPicker } from './grid-settings.js';
 
 export const _dataStrategy=(window.APP_CONFIG&&window.APP_CONFIG.freeDataStrategy)||'localStorage';
 const _storage={
@@ -33,8 +34,7 @@ export function loadLS(){
   document.getElementById('s-cols').value=gridState.cols;document.getElementById('s-rows').value=gridState.rows;
   document.getElementById('s-farm-name').value=farmMeta.name;
   document.querySelectorAll('input[name="farm-font"]').forEach(r=>{r.checked=(r.value===farmMeta.font);});
-  // renderFarmIconPickerはjs/grid-settings.js抽出までのwindow経由の一時ブリッジ
-  window.renderFarmIconPicker();
+  renderFarmIconPicker();
   updateFarmNameDisplay();
 }
 // 保存バナー（セッション版未サブスクユーザー向け）

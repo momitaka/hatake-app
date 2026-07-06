@@ -9,6 +9,7 @@ import { updateFarmNameDisplay } from './storage.js';
 import { permCanEditFarm } from './add-veg.js';
 import { showRegDlg } from './registration-dialog.js';
 import { openManage } from './manage.js';
+import { renderSegList, applyGridBg } from './grid-settings.js';
 
 const AISLE_W=10,AISLE_H=10;
 export function calcCellSize(){const wrap=document.getElementById('grid-wrap');const W=wrap.offsetWidth||600;const normalCols=gridState.cols-gridState.aisleCols.length;const normalRows=gridState.rows-gridState.aisleRows.length;const usedW=12+3*(gridState.cols+1)+gridState.aisleCols.length*AISLE_W;const cellW=Math.floor((W-usedW)/Math.max(1,normalCols));const cellH=Math.max(36,Math.min(58,Math.floor(cellW*0.94)));return{cellW,cellH,normalCols,normalRows}}
@@ -87,10 +88,9 @@ export function renderGrid(){
     }
     tbl.appendChild(tr);
   }
-  // renderSegList/applyGridBgはjs/grid.js内(renderSegList)・js/grid-settings.js抽出まで(applyGridBg)のwindow経由の一時ブリッジ
-  window.renderSegList();
+  renderSegList();
   updateFarmNameDisplay();
-  requestAnimationFrame(()=>window.applyGridBg());
+  requestAnimationFrame(applyGridBg);
 }
 export function onDown(r,c,e){e.preventDefault();if(!permCanEditFarm())return;if(gridState.aisleRows.includes(r)||gridState.aisleCols.includes(c))return;const k=K(r,c);if(gridState.cells[k]&&gridState.cells[k].crop)return;dragState.dragging=true;dragState.row=r;dragState.startCol=c;dragState.endCol=c;if(e.touches&&e.touches[0]){dragState.touchStartX=e.touches[0].clientX;dragState.touchStartY=e.touches[0].clientY;}document.addEventListener('mouseup',onUp,{once:true});document.addEventListener('touchend',onUp,{once:true});window.addEventListener('touchend',onUp,{once:true});
   // DOM再構築せず直接ハイライト（iOS touchend対策）

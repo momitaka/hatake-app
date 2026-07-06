@@ -1,6 +1,8 @@
 // @ts-check
 // ===== 設定ダイアログ =====
-export function openSettings(){document.getElementById('dlg-settings').style.display='flex';window.syncAisleInputs();}
+import { syncAisleInputs } from './grid-settings.js';
+
+export function openSettings(){document.getElementById('dlg-settings').style.display='flex';syncAisleInputs();}
 export function closeSettings(){document.getElementById('dlg-settings').style.display='none';}
 document.getElementById('btn-settings').addEventListener('click',openSettings);
 document.getElementById('btn-close-settings').addEventListener('click',closeSettings);
