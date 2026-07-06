@@ -50,10 +50,11 @@ export const dragState={
   pendingRow:-1,pendingStart:-1,pendingEnd:-1,
   touchStartX:0,touchStartY:0,
 };
-// 農園設定。保存キー名（farmName/farmNameFont/farmIcon）はデータ互換のため
-// 変更しない。プロパティ名はname/font/iconに短縮する。
-/** @type {{name: string, font: string, icon: string}} */
-export const farmMeta={name:'',font:'Kaisei Opti',icon:''};
+// 農園設定。保存キー名（farmName/farmNameFont/farmIcon/farmLat/farmLng）は
+// データ互換のため変更しない。プロパティ名はname/font/icon/lat/lngに短縮する。
+// lat/lngは天気表示用の畑の位置（未設定はnull）。
+/** @type {{name: string, font: string, icon: string, lat: number|null, lng: number|null}} */
+export const farmMeta={name:'',font:'Kaisei Opti',icon:'',lat:null,lng:null};
 // 画面遷移状態：今どの区画/タブ/レシピを表示しているか
 /** @type {{seg: string|null, tab: string, masterVeg: string|null, masterTab: string}} */
 export const navState={seg:null,tab:'roadmap',masterVeg:null,masterTab:'roadmap'};

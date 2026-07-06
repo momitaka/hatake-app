@@ -55,7 +55,7 @@ export async function loadFromDB(){
       gridState.cells=d.cells;gridState.cols=d.COLS||8;gridState.rows=d.ROWS||6;
       segData.tasks=d.segTasks||{};segData.actionLogs=d.actionLogs||{};segData.harvestLogs=d.harvestLogs||{};
       segData.summaryMemo=d.segSummaryMemo||{};masterData.vegMaster=d.vegMaster||{};
-      segData.archived=d.archivedSegs||{};farmMeta.name=d.farmName||'';gridState.aisleRows=d.aisleRows||[];gridState.aisleCols=d.aisleCols||[];farmMeta.icon=d.farmIcon||'';
+      segData.archived=d.archivedSegs||{};farmMeta.name=d.farmName||'';gridState.aisleRows=d.aisleRows||[];gridState.aisleCols=d.aisleCols||[];farmMeta.icon=d.farmIcon||'';farmMeta.lat=(typeof d.farmLat==='number')?d.farmLat:null;farmMeta.lng=(typeof d.farmLng==='number')?d.farmLng:null;
       return true;
     }
   }catch(e){console.error('DB load error',e);}

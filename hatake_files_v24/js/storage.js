@@ -17,7 +17,7 @@ const _storage={
 };
 export function saveLS(){
   try{
-    const d={cells:gridState.cells,COLS:gridState.cols,ROWS:gridState.rows,segTasks:segData.tasks,actionLogs:segData.actionLogs,harvestLogs:segData.harvestLogs,segSummaryMemo:segData.summaryMemo,vegMaster:masterData.vegMaster,archivedSegs:segData.archived,farmName:farmMeta.name,aisleRows:gridState.aisleRows,aisleCols:gridState.aisleCols,farmNameFont:farmMeta.font,farmIcon:farmMeta.icon};
+    const d={cells:gridState.cells,COLS:gridState.cols,ROWS:gridState.rows,segTasks:segData.tasks,actionLogs:segData.actionLogs,harvestLogs:segData.harvestLogs,segSummaryMemo:segData.summaryMemo,vegMaster:masterData.vegMaster,archivedSegs:segData.archived,farmName:farmMeta.name,aisleRows:gridState.aisleRows,aisleCols:gridState.aisleCols,farmNameFont:farmMeta.font,farmIcon:farmMeta.icon,farmLat:farmMeta.lat,farmLng:farmMeta.lng};
     _storage.setItem(LS_KEY,JSON.stringify(d));
     _storage.setItem(LS_KEY+'_icons',JSON.stringify(masterData.customIcons));
     // Supabase保存：個人版は常に / コラボ版はサブスク加入後のみ
@@ -28,12 +28,14 @@ export function saveLS(){
 }
 export function updateFarmNameDisplay(){const el=document.getElementById('farm-name-display');const sc=document.getElementById('farm-seg-count');const splashEl=document.getElementById('splash-farm-name');const iconEl=document.getElementById('farm-icon-display');const fontFamily=`'${farmMeta.font}',serif`;if(el)el.style.fontFamily=fontFamily;if(splashEl)splashEl.style.fontFamily=fontFamily;if(iconEl){const iconId=farmMeta.icon||'tomato';if(iconId&&masterData.vegMaster[iconId]){iconEl.innerHTML=vegIconHtml(masterData.vegMaster[iconId],28);iconEl.style.display='inline-flex';}else{iconEl.innerHTML='🍅';iconEl.style.display='inline-flex';}}if(el){el.textContent=farmMeta.name||((window.APP_CONFIG&&window.APP_CONFIG.appName)||'私の畑');el.style.display='block';}if(sc){buildSegs();const cnt=Object.keys(segData.segs).length;sc.textContent=cnt+'区画 管理中';sc.style.display='block';}}
 export function loadLS(){
-  try{const d=JSON.parse(_storage.getItem(LS_KEY)||'null');if(d&&d.cells){gridState.cells=d.cells;gridState.cols=d.COLS||8;gridState.rows=d.ROWS||6;segData.tasks=d.segTasks||{};segData.actionLogs=d.actionLogs||{};segData.harvestLogs=d.harvestLogs||{};segData.summaryMemo=d.segSummaryMemo||{};masterData.vegMaster=d.vegMaster||{};segData.archived=d.archivedSegs||{};farmMeta.name=d.farmName||'';gridState.aisleRows=d.aisleRows||[];gridState.aisleCols=d.aisleCols||[];farmMeta.font=d.farmNameFont||'Kaisei Opti';farmMeta.icon=d.farmIcon||'';}}catch(e){}
+  try{const d=JSON.parse(_storage.getItem(LS_KEY)||'null');if(d&&d.cells){gridState.cells=d.cells;gridState.cols=d.COLS||8;gridState.rows=d.ROWS||6;segData.tasks=d.segTasks||{};segData.actionLogs=d.actionLogs||{};segData.harvestLogs=d.harvestLogs||{};segData.summaryMemo=d.segSummaryMemo||{};masterData.vegMaster=d.vegMaster||{};segData.archived=d.archivedSegs||{};farmMeta.name=d.farmName||'';gridState.aisleRows=d.aisleRows||[];gridState.aisleCols=d.aisleCols||[];farmMeta.font=d.farmNameFont||'Kaisei Opti';farmMeta.icon=d.farmIcon||'';farmMeta.lat=(typeof d.farmLat==='number')?d.farmLat:null;farmMeta.lng=(typeof d.farmLng==='number')?d.farmLng:null;}}catch(e){}
   try{const ic=JSON.parse(_storage.getItem(LS_KEY+'_icons')||'null');if(ic)masterData.customIcons=ic;}catch(e){}
   if(!masterData.vegMaster['tomato'])masterData.vegMaster['tomato']=JSON.parse(JSON.stringify(TOMATO_SAMPLE));
   /** @type {HTMLInputElement} */ (document.getElementById('s-cols')).value=String(gridState.cols);/** @type {HTMLInputElement} */ (document.getElementById('s-rows')).value=String(gridState.rows);
   /** @type {HTMLInputElement} */ (document.getElementById('s-farm-name')).value=farmMeta.name;
   /** @type {NodeListOf<HTMLInputElement>} */ (document.querySelectorAll('input[name="farm-font"]')).forEach(r=>{r.checked=(r.value===farmMeta.font);});
+  /** @type {HTMLInputElement} */ (document.getElementById('s-weather-lat')).value=farmMeta.lat!=null?String(farmMeta.lat):'';
+  /** @type {HTMLInputElement} */ (document.getElementById('s-weather-lng')).value=farmMeta.lng!=null?String(farmMeta.lng):'';
   renderFarmIconPicker();
   updateFarmNameDisplay();
 }

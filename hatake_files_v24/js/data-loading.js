@@ -14,6 +14,8 @@ export function _applyLoadedData(loaded){
     /** @type {HTMLInputElement} */ (document.getElementById('s-cols')).value=String(gridState.cols);
     /** @type {HTMLInputElement} */ (document.getElementById('s-rows')).value=String(gridState.rows);
     /** @type {HTMLInputElement} */ (document.getElementById('s-farm-name')).value=farmMeta.name;
+    /** @type {HTMLInputElement} */ (document.getElementById('s-weather-lat')).value=farmMeta.lat!=null?String(farmMeta.lat):'';
+    /** @type {HTMLInputElement} */ (document.getElementById('s-weather-lng')).value=farmMeta.lng!=null?String(farmMeta.lng):'';
     updateFarmNameDisplay();
     buildSegs();
     renderGrid();

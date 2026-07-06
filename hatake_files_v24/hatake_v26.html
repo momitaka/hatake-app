@@ -106,6 +106,13 @@ body.admin-mode #screen-manage .toolbar,body.admin-mode #screen-master .toolbar{
 .seg-list{display:grid;grid-template-columns:1fr 1fr;gap:5px}
 .seg-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;border-radius:10px;background:var(--color-background-primary);cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.07)}
 .seg-item:hover{box-shadow:0 2px 6px rgba(0,0,0,0.1)}
+.weather-bar{display:none;gap:6px;overflow-x:auto;padding:6px 2px 8px;-webkit-overflow-scrolling:touch}
+.weather-day{flex:0 0 auto;width:44px;text-align:center;padding:4px 2px;border-radius:8px;color:var(--color-text-secondary)}
+.weather-day-today{background:#eef6e6;color:var(--color-text-primary);font-weight:600}
+.weather-day-label{font-size:9px;line-height:1.2}
+.weather-day-emoji{font-size:16px;line-height:1.3;margin:2px 0}
+.weather-day-precip{font-size:9px;color:#2e7a9c}
+.weather-day-temp{font-size:8px;color:var(--color-text-tertiary)}
 .legend{margin-top:10px;padding:8px 10px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary)}
 .legend-title{font-size:var(--fs-xs);color:var(--color-text-secondary);margin-bottom:5px;font-weight:500}
 .legend-grid{display:flex;flex-wrap:wrap;gap:5px 14px}
@@ -477,6 +484,23 @@ body{
           <div style="font-size:var(--fs-xs);color:var(--color-text-tertiary)">栽培レシピに登録されているアイコンから選択。もう一度タップで解除。</div>
         </div>
         <hr class="divider admin-only" style="margin:10px 0">
+        <div class="settings-section-label admin-only">天気表示（畑の位置）</div>
+        <div class="settings-row admin-only" style="flex-direction:column;align-items:stretch;gap:6px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="settings-label" style="min-width:60px">緯度</span>
+            <input type="number" id="s-weather-lat" step="0.0001" placeholder="例: 35.6895" inputmode="decimal" style="flex:1;font-size:var(--fs-base);padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)">
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="settings-label" style="min-width:60px">経度</span>
+            <input type="number" id="s-weather-lng" step="0.0001" placeholder="例: 139.6917" inputmode="decimal" style="flex:1;font-size:var(--fs-base);padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)">
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn" id="btn-weather-geolocate"><i class="ti ti-current-location"></i>現在地から取得</button>
+            <button class="btn" id="btn-save-weather-loc">保存</button>
+          </div>
+          <div id="weather-loc-status" style="font-size:var(--fs-xs);color:var(--color-text-tertiary)">グリッド上部に前後1週間の降水量・気温を表示します。</div>
+        </div>
+        <hr class="divider admin-only" style="margin:10px 0">
         <div class="settings-section-label admin-only">グリッドサイズ</div>
         <div class="settings-row admin-only">
           <span class="settings-label">列</span><input type="number" id="s-cols" value="8" min="2" max="20">
@@ -501,6 +525,7 @@ body{
         <button class="btn-danger-outline admin-only" onclick="resetAll()"><i class="ti ti-trash"></i>全データをリセット</button>
       </div>
     </div>
+    <div class="weather-bar" id="weather-bar"></div>
     <div style="background:#fff;padding:8px 0.5rem 10px;margin:0 -0.5rem">
       <div class="grid-wrap" id="grid-wrap"><table class="grid-table" id="grid-table"></table></div>
     </div>
@@ -754,6 +779,7 @@ body{
 <script type="module" src="js/permissions.js"></script>
 <script type="module" src="js/db.js"></script>
 <script type="module" src="js/storage.js"></script>
+<script type="module" src="js/weather.js"></script>
 <script type="module" src="js/settings-dialog.js"></script>
 <script type="module" src="js/segments.js"></script>
 <script type="module" src="js/registration-dialog.js"></script>
