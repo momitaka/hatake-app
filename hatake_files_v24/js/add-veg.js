@@ -8,6 +8,7 @@ import { permRequireAdmin } from './permissions.js';
 import { _dataStrategy, saveLS } from './storage.js';
 import { marketAuth } from './db.js';
 import { ALL_ICONS } from './helpers.js';
+import { openMarketList } from './marketplace.js';
 
 export function permCanEditFarm(){return permRequireAdmin()||_dataStrategy==='session';}
 let _myPurchasedRecipes=[];
@@ -48,7 +49,7 @@ export async function _openAddVegFromPurchase(userRecipe){
 document.getElementById('btn-add-veg-cancel').addEventListener('click',()=>{document.getElementById('dlg-add-veg').style.display='none';});
 document.getElementById('dlg-add-veg').addEventListener('mousedown',e=>{if(e.target===e.currentTarget)document.getElementById('dlg-add-veg').style.display='none';});
 // openMarketListはjs/marketplace.js抽出までのwindow経由の一時ブリッジ
-document.getElementById('btn-open-market').addEventListener('click',()=>window.openMarketList());
+document.getElementById('btn-open-market').addEventListener('click',()=>openMarketList());
 document.getElementById('av-preset').addEventListener('change',()=>{
   const val=document.getElementById('av-preset').value;
   const purchased=_myPurchasedRecipes.find(r=>r.id===val);
