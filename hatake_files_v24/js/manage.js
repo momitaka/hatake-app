@@ -9,6 +9,7 @@ import { isoShort, isoFull, daysBetween, todayISO } from './date-utils.js';
 import { permCanEditFarm } from './add-veg.js';
 import { openCompleteConfirm } from './complete.js';
 import { renderGrid } from './grid.js';
+import { renderBasicTab } from './basic-tab.js';
 
 export function openManage(sid){navState.seg=sid;navState.tab='roadmap';document.getElementById('screen-register').classList.remove('active');document.getElementById('screen-manage').classList.add('active');renderManage();}
 export function goBack(){document.getElementById('screen-manage').classList.remove('active');document.getElementById('screen-register').classList.add('active');navState.seg=null;renderGrid();}
@@ -31,8 +32,7 @@ export function renderManage(){
   if(navState.tab==='roadmap')renderRoadmapTab(el,seg,veg);
   else if(navState.tab==='log')renderLogTab(el,seg);
   else if(navState.tab==='harvest')renderHarvestTab(el,seg);
-  // renderBasicTabはjs/basic-tab.js抽出までのwindow経由の一時ブリッジ
-  else if(navState.tab==='basic')window.renderBasicTab(el,veg);
+  else if(navState.tab==='basic')renderBasicTab(el,veg);
   else{navState.tab='roadmap';renderRoadmapTab(el,seg,veg);}
 }
 
