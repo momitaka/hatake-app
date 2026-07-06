@@ -9,6 +9,7 @@ import { _dataStrategy, saveLS } from './storage.js';
 import { marketAuth } from './db.js';
 import { ALL_ICONS } from './helpers.js';
 import { openMarketList } from './marketplace.js';
+import { renderMasterList, renderMasterDetail } from './master-recipes.js';
 
 export function permCanEditFarm(){return permRequireAdmin()||_dataStrategy==='session';}
 let _myPurchasedRecipes=[];
@@ -100,6 +101,5 @@ document.getElementById('av-next').addEventListener('click',()=>{
   const growMethod=document.getElementById('av-grow-method').value;const refUrl=document.getElementById('av-ref-url').value.trim();const season=document.getElementById('av-season').value;const region=document.getElementById('av-region').value;if(region)localStorage.setItem('hatake_last_region',region);
   masterData.vegMaster[id]={id,name,emoji:addVegState.emoji,iconFile:addVegState.iconFile||undefined,family:purchased?purchased.family:(preset?preset.family:''),variety,growMethod,season,region,referenceUrl:refUrl,phases:purchased?JSON.parse(JSON.stringify(purchased.phases||[])):[],basicInfo:purchased?JSON.parse(JSON.stringify(purchased.basic_info||{})):undefined};
   navState.masterVeg=id;saveLS();document.getElementById('dlg-add-veg').style.display='none';
-  // renderMasterList/renderMasterDetailはjs/master-recipes.js抽出までのwindow経由の一時ブリッジ
-  window.renderMasterList();window.renderMasterDetail();
+  renderMasterList();renderMasterDetail();
 });

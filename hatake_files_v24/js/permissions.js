@@ -8,6 +8,7 @@ import { showAlert } from './dialogs.js';
 import { _dataStrategy, saveLS, updateFarmNameDisplay } from './storage.js';
 import { closeSettings } from './settings-dialog.js';
 import { openMaster } from './grid-settings.js';
+import { renderMasterDetail } from './master-recipes.js';
 
 /** @returns {boolean} */
 export function permRequireAdmin(){return permState.isAdmin;}
@@ -25,8 +26,7 @@ export function permApply(){
     if(st){st.textContent='閲覧モード（閲覧・作業記録のみ）';st.style.color='var(--color-text-tertiary)';}
   }
   // 動的に描画済みのマスタ詳細があれば再描画して権限を反映
-  // renderMasterDetailはjs/master-recipes.js抽出まではwindow経由の一時ブリッジ
-  if(document.getElementById('screen-master').classList.contains('active')&&navState.masterVeg){window.renderMasterDetail();}
+  if(document.getElementById('screen-master').classList.contains('active')&&navState.masterVeg){renderMasterDetail();}
 }
 document.getElementById('btn-admin-login').addEventListener('click',()=>{
   if(_dataStrategy==='session')return; // マーケットプレイス版はパスワード方式を使わない（Supabase Authのroleのみで判定）
