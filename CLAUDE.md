@@ -32,9 +32,13 @@
 ```
 hatake_app/
 ├── hatake_files_v24/
-│   ├── hatake_v26.html         ← メインアプリ（現行最新）
+│   ├── hatake_v26.html         ← メインHTML（骨格のみ。詳細ロジックはjs/配下に分割済み）
+│   ├── js/                     ← ネイティブESモジュール22ファイル（バンドラー無し）。詳細は下記「アーキテクチャ」参照
 │   ├── config/default.json     ← 個人版「私の畑」設定（触らない）
 │   └── config/market.json      ← マーケットプレイス版 共通設定
+├── tsconfig.json                ← tsc --checkJs設定（js/**/*.jsが対象）
+├── .githooks/pre-commit          ← コミット時に自動typecheck（`npm install`で有効化）
+├── .github/workflows/typecheck.yml ← push時にGitHub Actionsで型チェック
 ├── supabase/
 │   ├── functions/generate-roadmap/  ← AI生成 Edge Function
 │   ├── functions/purchase-recipe/   ← レシピ購入処理 Edge Function（Stripe未連携・即時成立の暫定版）
@@ -46,6 +50,42 @@ hatake_app/
 │       └── archived/                              ← 廃止済み旧設計（channel_id方式）。実行しないこと
 └── CLAUDE.md                   ← このファイル
 ```
+
+## アーキテクチャ（2026-07-06 時点の最新仕様）
+
+### モジュール構成
+`hatake_v26.html`（旧2730行）は骨格（約840行）のみを残し、22セクションを`hatake_files_v24/js/`配下にネイティブESモジュール（`<script type="module">`、バンドラー無し）として分割済み。
+
+- **ファイル一覧**: `state.js`（カーネル：状態オブジェクト定義・定数）, `date-utils.js`, `dialogs.js`, `splash.js`, `helpers.js`, `permissions.js`, `db.js`, `storage.js`, `settings-dialog.js`, `segments.js`, `registration-dialog.js`, `complete.js`, `add-veg.js`, `data-loading.js`, `grid.js`, `archive.js`, `manage.js`, `grid-settings.js`, `marketplace.js`, `master-recipes.js`, `basic-tab.js`, `auth.js`
+- **ファイル間の相互依存**: 基本は`import`/`export`。2〜3ファイルの循環依存が発生する箇所のみ、意図的に`window.foo=foo`のブリッジで解決（コメントで「一時的な抽出待ち」か「循環回避のための恒久設計」かを明記）
+- バンドラー（Vite等）の導入は、TypeScript構文への本格移行やCDN未対応npmパッケージが必要になるまで保留
+
+### 状態管理
+かつて44個あったグローバル変数は、7つの状態オブジェクトに集約済み（`state.js`で定義）。
+
+| オブジェクト | 内容 |
+|---|---|
+| `permState` | 権限（管理者/監修者判定） |
+| `dragState` | グリッドのドラッグ選択の一時状態 |
+| `addVegState` | 野菜追加フォームの一時状態 |
+| `navState` | 画面遷移状態（現在の区画・タブ等） |
+| `farmMeta` | 農園設定（名前・フォント・アイコン） |
+| `gridState` | グリッド物理構造（セル・行列数・通路） |
+| `segData` | 区画データ（タスク・作業ログ・収穫ログ・アーカイブ） |
+| `masterData` | 栽培レシピマスタ・カスタムアイコン |
+
+保存データ（localStorage/Supabase）やUndoスナップショットの外部JSONキー名は、内部のオブジェクト化前と変えていない（互換性維持）。
+
+### 型チェック（tsc --checkJs）
+`js/**/*.js`全ファイルに`@ts-check`＋JSDoc型注釈を付与し、`tsconfig.json`で`allowJs`+`checkJs`を有効化。`hatake_files_v24/js/globals.d.ts`で`PRESET_VEGS`/`ICON_B64`/`supabase`等の非moduleグローバルと`window.*`カスタムプロパティを型宣言している。
+
+```bash
+npm run typecheck   # tsc --noEmit
+```
+
+- **pre-commit**: `.githooks/pre-commit`が`npm run typecheck`を実行し、型エラーがあればコミットを中止する。`npm install`時に`package.json`の`prepare`スクリプトが`git config core.hooksPath .githooks`を自動設定
+- **CI**: `.github/workflows/typecheck.yml`がmainへのpush・PR時に同じチェックを実行
+- 新しいJSファイルを追加する際は先頭に`@ts-check`を付け、`document.getElementById`等のDOM API呼び出しはJSDocキャスト（`/** @type {HTMLInputElement} */ (...)`）で型を明示する
 
 ## よく使うコマンド
 
