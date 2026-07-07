@@ -412,7 +412,7 @@ body{
       <div style="font-size:var(--fs-xs);color:#5f5e5a;line-height:1.7;margin-bottom:14px">
         メールに記載されたコードを入力してください。
       </div>
-      <input id="auth-otp-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="10" placeholder="12345678"
+      <input id="auth-otp-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="10" placeholder="12345678" autocomplete="one-time-code"
         style="width:100%;padding:10px 12px;border:1px solid #d0cfc8;border-radius:8px;font-size:20px;text-align:center;letter-spacing:4px;outline:none;box-sizing:border-box;margin-bottom:10px"
         onfocus="this.style.borderColor='#5aad4e'" onblur="this.style.borderColor='#d0cfc8'">
       <button onclick="verifyOtpCode()" id="auth-verify-btn"
