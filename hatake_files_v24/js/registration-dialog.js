@@ -1,11 +1,10 @@
 // @ts-check
 // ===== 区画登録ダイアログ =====
-import { dragState, masterData, gridState, segData, addVegState } from './state.js';
+import { dragState, masterData, gridState, addVegState } from './state.js';
 import { K, todayISO, daysBetween } from './date-utils.js';
 import { getVeg, ROTATION_FAMILIES, checkRotation, buildSegs } from './segments.js';
 import { saveLS, pushUndo } from './storage.js';
 import { openMaster } from './grid-settings.js';
-import { maybeShowInstallPrompt } from './pwa-install.js';
 
 export function showRegDlg(){
   // grid.js⇄registration-dialog.jsは相互依存（grid.jsがshowRegDlgを使う）のため
@@ -45,9 +44,7 @@ document.getElementById('dlg-register').addEventListener('mousedown',e=>{if(e.ta
 document.getElementById('dlg-save').addEventListener('click',()=>{
   const cropId=/** @type {HTMLSelectElement} */ (document.getElementById('dlg-crop')).value,date=/** @type {HTMLInputElement} */ (document.getElementById('dlg-date-input')).value;if(!cropId)return;
   document.getElementById('dlg-register').style.display='none';pushUndo();
-  const isFirstSeg=!Object.keys(segData.segs).length;
   const sid=`s_${dragState.pendingRow}_${dragState.pendingStart}_${Date.now()}`;
   for(let c=dragState.pendingStart;c<=dragState.pendingEnd;c++){const k=K(dragState.pendingRow,c);if(!gridState.cells[k]||!gridState.cells[k].crop)gridState.cells[k]={segId:sid,crop:cropId,plantDate:date};}
   dragState.pendingRow=-1;dragState.pendingStart=-1;dragState.pendingEnd=-1;buildSegs();window.renderGrid();saveLS();
-  if(isFirstSeg)maybeShowInstallPrompt();
 });

@@ -342,18 +342,7 @@ body{
   <button onclick="openAuthModal()" style="flex-shrink:0;background:#5aad4e;color:#fff;border:none;border-radius:99px;padding:8px 18px;font-size:var(--fs-sm);font-weight:600;cursor:pointer">登録する</button>
 </div>
 
-<!-- TSK-26: ホーム画面追加（PWA）導線。初回区画登録の直後に一度だけ表示。 -->
-<div id="pwa-install-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9000;background:rgba(30,30,30,0.93);color:#fff;padding:12px 16px;flex-direction:row;align-items:center;justify-content:space-between;gap:12px;backdrop-filter:blur(4px)">
-  <div style="font-size:var(--fs-sm);line-height:1.5">
-    <div style="font-weight:600;margin-bottom:2px">ホーム画面に追加しませんか？</div>
-    <div style="font-size:var(--fs-xs);opacity:0.75">次回からワンタップで開けるようになります</div>
-  </div>
-  <div style="display:flex;gap:8px;flex-shrink:0;align-items:center">
-    <button id="pwa-banner-dismiss" style="background:none;border:none;color:#fff;opacity:0.7;font-size:var(--fs-sm);cursor:pointer;padding:8px">閉じる</button>
-    <button id="pwa-banner-install" style="background:#5aad4e;color:#fff;border:none;border-radius:99px;padding:8px 18px;font-size:var(--fs-sm);font-weight:600;cursor:pointer">追加する</button>
-  </div>
-</div>
-
+<!-- TSK-26: ホーム画面追加（PWA）導線。常時表示の帯タップで案内モーダルを開く。 -->
 <div id="dlg-pwa-ios" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:9100;background:rgba(0,0,0,0.4)" onclick="this.style.display='none'">
   <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.5rem 1.25rem;min-width:260px;max-width:320px;width:88%;text-align:center" onclick="event.stopPropagation()">
     <div style="font-size:32px;margin-bottom:10px">📱</div>
@@ -366,12 +355,13 @@ body{
   </div>
 </div>
 
-<div id="dlg-pwa-escape" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:9100;background:rgba(0,0,0,0.4)" onclick="this.style.display='none'">
+<!-- OS別の代替導線（Androidのメニュー案内・アプリ内ブラウザ脱出案内・iOSの非Safari案内）。文言はJSで出し分ける。 -->
+<div id="dlg-pwa-howto" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:9100;background:rgba(0,0,0,0.4)" onclick="this.style.display='none'">
   <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.5rem 1.25rem;min-width:260px;max-width:320px;width:88%;text-align:center" onclick="event.stopPropagation()">
     <div style="font-size:32px;margin-bottom:10px">🔗</div>
-    <div style="font-size:var(--fs-base);font-weight:600;color:var(--color-text-primary);margin-bottom:10px">ブラウザで開くとホーム画面に追加できます</div>
-    <div id="dlg-pwa-escape-text" style="font-size:var(--fs-sm);color:var(--color-text-secondary);line-height:1.7;margin-bottom:16px"></div>
-    <button id="dlg-pwa-escape-close" class="btn-primary" style="width:100%;font-size:var(--fs-base);padding:9px">閉じる</button>
+    <div style="font-size:var(--fs-base);font-weight:600;color:var(--color-text-primary);margin-bottom:10px">ホーム画面に追加する方法</div>
+    <div id="dlg-pwa-howto-text" style="font-size:var(--fs-sm);color:var(--color-text-secondary);line-height:1.7;margin-bottom:16px"></div>
+    <button id="dlg-pwa-howto-close" class="btn-primary" style="width:100%;font-size:var(--fs-base);padding:9px">閉じる</button>
   </div>
 </div>
 
@@ -566,6 +556,13 @@ body{
         <div style="font-size:var(--fs-xs);color:var(--color-text-secondary);margin-bottom:8px" class="admin-only">全区画データを削除します。元に戻せません。</div>
         <button class="btn-danger-outline admin-only" onclick="resetAll()"><i class="ti ti-trash"></i>全データをリセット</button>
       </div>
+    </div>
+    <div id="pwa-install-strip" style="display:none;margin:8px 0.5rem 0;border-radius:var(--border-radius-md);background:#eaf6e4;border:0.5px solid var(--color-border-tertiary);padding:10px 12px;align-items:center;justify-content:space-between;gap:8px;cursor:pointer">
+      <div style="display:flex;align-items:center;gap:8px;min-width:0">
+        <i class="ti ti-square-rounded-plus" style="font-size:18px;color:var(--theme-color);flex-shrink:0"></i>
+        <span style="font-size:var(--fs-sm);font-weight:600;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">超便利！ホーム画面にアプリを追加</span>
+      </div>
+      <button id="pwa-strip-hide" style="flex-shrink:0;background:none;border:none;color:var(--color-text-tertiary);font-size:16px;padding:6px;cursor:pointer;line-height:1"><i class="ti ti-x"></i></button>
     </div>
     <div class="weather-widget" id="weather-widget" style="display:none">
       <div class="weather-summary" id="weather-summary"></div>

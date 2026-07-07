@@ -1,14 +1,14 @@
 // @ts-check
 // ===== ホーム画面追加（PWA化）導線 =====
-// TSK-26: 初回の区画登録完了直後に、OS/ブラウザに応じた追加導線を一度だけ出す。
+// TSK-26: グリッド画面上部に常時帯を表示し、タップでOS別の追加方法を案内する。
+// 自動ポップアップは初回登録直後だとタイミングが早すぎるとの判断で不採用（2026-07-07）。
 // iOS（Safari含む全ブラウザ）はbeforeinstallpromptが発火しないため図解案内のみ。
-// Android/Chrome系はネイティブのインストールプロンプトをボタン経由で呼び出す。
+// Android/Chrome系はネイティブのインストールプロンプトをタップ経由で呼び出す。
 // LINE/Instagram等のアプリ内ブラウザは共有シート自体が使えない/挙動が異なるため、
-// 先に「ブラウザで開く」への脱出導線を出し、脱出後の再訪でiOS図解を出す。
+// 「ブラウザで開く」への脱出導線を案内する。
 import { LS_KEY } from './state.js';
 
-const SHOWN_KEY = LS_KEY + '_pwaPromptShown';
-const ESCAPE_SHOWN_KEY = LS_KEY + '_pwaEscapeShown';
+const STRIP_HIDDEN_KEY = LS_KEY + '_pwaStripHidden';
 
 /** @type {any} beforeinstallpromptイベント。ユーザー操作前にリスナー登録が必須なため読み込み時に捕捉する */
 let deferredPrompt = null;
@@ -20,6 +20,9 @@ function isStandalone() {
 function isIOS() {
   const ua = navigator.userAgent;
   return /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+}
+function isAndroid() {
+  return /Android/.test(navigator.userAgent);
 }
 function isIOSSafari() {
   const ua = navigator.userAgent;
@@ -40,45 +43,47 @@ const ESCAPE_COPY = {
   instagram: '画面右上の「…」をタップし、「ブラウザで開く」を選んでください。',
   facebook: '画面右上の「…」をタップし、「ブラウザで開く」を選んでください。',
 };
+const ANDROID_MENU_COPY = '画面右上の「⋮」メニューを開き、「アプリをインストール」または「ホーム画面に追加」をタップしてください。';
+const IOS_OTHER_BROWSER_COPY = 'この機能はSafariでのみご利用いただけます。Safariで開き直してください。';
 
-function showEscapeGuide(/** @type {'line'|'instagram'|'facebook'} */ app) {
-  const el = document.getElementById('dlg-pwa-escape-text');
-  if (el) el.textContent = ESCAPE_COPY[app];
-  document.getElementById('dlg-pwa-escape').style.display = 'flex';
-  localStorage.setItem(ESCAPE_SHOWN_KEY, '1');
+function showHowTo(/** @type {string} */ text) {
+  const el = document.getElementById('dlg-pwa-howto-text');
+  if (el) el.textContent = text;
+  document.getElementById('dlg-pwa-howto').style.display = 'flex';
 }
 function showIOSDiagram() {
   document.getElementById('dlg-pwa-ios').style.display = 'flex';
-  localStorage.setItem(SHOWN_KEY, '1');
-}
-function showAndroidBanner() {
-  document.getElementById('pwa-install-banner').style.display = 'flex';
 }
 
-/** 初回区画登録の直後に呼ぶ。表示済み/対象外なら何もしない。 */
-export function maybeShowInstallPrompt() {
-  if (isStandalone()) return;
+function handleStripTap() {
   const inApp = getInAppBrowser();
-  if (inApp) {
-    if (!localStorage.getItem(ESCAPE_SHOWN_KEY)) showEscapeGuide(inApp);
+  if (inApp) { showHowTo(ESCAPE_COPY[inApp]); return; }
+  if (isAndroid()) {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+    } else {
+      showHowTo(ANDROID_MENU_COPY);
+    }
     return;
   }
-  if (localStorage.getItem(SHOWN_KEY)) return;
-  if (deferredPrompt) { showAndroidBanner(); return; }
   if (isIOSSafari()) { showIOSDiagram(); return; }
+  if (isIOS()) { showHowTo(IOS_OTHER_BROWSER_COPY); return; }
 }
 
+export function updateStripVisibility() {
+  const strip = document.getElementById('pwa-install-strip');
+  if (!strip) return;
+  const eligible = !isStandalone() && !localStorage.getItem(STRIP_HIDDEN_KEY) && (isIOS() || isAndroid());
+  strip.style.display = eligible ? 'flex' : 'none';
+}
+updateStripVisibility();
+
 document.getElementById('dlg-pwa-ios-close').addEventListener('click', () => { document.getElementById('dlg-pwa-ios').style.display = 'none'; });
-document.getElementById('dlg-pwa-escape-close').addEventListener('click', () => { document.getElementById('dlg-pwa-escape').style.display = 'none'; });
-document.getElementById('pwa-banner-dismiss').addEventListener('click', () => {
-  document.getElementById('pwa-install-banner').style.display = 'none';
-  localStorage.setItem(SHOWN_KEY, '1');
-});
-document.getElementById('pwa-banner-install').addEventListener('click', async () => {
-  document.getElementById('pwa-install-banner').style.display = 'none';
-  localStorage.setItem(SHOWN_KEY, '1');
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  await deferredPrompt.userChoice;
-  deferredPrompt = null;
+document.getElementById('dlg-pwa-howto-close').addEventListener('click', () => { document.getElementById('dlg-pwa-howto').style.display = 'none'; });
+document.getElementById('pwa-install-strip').addEventListener('click', handleStripTap);
+document.getElementById('pwa-strip-hide').addEventListener('click', e => {
+  e.stopPropagation();
+  localStorage.setItem(STRIP_HIDDEN_KEY, '1');
+  updateStripVisibility();
 });
