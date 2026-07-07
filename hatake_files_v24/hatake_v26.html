@@ -6,6 +6,8 @@
 <title>畑管理アプリ v26</title>
 <link rel="icon" href="images/hatake-app_icon.png">
 <link rel="apple-touch-icon" href="images/hatake-app_icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#5aad4e">
 <!--
   ================================================================
   畑管理アプリ v26
@@ -338,6 +340,39 @@ body{
     <div style="font-size:var(--fs-xs);opacity:0.75">サブスクに登録するとデータが永続保存されます</div>
   </div>
   <button onclick="openAuthModal()" style="flex-shrink:0;background:#5aad4e;color:#fff;border:none;border-radius:99px;padding:8px 18px;font-size:var(--fs-sm);font-weight:600;cursor:pointer">登録する</button>
+</div>
+
+<!-- TSK-26: ホーム画面追加（PWA）導線。初回区画登録の直後に一度だけ表示。 -->
+<div id="pwa-install-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9000;background:rgba(30,30,30,0.93);color:#fff;padding:12px 16px;flex-direction:row;align-items:center;justify-content:space-between;gap:12px;backdrop-filter:blur(4px)">
+  <div style="font-size:var(--fs-sm);line-height:1.5">
+    <div style="font-weight:600;margin-bottom:2px">ホーム画面に追加しませんか？</div>
+    <div style="font-size:var(--fs-xs);opacity:0.75">次回からワンタップで開けるようになります</div>
+  </div>
+  <div style="display:flex;gap:8px;flex-shrink:0;align-items:center">
+    <button id="pwa-banner-dismiss" style="background:none;border:none;color:#fff;opacity:0.7;font-size:var(--fs-sm);cursor:pointer;padding:8px">閉じる</button>
+    <button id="pwa-banner-install" style="background:#5aad4e;color:#fff;border:none;border-radius:99px;padding:8px 18px;font-size:var(--fs-sm);font-weight:600;cursor:pointer">追加する</button>
+  </div>
+</div>
+
+<div id="dlg-pwa-ios" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:9100;background:rgba(0,0,0,0.4)" onclick="this.style.display='none'">
+  <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.5rem 1.25rem;min-width:260px;max-width:320px;width:88%;text-align:center" onclick="event.stopPropagation()">
+    <div style="font-size:32px;margin-bottom:10px">📱</div>
+    <div style="font-size:var(--fs-base);font-weight:600;color:var(--color-text-primary);margin-bottom:14px">ホーム画面に追加すると<br>次回からアプリのように開けます</div>
+    <div style="text-align:left;font-size:var(--fs-sm);color:var(--color-text-secondary);line-height:1.8;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><i class="ti ti-share-2" style="font-size:18px;flex-shrink:0"></i>①共有ボタンをタップ</div>
+      <div style="display:flex;align-items:center;gap:8px"><i class="ti ti-square-rounded-plus" style="font-size:18px;flex-shrink:0"></i>②「ホーム画面に追加」を選択</div>
+    </div>
+    <button id="dlg-pwa-ios-close" class="btn-primary" style="width:100%;font-size:var(--fs-base);padding:9px">閉じる</button>
+  </div>
+</div>
+
+<div id="dlg-pwa-escape" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:9100;background:rgba(0,0,0,0.4)" onclick="this.style.display='none'">
+  <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.5rem 1.25rem;min-width:260px;max-width:320px;width:88%;text-align:center" onclick="event.stopPropagation()">
+    <div style="font-size:32px;margin-bottom:10px">🔗</div>
+    <div style="font-size:var(--fs-base);font-weight:600;color:var(--color-text-primary);margin-bottom:10px">ブラウザで開くとホーム画面に追加できます</div>
+    <div id="dlg-pwa-escape-text" style="font-size:var(--fs-sm);color:var(--color-text-secondary);line-height:1.7;margin-bottom:16px"></div>
+    <button id="dlg-pwa-escape-close" class="btn-primary" style="width:100%;font-size:var(--fs-base);padding:9px">閉じる</button>
+  </div>
 </div>
 
 <!-- v25: 認証モーダル（サブスク登録・ログイン共用） -->
@@ -793,6 +828,7 @@ body{
 <script type="module" src="js/settings-dialog.js"></script>
 <script type="module" src="js/segments.js"></script>
 <script type="module" src="js/registration-dialog.js"></script>
+<script type="module" src="js/pwa-install.js"></script>
 <script type="module" src="js/complete.js"></script>
 <script type="module" src="js/add-veg.js"></script>
 <script type="module" src="js/data-loading.js"></script>

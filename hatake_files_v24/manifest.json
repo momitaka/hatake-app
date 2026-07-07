@@ -1,0 +1,14 @@
+{
+  "name": "私の畑",
+  "short_name": "私の畑",
+  "description": "家庭菜園の区画・作業タスク・収穫を一元管理するアプリ",
+  "start_url": "./hatake_v26.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#5aad4e",
+  "icons": [
+    { "src": "images/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "images/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
