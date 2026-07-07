@@ -14,6 +14,36 @@ import { _applyLoadedData } from './data-loading.js';
   const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   window._sbClient = _sb;
 
+  // v26: OTP送信後にメーラーアプリへ切り替えて戻ると、モバイルブラウザが裏でページを
+  // 再読み込みすることがあり、「コード入力待ち」の状態がDOM表示だけの管理だと消えて
+  // 最初の画面に戻ってしまう。localStorageに一時保存し、次の読み込み時に自動復元する。
+  // sessionStorageではなくlocalStorageを使うのは、hatake_v26.html側で
+  // 「未サブスクユーザーがバックグラウンドに移行したらsessionStorage.clear()」という
+  // 意図的なプライバシー機能があり、ログイン待ち状態まで巻き込んで消えてしまうため。
+  const _PENDING_OTP_KEY = 'hatake_pending_otp_email';
+  const _PENDING_OTP_TTL_MS = 30 * 60 * 1000;
+
+  function _restorePendingOtp() {
+    const raw = localStorage.getItem(_PENDING_OTP_KEY);
+    if(!raw) return;
+    /** @type {{email:string, sentAt:number}|null} */
+    let saved = null;
+    try { saved = JSON.parse(raw); } catch(e) { /* 壊れたJSONは破棄 */ }
+    if(!saved || !saved.email || (Date.now() - saved.sentAt) > _PENDING_OTP_TTL_MS) {
+      localStorage.removeItem(_PENDING_OTP_KEY);
+      return;
+    }
+    const dlg       = document.getElementById('dlg-auth');
+    const emailForm = document.getElementById('auth-email-form');
+    const sentMsg   = document.getElementById('auth-sent-msg');
+    const emailInput= /** @type {HTMLInputElement} */ (document.getElementById('auth-email-input'));
+    if(!dlg || !emailForm || !sentMsg || !emailInput) return;
+    emailInput.value = saved.email;
+    emailForm.style.display = 'none';
+    sentMsg.style.display   = 'block';
+    dlg.style.display = 'flex';
+  }
+
   // 別タブ（メールのマジックリンクから開いたタブ等）でログイン/ログアウトすると、
   // supabase-jsがセッションをlocalStorageに書き込む。その変化をこのタブでも検知して
   // 自動的に再読み込みし、手動リロードしなくてもログイン状態が反映されるようにする
@@ -191,6 +221,7 @@ import { _applyLoadedData } from './data-loading.js';
       if(msg) msg.textContent = '送信に失敗しました: ' + detail + (error.status ? ' (status ' + error.status + ')' : '');
       if(btn) { btn.textContent = 'メールでログインコードを受け取る'; btn.disabled = false; }
     } else {
+      localStorage.setItem(_PENDING_OTP_KEY, JSON.stringify({ email, sentAt: Date.now() }));
       document.getElementById('auth-email-form').style.display = 'none';
       document.getElementById('auth-sent-msg').style.display   = 'block';
       const otpInput=/** @type {HTMLInputElement} */ (document.getElementById('auth-otp-input'));
@@ -214,6 +245,8 @@ import { _applyLoadedData } from './data-loading.js';
     if(error) {
       if(msg) msg.textContent = 'コードが正しくないか、期限切れです';
       if(btn) { btn.textContent = 'コードを確認してログイン'; btn.disabled = false; }
+    } else {
+      localStorage.removeItem(_PENDING_OTP_KEY);
     }
     // 成功時はonAuthStateChangeが発火し、_onUserLoginが呼ばれて画面が自動更新される
   };
@@ -237,4 +270,9 @@ import { _applyLoadedData } from './data-loading.js';
 
   // URLハッシュに認証トークンが含まれる場合（メールリンク経由）は自動処理される
   // supabase-js が onAuthStateChange で検知するため追加処理不要
+
+  // 未ログインの場合のみ、コード入力待ちの状態を復元する
+  _sb.auth.getSession().then(({data:{session}}) => {
+    if(!session) _restorePendingOtp();
+  });
 })();
