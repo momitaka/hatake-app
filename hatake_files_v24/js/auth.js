@@ -241,12 +241,20 @@ import { _applyLoadedData } from './data-loading.js';
     const btn   = /** @type {HTMLButtonElement} */ (document.getElementById('auth-verify-btn'));
     if(!code) { if(msg) msg.textContent = 'コードを入力してください'; return; }
     if(btn) { btn.textContent = '確認中...'; btn.disabled = true; }
-    const {error} = await _sb.auth.verifyOtp({ email, token: code, type: 'email' });
-    if(error) {
-      if(msg) msg.textContent = 'コードが正しくないか、期限切れです';
+    try {
+      const {error} = await _sb.auth.verifyOtp({ email, token: code, type: 'email' });
+      if(error) {
+        console.error('verifyOtp failed', error);
+        const detail = error.message || error.name || (error.status ? ('status ' + error.status) : '') || JSON.stringify(error);
+        if(msg) msg.textContent = 'コードが正しくないか、期限切れです: ' + detail;
+        if(btn) { btn.textContent = 'コードを確認してログイン'; btn.disabled = false; }
+      } else {
+        localStorage.removeItem(_PENDING_OTP_KEY);
+      }
+    } catch(e) {
+      console.error('verifyOtp threw', e);
+      if(msg) msg.textContent = '確認中に通信エラーが発生しました: ' + (e && e.message ? e.message : String(e));
       if(btn) { btn.textContent = 'コードを確認してログイン'; btn.disabled = false; }
-    } else {
-      localStorage.removeItem(_PENDING_OTP_KEY);
     }
     // 成功時はonAuthStateChangeが発火し、_onUserLoginが呼ばれて画面が自動更新される
   };
