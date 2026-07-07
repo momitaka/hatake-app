@@ -186,7 +186,9 @@ import { _applyLoadedData } from './data-loading.js';
     if(btn) { btn.textContent = '送信中...'; btn.disabled = true; }
     const {error} = await _sb.auth.signInWithOtp({ email });
     if(error) {
-      if(msg) msg.textContent = '送信に失敗しました: ' + error.message;
+      console.error('signInWithOtp failed', error);
+      const detail = error.message || error.name || (error.status ? ('status ' + error.status) : '') || JSON.stringify(error);
+      if(msg) msg.textContent = '送信に失敗しました: ' + detail + (error.status ? ' (status ' + error.status + ')' : '');
       if(btn) { btn.textContent = 'メールでログインコードを受け取る'; btn.disabled = false; }
     } else {
       document.getElementById('auth-email-form').style.display = 'none';
