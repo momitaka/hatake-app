@@ -10,7 +10,7 @@ export function buildSegs(){segData.segs={};for(let r=0;r<gridState.rows;r++)for
 /** @param {string} id @returns {any} */
 export function getVeg(id){return masterData.vegMaster[id]||null}
 export function vegFamily(id){const v=getVeg(id);return v?v.family:null}
-export function famStyle(fam){if(!fam)return null;return FAMILIES[fam]||FAMILIES['その他'];}
+export function famStyle(fam){if(fam==null)return null;return FAMILIES[fam]||FAMILIES['その他'];}
 // 連作障害の警告対象科。「その他」はここに含めない＝連作しても警告しない
 // （病害虫が出にくい科という前提。品種追加時に科を増やす場合はここも見直す）。
 // 経過期間による足切りはなく、何年前の記録でも同じ科なら常に警告する。
