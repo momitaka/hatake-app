@@ -1,9 +1,10 @@
 // @ts-check
 // ===== 天気表示（畑の位置の過去7日実績・今後7日予報） =====
 // データ元: Open-Meteo（無料・APIキー不要）
-import { farmMeta, permState } from './state.js';
+import { farmMeta } from './state.js';
 import { saveLS } from './storage.js';
 import { openSettings } from './settings-dialog.js';
+import { permCanEditFarm } from './add-veg.js';
 
 const WEATHER_CACHE_KEY='hatake_weather_cache_v2';
 const CACHE_MS=3*60*60*1000; // 3時間キャッシュ
@@ -72,7 +73,7 @@ export async function renderWeatherBar(){
   if(!widget||!summaryRow||!detail)return null;
 
   if(farmMeta.lat==null||farmMeta.lng==null){
-    if(!permState.isAdmin){widget.style.display='none';return null;}
+    if(!permCanEditFarm()){widget.style.display='none';return null;}
     widget.style.display='block';
     detail.style.display='none';
     detail.innerHTML='';
