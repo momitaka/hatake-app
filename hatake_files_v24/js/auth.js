@@ -113,9 +113,10 @@ import { _applyLoadedData } from './data-loading.js';
         // 既存のクラウドデータがあればそちらを優先して表示。
         // 無ければ（初めての会員登録）お試し中のセッションデータを初回移行する
         const loaded = await loadFromDB();
-        if(loaded) {
-          _applyLoadedData(true);
-        } else {
+        // 区画（cells）が0件の会員でも、loadFromDBが復元した農園名・天気位置等を
+        // 画面に反映するため、loaded の真偽に関わらず必ず再描画する
+        _applyLoadedData(true);
+        if(!loaded) {
           await _migrateSessionToCloud();
         }
       }

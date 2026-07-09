@@ -51,11 +51,17 @@ export async function loadFromDB(){
     }
     const rows=await res.json();
     const d=rows[0]?.data;
+    if(d){
+      // 区画が0件でも、農園名・アイコン・天気位置は保存されていれば必ず復元する
+      // （cellsの有無で復元判定すると、区画未登録の会員がアプリを再起動した際に
+      // 　保存済みの天気位置設定だけが消えてしまうため、cellsの判定とは切り離す）
+      farmMeta.name=d.farmName||'';farmMeta.icon=d.farmIcon||'';farmMeta.lat=(typeof d.farmLat==='number')?d.farmLat:null;farmMeta.lng=(typeof d.farmLng==='number')?d.farmLng:null;
+    }
     if(d&&d.cells&&Object.keys(d.cells).length>0){
       gridState.cells=d.cells;gridState.cols=d.COLS||8;gridState.rows=d.ROWS||6;
       segData.tasks=d.segTasks||{};segData.actionLogs=d.actionLogs||{};segData.harvestLogs=d.harvestLogs||{};
       segData.summaryMemo=d.segSummaryMemo||{};masterData.vegMaster=d.vegMaster||{};
-      segData.archived=d.archivedSegs||{};farmMeta.name=d.farmName||'';gridState.aisleRows=d.aisleRows||[];gridState.aisleCols=d.aisleCols||[];farmMeta.icon=d.farmIcon||'';farmMeta.lat=(typeof d.farmLat==='number')?d.farmLat:null;farmMeta.lng=(typeof d.farmLng==='number')?d.farmLng:null;
+      segData.archived=d.archivedSegs||{};gridState.aisleRows=d.aisleRows||[];gridState.aisleCols=d.aisleCols||[];
       return true;
     }
   }catch(e){console.error('DB load error',e);}
