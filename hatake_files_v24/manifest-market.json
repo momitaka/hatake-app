@@ -1,0 +1,14 @@
+{
+  "name": "私の畑マーケット",
+  "short_name": "私の畑マーケット",
+  "description": "複数監修者の栽培レシピを横断購入できる畑管理アプリ",
+  "start_url": "./hatake_v26.html?config=market",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2E7D32",
+  "icons": [
+    { "src": "images/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "images/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

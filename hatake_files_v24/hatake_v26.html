@@ -6,7 +6,6 @@
 <title>畑管理アプリ v26</title>
 <link rel="icon" href="images/hatake-app_icon.png">
 <link rel="apple-touch-icon" href="images/hatake-app_icon.png">
-<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#5aad4e">
 <!--
   ================================================================
@@ -786,30 +785,16 @@ body{
     console.warn('[v25] config load failed, using default:', e.message);
   }
 
-  // TSK-26: manifest.jsonは静的ファイルでstart_url/name/theme_colorが個人版固定のため、
-  // ?config=market等でホーム画面に追加すると常に個人版のURLで起動し、
+  // TSK-26: manifest.jsonは静的ファイルでstart_url/name/theme_colorが個人版固定だと、
+  // ?config=market等でホーム画面に追加しても常に個人版のURLで起動し、
   // 個人版とマーケット版のデータが同じページ（＝同じデータソース）に混ざって見える不具合があった。
-  // configに応じてBlob URLでmanifestを差し替え、start_urlに?configを引き継ぐ。
-  try {
-    var manifestObj = {
-      name: window.APP_CONFIG.appName,
-      short_name: window.APP_CONFIG.appName,
-      start_url: './hatake_v26.html' + (configName !== 'default' ? ('?config=' + configName) : ''),
-      scope: './',
-      display: 'standalone',
-      background_color: '#ffffff',
-      theme_color: window.APP_CONFIG.themeColor,
-      icons: [
-        { src: 'images/icon-192.png', sizes: '192x192', type: 'image/png' },
-        { src: 'images/icon-512.png', sizes: '512x512', type: 'image/png' }
-      ]
-    };
-    var manifestBlob = new Blob([JSON.stringify(manifestObj)], {type: 'application/json'});
-    var manifestLink = document.querySelector('link[rel="manifest"]');
-    if(manifestLink) manifestLink.setAttribute('href', URL.createObjectURL(manifestBlob));
-  } catch(e) {
-    console.warn('[TSK-26] dynamic manifest failed, using static manifest.json:', e.message);
-  }
+  // Blob URLでの差し替えはSafariで反映が不安定だったため、config別の実ファイルを用意し、
+  // <link rel="manifest">自体をHTMLに静的記述せずここで生成する
+  // （静的記述だとブラウザがconfig確定より先に読みに行ってしまうため）。
+  var manifestLink = document.createElement('link');
+  manifestLink.rel = 'manifest';
+  manifestLink.href = configName === 'market' ? 'manifest-market.json' : 'manifest.json';
+  document.head.appendChild(manifestLink);
 
   // CSS変数にテーマカラーを適用
   var root = document.documentElement;
