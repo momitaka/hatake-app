@@ -308,6 +308,10 @@ body{
 .view-mode .admin-only{display:none !important}
 .view-mode .supervisor-only{display:none !important}
 .supervisor-mode .admin-only{display:none !important}
+.view-mode .farm-settings-only{display:none !important}
+.supervisor-mode .farm-settings-only{display:none !important}
+.market-mode.view-mode .farm-settings-only.settings-row{display:flex !important}
+.market-mode.view-mode .farm-settings-only:not(.settings-row){display:revert !important}
 .market-mode .admin-pw-only{display:none !important}
 .market-only{display:none !important}
 .market-mode .market-only{display:flex !important}
@@ -361,6 +365,7 @@ body{
     <div style="font-size:32px;margin-bottom:10px">🔗</div>
     <div style="font-size:var(--fs-base);font-weight:600;color:var(--color-text-primary);margin-bottom:10px">ホーム画面に追加する方法</div>
     <div id="dlg-pwa-howto-text" style="font-size:var(--fs-sm);color:var(--color-text-secondary);line-height:1.7;margin-bottom:16px"></div>
+    <button id="dlg-pwa-howto-copy" class="btn" style="width:100%;font-size:var(--fs-base);padding:9px;margin-bottom:8px"><i class="ti ti-link"></i>リンクをコピー</button>
     <button id="dlg-pwa-howto-close" class="btn-primary" style="width:100%;font-size:var(--fs-base);padding:9px">閉じる</button>
   </div>
 </div>
@@ -495,9 +500,9 @@ body{
         <div class="settings-row admin-pw-only"><input type="password" id="s-admin-pw" placeholder="管理者パスワード" style="flex:1;padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)"><button class="btn" id="btn-admin-login">ログイン</button></div>
         <div id="admin-status" class="admin-pw-only" style="font-size:var(--fs-xs);margin-bottom:8px;color:var(--color-text-tertiary)">閲覧モード</div>
         <hr class="divider" style="margin:10px 0">
-        <div class="settings-section-label admin-only">農園名</div>
-        <div class="settings-row admin-only"><input type="text" id="s-farm-name" placeholder="例：我が家の畑" style="flex:1;font-size:var(--fs-base);padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)"><button class="btn" id="btn-save-farm-name">保存</button></div>
-        <div class="settings-row admin-only" style="flex-direction:column;align-items:stretch;gap:6px;margin-top:8px">
+        <div class="settings-section-label farm-settings-only">農園名</div>
+        <div class="settings-row farm-settings-only"><input type="text" id="s-farm-name" placeholder="例：我が家の畑" style="flex:1;font-size:var(--fs-base);padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)"><button class="btn" id="btn-save-farm-name">保存</button></div>
+        <div class="settings-row farm-settings-only" style="flex-direction:column;align-items:stretch;gap:6px;margin-top:8px">
           <span class="settings-label">フォント</span>
           <div style="display:flex;flex-direction:column;gap:5px" id="font-options">
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:7px 10px;border-radius:8px;border:1px solid var(--color-border-secondary);background:var(--color-background-primary)">
@@ -510,14 +515,14 @@ body{
             </label>
           </div>
         </div>
-        <div class="settings-row admin-only" style="flex-direction:column;align-items:stretch;gap:6px;margin-top:8px">
+        <div class="settings-row farm-settings-only" style="flex-direction:column;align-items:stretch;gap:6px;margin-top:8px">
           <span class="settings-label">農園アイコン</span>
           <div id="farm-icon-picker" style="display:flex;flex-wrap:wrap;gap:6px"></div>
           <div style="font-size:var(--fs-xs);color:var(--color-text-tertiary)">栽培レシピに登録されているアイコンから選択。もう一度タップで解除。</div>
         </div>
-        <hr class="divider admin-only" style="margin:10px 0">
-        <div class="settings-section-label admin-only">天気表示（畑の位置）</div>
-        <div class="settings-row admin-only" id="weather-loc-settings-row" style="flex-direction:column;align-items:stretch;gap:6px;border-radius:var(--border-radius-md)">
+        <hr class="divider farm-settings-only" style="margin:10px 0">
+        <div class="settings-section-label farm-settings-only">天気表示（畑の位置）</div>
+        <div class="settings-row farm-settings-only" id="weather-loc-settings-row" style="flex-direction:column;align-items:stretch;gap:6px;border-radius:var(--border-radius-md)">
           <div style="display:flex;align-items:center;gap:8px">
             <span class="settings-label" style="min-width:60px">緯度</span>
             <input type="number" id="s-weather-lat" step="0.0001" placeholder="例: 35.6895" inputmode="decimal" style="flex:1;font-size:var(--fs-base);padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)">
@@ -532,15 +537,15 @@ body{
           </div>
           <div id="weather-loc-status" style="font-size:var(--fs-xs);color:var(--color-text-tertiary)">グリッド上部に前後1週間の降水量・気温を表示します。</div>
         </div>
-        <hr class="divider admin-only" style="margin:10px 0">
-        <div class="settings-section-label admin-only">グリッドサイズ</div>
-        <div class="settings-row admin-only">
+        <hr class="divider farm-settings-only" style="margin:10px 0">
+        <div class="settings-section-label farm-settings-only">グリッドサイズ</div>
+        <div class="settings-row farm-settings-only">
           <span class="settings-label">列</span><input type="number" inputmode="numeric" id="s-cols" value="8" min="2" max="20">
           <span class="settings-label">行</span><input type="number" inputmode="numeric" id="s-rows" value="6" min="2" max="20">
           <button class="btn" onclick="applyGrid()"><i class="ti ti-refresh"></i>適用</button>
         </div>
-        <div class="settings-section-label admin-only">通路の設定</div>
-        <div class="settings-row admin-only" style="flex-direction:column;align-items:stretch;gap:6px">
+        <div class="settings-section-label farm-settings-only">通路の設定</div>
+        <div class="settings-row farm-settings-only" style="flex-direction:column;align-items:stretch;gap:6px">
           <div style="display:flex;align-items:center;gap:8px">
             <span class="settings-label" style="min-width:60px">通路の行</span>
             <input type="text" id="s-aisle-rows" placeholder="例: 4, 6" style="flex:1;font-size:var(--fs-base);padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)">
@@ -550,11 +555,11 @@ body{
             <input type="text" id="s-aisle-cols" placeholder="例: 3, 5" style="flex:1;font-size:var(--fs-base);padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)">
           </div>
           <div style="font-size:var(--fs-xs);color:var(--color-text-tertiary)">行はA=1、B=2…として番号で入力。列は左から1, 2…。カンマ区切りで複数指定可。</div>
-          <button class="btn admin-only" onclick="applyAisles()" style="align-self:flex-start"><i class="ti ti-refresh"></i>適用</button>
+          <button class="btn farm-settings-only" onclick="applyAisles()" style="align-self:flex-start"><i class="ti ti-refresh"></i>適用</button>
         </div>
         <hr class="divider" style="margin:10px 0">
-        <div style="font-size:var(--fs-xs);color:var(--color-text-secondary);margin-bottom:8px" class="admin-only">全区画データを削除します。元に戻せません。</div>
-        <button class="btn-danger-outline admin-only" onclick="resetAll()"><i class="ti ti-trash"></i>全データをリセット</button>
+        <div style="font-size:var(--fs-xs);color:var(--color-text-secondary);margin-bottom:8px" class="farm-settings-only">全区画データを削除します。元に戻せません。</div>
+        <button class="btn-danger-outline farm-settings-only" onclick="resetAll()"><i class="ti ti-trash"></i>全データをリセット</button>
       </div>
     </div>
     <div id="pwa-install-strip" style="display:none;margin:8px 0.5rem 0;border-radius:var(--border-radius-md);background:#eaf6e4;border:0.5px solid var(--color-border-tertiary);padding:10px 12px;align-items:center;justify-content:space-between;gap:8px;cursor:pointer">

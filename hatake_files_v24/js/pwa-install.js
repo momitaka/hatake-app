@@ -24,9 +24,10 @@ function isIOS() {
 function isAndroid() {
   return /Android/.test(navigator.userAgent);
 }
-function isIOSSafari() {
+// SafariとChromeは共有シート（□に↑のアイコン）から「ホーム画面に追加」できるため同じ図解を使う
+function isIOSShareSheetBrowser() {
   const ua = navigator.userAgent;
-  return isIOS() && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua) && !getInAppBrowser();
+  return isIOS() && (/Safari/.test(ua) || /CriOS/.test(ua)) && !getInAppBrowser();
 }
 /** @returns {'line'|'instagram'|'facebook'|null} */
 function getInAppBrowser() {
@@ -44,7 +45,7 @@ const ESCAPE_COPY = {
   facebook: '画面右上の「…」をタップし、「ブラウザで開く」を選んでください。',
 };
 const ANDROID_MENU_COPY = '画面右上の「⋮」メニューを開き、「アプリをインストール」または「ホーム画面に追加」をタップしてください。';
-const IOS_OTHER_BROWSER_COPY = 'この機能はSafariでのみご利用いただけます。Safariで開き直してください。';
+const IOS_OTHER_BROWSER_COPY = 'この機能はSafariやChromeからご利用いただけます。リンクをコピーして開き直してください。';
 
 function showHowTo(/** @type {string} */ text) {
   const el = document.getElementById('dlg-pwa-howto-text');
@@ -67,7 +68,7 @@ function handleStripTap() {
     }
     return;
   }
-  if (isIOSSafari()) { showIOSDiagram(); return; }
+  if (isIOSShareSheetBrowser()) { showIOSDiagram(); return; }
   if (isIOS()) { showHowTo(IOS_OTHER_BROWSER_COPY); return; }
 }
 
@@ -81,6 +82,16 @@ updateStripVisibility();
 
 document.getElementById('dlg-pwa-ios-close').addEventListener('click', () => { document.getElementById('dlg-pwa-ios').style.display = 'none'; });
 document.getElementById('dlg-pwa-howto-close').addEventListener('click', () => { document.getElementById('dlg-pwa-howto').style.display = 'none'; });
+document.getElementById('dlg-pwa-howto-copy').addEventListener('click', async () => {
+  const btn = /** @type {HTMLButtonElement} */ (document.getElementById('dlg-pwa-howto-copy'));
+  try {
+    await navigator.clipboard.writeText(location.href);
+    btn.innerHTML = '<i class="ti ti-check"></i>コピーしました';
+  } catch (e) {
+    btn.innerHTML = 'コピーできませんでした';
+  }
+  setTimeout(() => { btn.innerHTML = '<i class="ti ti-link"></i>リンクをコピー'; }, 1600);
+});
 document.getElementById('pwa-install-strip').addEventListener('click', handleStripTap);
 document.getElementById('pwa-strip-hide').addEventListener('click', e => {
   e.stopPropagation();
