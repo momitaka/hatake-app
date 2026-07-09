@@ -786,6 +786,31 @@ body{
     console.warn('[v25] config load failed, using default:', e.message);
   }
 
+  // TSK-26: manifest.jsonは静的ファイルでstart_url/name/theme_colorが個人版固定のため、
+  // ?config=market等でホーム画面に追加すると常に個人版のURLで起動し、
+  // 個人版とマーケット版のデータが同じページ（＝同じデータソース）に混ざって見える不具合があった。
+  // configに応じてBlob URLでmanifestを差し替え、start_urlに?configを引き継ぐ。
+  try {
+    var manifestObj = {
+      name: window.APP_CONFIG.appName,
+      short_name: window.APP_CONFIG.appName,
+      start_url: './hatake_v26.html' + (configName !== 'default' ? ('?config=' + configName) : ''),
+      scope: './',
+      display: 'standalone',
+      background_color: '#ffffff',
+      theme_color: window.APP_CONFIG.themeColor,
+      icons: [
+        { src: 'images/icon-192.png', sizes: '192x192', type: 'image/png' },
+        { src: 'images/icon-512.png', sizes: '512x512', type: 'image/png' }
+      ]
+    };
+    var manifestBlob = new Blob([JSON.stringify(manifestObj)], {type: 'application/json'});
+    var manifestLink = document.querySelector('link[rel="manifest"]');
+    if(manifestLink) manifestLink.setAttribute('href', URL.createObjectURL(manifestBlob));
+  } catch(e) {
+    console.warn('[TSK-26] dynamic manifest failed, using static manifest.json:', e.message);
+  }
+
   // CSS変数にテーマカラーを適用
   var root = document.documentElement;
   root.style.setProperty('--theme-color', window.APP_CONFIG.themeColor);
