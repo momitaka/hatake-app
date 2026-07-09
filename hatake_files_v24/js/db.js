@@ -15,21 +15,30 @@ export const marketAuth={userId:null,accessToken:null};
 /** @param {any} data */
 export async function saveToDB(data){
   try{
+    let res;
     if(SUPABASE_TABLE==='app_data'){
       // 個人版：従来通り PATCH
-      await fetch(SUPABASE_URL+'/rest/v1/app_data?id=eq.'+DB_ID,{
+      res=await fetch(SUPABASE_URL+'/rest/v1/app_data?id=eq.'+DB_ID,{
         method:'PATCH',
         headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
         body:JSON.stringify({data,updated_at:new Date().toISOString()})
       });
     }else{
       // マーケットプレイス版：会員のみ user_records に UPSERT（user_id をキーに）
+      // on_conflict=user_idを指定しないと、PostgRESTがどのUNIQUE制約で重複解決すべきか
+      // 認識できず、2回目以降の保存がuser_idのUNIQUE制約違反(409)で失敗し続ける
       if(!marketAuth.userId||!marketAuth.accessToken)return;
-      await fetch(SUPABASE_URL+'/rest/v1/'+SUPABASE_TABLE,{
+      res=await fetch(SUPABASE_URL+'/rest/v1/'+SUPABASE_TABLE+'?on_conflict=user_id',{
         method:'POST',
         headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+marketAuth.accessToken,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},
         body:JSON.stringify({user_id:marketAuth.userId,data,updated_at:new Date().toISOString()})
       });
+    }
+    // fetchはHTTPエラー（401/403/400等）でも例外を投げないため、
+    // res.okを見ないと保存失敗が握りつぶされて気づけない
+    if(!res.ok){
+      const body=await res.text().catch(()=>'');
+      console.error('DB save failed',res.status,body);
     }
   }catch(e){console.error('DB save error',e);}
 }
