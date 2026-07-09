@@ -1,6 +1,8 @@
 .env
 .claude/*
 !.claude/settings.json
+!.claude/hooks/
+!.claude/hooks/*
 node_modules/
 .DS_Store
 playwright-report/
