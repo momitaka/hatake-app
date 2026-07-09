@@ -2,7 +2,7 @@
 // ===== グリッド描画・ドラッグ操作 =====
 import { gridState, masterData, segData, dragState } from './state.js';
 import { K } from './date-utils.js';
-import { dispToISO } from './dialogs.js';
+import { dispToISO, showAlert } from './dialogs.js';
 import { vegIconHtml } from './helpers.js';
 import { buildSegs, segIsRegistered, famStyle, vegFamily, calcMajorStatus, getVeg, getTaskState } from './segments.js';
 import { updateFarmNameDisplay } from './storage.js';
@@ -94,7 +94,7 @@ export function renderGrid(){
   renderWeatherBar();
   requestAnimationFrame(applyGridBg);
 }
-export function onDown(r,c,e){e.preventDefault();if(!permCanEditFarm())return;if(gridState.aisleRows.includes(r)||gridState.aisleCols.includes(c))return;const k=K(r,c);if(gridState.cells[k]&&gridState.cells[k].crop)return;dragState.dragging=true;dragState.row=r;dragState.startCol=c;dragState.endCol=c;if(e.touches&&e.touches[0]){dragState.touchStartX=e.touches[0].clientX;dragState.touchStartY=e.touches[0].clientY;}document.addEventListener('mouseup',onUp,{once:true});document.addEventListener('touchend',onUp,{once:true});window.addEventListener('touchend',onUp,{once:true});
+export function onDown(r,c,e){e.preventDefault();if(!permCanEditFarm()){showAlert('編集するには設定画面から管理者ログインしてください');return;}if(gridState.aisleRows.includes(r)||gridState.aisleCols.includes(c))return;const k=K(r,c);if(gridState.cells[k]&&gridState.cells[k].crop)return;dragState.dragging=true;dragState.row=r;dragState.startCol=c;dragState.endCol=c;if(e.touches&&e.touches[0]){dragState.touchStartX=e.touches[0].clientX;dragState.touchStartY=e.touches[0].clientY;}document.addEventListener('mouseup',onUp,{once:true});document.addEventListener('touchend',onUp,{once:true});window.addEventListener('touchend',onUp,{once:true});
   // DOM再構築せず直接ハイライト（iOS touchend対策）
   const tds=/** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('#grid-table td'));tds.forEach(td=>{if(td.dataset.r==r&&td.dataset.c==c)td.style.background='var(--color-background-tertiary)';});
 }
