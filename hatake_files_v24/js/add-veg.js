@@ -7,11 +7,12 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY, permState, addVegState, masterData, na
 import { permRequireAdmin } from './permissions.js';
 import { _dataStrategy, saveLS } from './storage.js';
 import { marketAuth } from './db.js';
-import { ALL_ICONS } from './helpers.js';
+import { ALL_ICONS, FAMILIES } from './helpers.js';
 import { openMarketList } from './marketplace.js';
 import { renderMasterList, renderMasterDetail } from './master-recipes.js';
 
 export function permCanEditFarm(){return permRequireAdmin()||_dataStrategy==='session';}
+(function _populateFamilySelect(){const sel=/** @type {HTMLSelectElement} */ (document.getElementById('av-family'));Object.keys(FAMILIES).forEach(f=>{const op=document.createElement('option');op.value=f;op.textContent=f;sel.appendChild(op);});})();
 let _myPurchasedRecipes=[];
 async function _populateAddVegPreset(){
   const sel=document.getElementById('av-preset');const label=document.getElementById('av-preset-label');
@@ -33,11 +34,11 @@ async function _populateAddVegPreset(){
     PRESET_VEGS.forEach(v=>{const op=document.createElement('option');op.value=v.id;op.textContent=`${v.emoji} ${v.name}`;sel.appendChild(op);});
   }
 }
-document.getElementById('btn-add-veg').addEventListener('click',()=>{if(!permCanEditFarm())return;/** @type {HTMLInputElement} */ (document.getElementById('av-name')).value='';/** @type {HTMLInputElement} */ (document.getElementById('av-variety')).value='';/** @type {HTMLInputElement} */ (document.getElementById('av-ref-url')).value='';/** @type {HTMLSelectElement} */ (document.getElementById('av-grow-method')).value='seedling';/** @type {HTMLSelectElement} */ (document.getElementById('av-season')).value='';/** @type {HTMLSelectElement} */ (document.getElementById('av-region')).value=localStorage.getItem('hatake_last_region')||'';addVegState.emoji='🌱';addVegState.iconFile=null;renderEmojiGrid();/** @type {HTMLButtonElement} */ (document.getElementById('av-next')).disabled=true;_populateAddVegPreset();document.getElementById('dlg-add-veg').style.display='flex';});
+document.getElementById('btn-add-veg').addEventListener('click',()=>{if(!permCanEditFarm())return;/** @type {HTMLInputElement} */ (document.getElementById('av-name')).value='';/** @type {HTMLInputElement} */ (document.getElementById('av-variety')).value='';/** @type {HTMLSelectElement} */ (document.getElementById('av-family')).value='';/** @type {HTMLInputElement} */ (document.getElementById('av-ref-url')).value='';/** @type {HTMLSelectElement} */ (document.getElementById('av-grow-method')).value='seedling';/** @type {HTMLSelectElement} */ (document.getElementById('av-season')).value='';/** @type {HTMLSelectElement} */ (document.getElementById('av-region')).value=localStorage.getItem('hatake_last_region')||'';addVegState.emoji='🌱';addVegState.iconFile=null;renderEmojiGrid();/** @type {HTMLButtonElement} */ (document.getElementById('av-next')).disabled=true;_populateAddVegPreset();document.getElementById('dlg-add-veg').style.display='flex';});
 // 購入直後、「購入したレシピから選ぶ」を手動で選び直す手間を省き、
 // そのまま内容が反映された状態で「野菜を追加」ダイアログを開く
 export async function _openAddVegFromPurchase(userRecipe){
-  /** @type {HTMLInputElement} */ (document.getElementById('av-name')).value='';/** @type {HTMLInputElement} */ (document.getElementById('av-variety')).value='';/** @type {HTMLInputElement} */ (document.getElementById('av-ref-url')).value='';/** @type {HTMLSelectElement} */ (document.getElementById('av-grow-method')).value='seedling';/** @type {HTMLSelectElement} */ (document.getElementById('av-season')).value='';/** @type {HTMLSelectElement} */ (document.getElementById('av-region')).value=localStorage.getItem('hatake_last_region')||'';addVegState.emoji='🌱';addVegState.iconFile=null;renderEmojiGrid();
+  /** @type {HTMLInputElement} */ (document.getElementById('av-name')).value='';/** @type {HTMLInputElement} */ (document.getElementById('av-variety')).value='';/** @type {HTMLSelectElement} */ (document.getElementById('av-family')).value='';/** @type {HTMLInputElement} */ (document.getElementById('av-ref-url')).value='';/** @type {HTMLSelectElement} */ (document.getElementById('av-grow-method')).value='seedling';/** @type {HTMLSelectElement} */ (document.getElementById('av-season')).value='';/** @type {HTMLSelectElement} */ (document.getElementById('av-region')).value=localStorage.getItem('hatake_last_region')||'';addVegState.emoji='🌱';addVegState.iconFile=null;renderEmojiGrid();
   /** @type {HTMLButtonElement} */ (document.getElementById('av-next')).disabled=true;
   await _populateAddVegPreset();
   const sel=/** @type {HTMLSelectElement} */ (document.getElementById('av-preset'));
@@ -63,9 +64,10 @@ document.getElementById('av-preset').addEventListener('change',()=>{
     /** @type {HTMLSelectElement} */ (document.getElementById('av-grow-method')).value=purchased.grow_method||'seedling';
     /** @type {HTMLSelectElement} */ (document.getElementById('av-season')).value=purchased.season||'';
     /** @type {HTMLInputElement} */ (document.getElementById('av-ref-url')).value=purchased.reference_video_url||'';
+    /** @type {HTMLSelectElement} */ (document.getElementById('av-family')).value=purchased.family||'';
   }else{
     const preset=PRESET_VEGS.find(v=>v.id===val);
-    if(preset){/** @type {HTMLInputElement} */ (document.getElementById('av-name')).value=preset.name;addVegState.emoji=preset.emoji;addVegState.iconFile=preset.iconFile||null;renderEmojiGrid();}
+    if(preset){/** @type {HTMLInputElement} */ (document.getElementById('av-name')).value=preset.name;addVegState.emoji=preset.emoji;addVegState.iconFile=preset.iconFile||null;renderEmojiGrid();/** @type {HTMLSelectElement} */ (document.getElementById('av-family')).value=preset.family||'';}
   }
   checkAddVegValid();
 });
@@ -99,8 +101,8 @@ document.getElementById('av-next').addEventListener('click',()=>{
   if(!permCanEditFarm())return;
   const name=/** @type {HTMLInputElement} */ (document.getElementById('av-name')).value.trim();const variety=/** @type {HTMLInputElement} */ (document.getElementById('av-variety')).value.trim();const presetId=/** @type {HTMLSelectElement} */ (document.getElementById('av-preset')).value;const preset=PRESET_VEGS.find(v=>v.id===presetId);const purchased=_myPurchasedRecipes.find(r=>r.id===presetId);if(!name)return;
   const id=purchased?`veg_${Date.now()}`:(presetId&&!masterData.vegMaster[presetId]?presetId:`veg_${Date.now()}`);
-  const growMethod=/** @type {HTMLSelectElement} */ (document.getElementById('av-grow-method')).value;const refUrl=/** @type {HTMLInputElement} */ (document.getElementById('av-ref-url')).value.trim();const season=/** @type {HTMLSelectElement} */ (document.getElementById('av-season')).value;const region=/** @type {HTMLSelectElement} */ (document.getElementById('av-region')).value;if(region)localStorage.setItem('hatake_last_region',region);
-  masterData.vegMaster[id]={id,name,emoji:addVegState.emoji,iconFile:addVegState.iconFile||undefined,family:purchased?purchased.family:(preset?preset.family:''),variety,growMethod,season,region,referenceUrl:refUrl,phases:purchased?JSON.parse(JSON.stringify(purchased.phases||[])):[],basicInfo:purchased?JSON.parse(JSON.stringify(purchased.basic_info||{})):undefined};
+  const growMethod=/** @type {HTMLSelectElement} */ (document.getElementById('av-grow-method')).value;const refUrl=/** @type {HTMLInputElement} */ (document.getElementById('av-ref-url')).value.trim();const season=/** @type {HTMLSelectElement} */ (document.getElementById('av-season')).value;const region=/** @type {HTMLSelectElement} */ (document.getElementById('av-region')).value;if(region)localStorage.setItem('hatake_last_region',region);const family=/** @type {HTMLSelectElement} */ (document.getElementById('av-family')).value;
+  masterData.vegMaster[id]={id,name,emoji:addVegState.emoji,iconFile:addVegState.iconFile||undefined,family,variety,growMethod,season,region,referenceUrl:refUrl,phases:purchased?JSON.parse(JSON.stringify(purchased.phases||[])):[],basicInfo:purchased?JSON.parse(JSON.stringify(purchased.basic_info||{})):undefined};
   navState.masterVeg=id;saveLS();document.getElementById('dlg-add-veg').style.display='none';
   renderMasterList();renderMasterDetail();
 });

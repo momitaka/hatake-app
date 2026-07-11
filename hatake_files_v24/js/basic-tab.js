@@ -35,6 +35,7 @@ export function renderBasicTab(el,veg){
 
   // 基本情報
   const s1=section('基本情報','ti-info-circle');
+  if(veg&&veg.family)s1.appendChild(row('科',veg.family));
   if(bi.size)s1.appendChild(row('サイズ',bi.size));
   if(bi.yieldPerPlant)s1.appendChild(row('収穫目安',bi.yieldPerPlant));
   if(bi.soilPH)s1.appendChild(row('適正pH',bi.soilPH));
