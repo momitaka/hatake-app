@@ -32,7 +32,7 @@ export function renderMasterDetail(){
   // 基礎知識タブは、監修者は常に表示（空の状態から書き込むため）。
   // end_userは basicInfo が存在する場合のみ表示する。end_userの手入力レシピには
   // basicInfoが無いため非表示になる（購入・転写したレシピはAI生成済みなので表示される）。
-  const showBasicTab=permState.isSupervisor||(veg.basicInfo&&Object.keys(veg.basicInfo).length>0);
+  const showBasicTab=permCanEditFarm()||permState.isSupervisor||(veg.basicInfo&&Object.keys(veg.basicInfo).length>0);
   if(!showBasicTab&&navState.masterTab==='basic')navState.masterTab='roadmap';
   const tabBar=document.createElement('div');tabBar.className='tab-bar';tabBar.style.margin='0 0 12px';
   const tabDefs=showBasicTab?[{id:'basic',label:'基礎知識',icon:'ti-info-circle'},{id:'roadmap',label:'工程表',icon:'ti-road'}]:[{id:'roadmap',label:'工程表',icon:'ti-road'}];
@@ -45,9 +45,12 @@ export function renderMasterDetail(){
   scroll.appendChild(tabBar);
   if(navState.masterTab==='basic'){
     // 基礎情報タブ
+    const canEdit=permCanEditFarm();
+    if(!veg.basicInfo){
+      if(canEdit){masterData.vegMaster[veg.id].basicInfo={};}
+      else{const emp=document.createElement('div');emp.style.cssText='text-align:center;padding:40px 20px;color:var(--color-text-tertiary);font-size:var(--fs-sm)';emp.innerHTML='<i class="ti ti-sparkles" style="font-size:28px;display:block;margin-bottom:8px"></i>AIで生成すると基礎知識が表示されます';scroll.appendChild(emp);renderMasterSaveBar(col,veg);return;}
+    }
     const bi=veg.basicInfo;
-    if(!bi){const emp=document.createElement('div');emp.style.cssText='text-align:center;padding:40px 20px;color:var(--color-text-tertiary);font-size:var(--fs-sm)';emp.innerHTML='<i class="ti ti-sparkles" style="font-size:28px;display:block;margin-bottom:8px"></i>AIで生成すると基礎知識が表示されます';scroll.appendChild(emp);renderMasterSaveBar(col,veg);return;}
-    const canEdit=permRequireSupervisor();
     function biField(label,key,subkey,multiline){
       const wrap=document.createElement('div');wrap.style.cssText='margin-bottom:10px';
       const lbl=document.createElement('div');lbl.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-bottom:3px';lbl.textContent=label;
