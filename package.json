@@ -7,12 +7,16 @@
     "test:webkit": "playwright test --project=webkit",
     "test:headed": "playwright test --headed",
     "test:report": "playwright show-report",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "prepare": "git config core.hooksPath .githooks"
   },
   "devDependencies": {
     "@playwright/test": "^1.48.0",
-    "typescript": "^6.0.3"
+    "jsdom": "^29.1.1",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
   },
   "dependencies": {
     "docx": "^9.7.1"
