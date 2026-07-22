@@ -15,6 +15,16 @@ const _storage={
   getItem(k){return _dataStrategy==='session'?sessionStorage.getItem(k):localStorage.getItem(k);},
   setItem(k,v){if(_dataStrategy==='session'){sessionStorage.setItem(k,v);}else{localStorage.setItem(k,v);}}
 };
+// 管理画面で区画ごとに最後に開いていたタブ。Supabaseには同期せず端末内のみで記憶する。
+const LAST_TAB_KEY=LS_KEY+'_lastTab';
+/** @param {string} segId */
+export function getLastTab(segId){
+  try{const m=JSON.parse(_storage.getItem(LAST_TAB_KEY)||'{}');return m[segId]||null;}catch(e){return null;}
+}
+/** @param {string} segId @param {string} tabId */
+export function setLastTab(segId,tabId){
+  try{const m=JSON.parse(_storage.getItem(LAST_TAB_KEY)||'{}');m[segId]=tabId;_storage.setItem(LAST_TAB_KEY,JSON.stringify(m));}catch(e){}
+}
 export function saveLS(){
   try{
     const d={cells:gridState.cells,COLS:gridState.cols,ROWS:gridState.rows,segTasks:segData.tasks,actionLogs:segData.actionLogs,harvestLogs:segData.harvestLogs,segSummaryMemo:segData.summaryMemo,vegMaster:masterData.vegMaster,archivedSegs:segData.archived,farmName:farmMeta.name,aisleRows:gridState.aisleRows,aisleCols:gridState.aisleCols,farmNameFont:farmMeta.font,farmIcon:farmMeta.icon,farmLat:farmMeta.lat,farmLng:farmMeta.lng};

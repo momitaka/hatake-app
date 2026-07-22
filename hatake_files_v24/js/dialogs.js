@@ -23,7 +23,7 @@ export function showMilestoneDialog(type){
   }else if(type==='firstHarvest'){
     img.src='images/milestone_firstharvest.png';
     title.textContent='🎉 初収穫おめでとうございます！';
-    msg.textContent='ここまで育ててきた努力が実を結びました。よく頑張りましたね。お疲れ様でした！';
+    msg.innerHTML='ここまで育ててきた努力が実を結びました。よく頑張りましたね。お疲れ様でした！<br><br><span style="font-size:var(--fs-xs);color:var(--color-text-tertiary)">以後、この野菜の管理画面は収穫タブを初期表示します。</span>';
   }
   dlg.style.display='flex';
 }
