@@ -5,6 +5,24 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// AIが定植/種まきタスクと同じdayを他のタスクにも付与してしまうと、
+// manage.js側の相対日数表示（task.day - 基準タスクのday）で「0日」が
+// 複数表示されてしまう（TSK-5）。プロンプトでの指示に加え、生成結果を
+// 補正して基準タスクのdayが他タスクと重複しないようにする。
+function dedupePivotDay(phases: { tasks: { day: number; milestone?: string }[] }[], pivotMilestone: string) {
+  const allTasks = phases.flatMap(p => p.tasks || []);
+  const pivotIdx = allTasks.findIndex(t => t.milestone === pivotMilestone);
+  if (pivotIdx === -1) return;
+  const pivotDay = allTasks[pivotIdx].day;
+  let beforeOffset = 1;
+  let afterOffset = 1;
+  allTasks.forEach((t, i) => {
+    if (i === pivotIdx || t.day !== pivotDay) return;
+    if (i < pivotIdx) { t.day = pivotDay - beforeOffset; beforeOffset++; }
+    else { t.day = pivotDay + afterOffset; afterOffset++; }
+  });
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: CORS_HEADERS });
@@ -107,7 +125,7 @@ Deno.serve(async (req) => {
 ロードマップのルール：
 - majorStatusは順に "ready" → "growing" → "harvesting" → "done" を使用
 - フェーズは3〜5個、各フェーズのタスクは2〜5個
-- dayは作業開始日からの経過日数（整数）
+- dayは作業開始日からの経過日数（整数）。全タスクを通じてdayの値が重複しないようにし、特にmilestone（"sowing"/"planting"）を設定したタスクのdayは他のどのタスクとも重複させない（前後で必ず異なる日数にする）
 - ${isSeed ? '種から育てる場合：p1に「種まき」タスク（milestone:"sowing"）と「発芽確認」タスク（milestone:"germination"）を必ず含める' : '苗から育てる場合：p1に「定植（植付け）」タスク（milestone:"planting"）を必ず含める'}
 - 収穫フェーズに「初収穫」タスク（milestone:"firstHarvest"）を含める
 - urlは空文字列でOK
@@ -168,6 +186,10 @@ ${referenceUrl ? `参考URL: ${referenceUrl}` : ''}
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error('JSONが見つかりませんでした');
     const result = JSON.parse(jsonMatch[0]);
+
+    if (Array.isArray(result.phases)) {
+      dedupePivotDay(result.phases, isSeed ? 'sowing' : 'planting');
+    }
 
     // 既定値があればそちらを採用（品種内でのブレを防ぐ）。無ければ今回の
     // 生成結果を新しい既定値として登録する。
