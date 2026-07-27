@@ -76,5 +76,5 @@ import { farmMeta } from './state.js';
   const _splash=document.getElementById('splash-screen');
   function _closeSplash(){_splash.style.opacity='0';setTimeout(()=>_splash.style.display='none',600);}
   if(new URLSearchParams(location.search).get('skip_splash')){_splash.style.display='none';}
-  else{_splash.addEventListener('touchend',e=>{e.preventDefault();_closeSplash();},{once:true,passive:false});_splash.addEventListener('click',_closeSplash,{once:true});setTimeout(_closeSplash,2000);}
+  else{_splash.addEventListener('touchend',e=>{e.preventDefault();_closeSplash();},{once:true,passive:false});_splash.addEventListener('click',_closeSplash,{once:true});setTimeout(_closeSplash,5000);}
 })();
