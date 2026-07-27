@@ -65,6 +65,7 @@ body{font-family:var(--font-sans);background:#f9f8f4;min-height:100vh;padding:0}
 #screen-manage.active,#screen-master.active{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
 #master-content{flex:1;overflow-y:auto;padding:0 0 24px}
 #screen-manage .toolbar,#screen-master .toolbar{position:relative;top:auto;flex-shrink:0;margin:0 -0.5rem;background:#5aad4e;border-bottom:none;padding:10px 13px;border-bottom-right-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,0.13);z-index:1}
+#screen-archive .toolbar{background:#5aad4e;border-bottom:none;padding:10px 13px;border-bottom-right-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,0.13)}
 #manage-static{flex-shrink:0;padding:10px 0.5rem 10px;background:#fff;margin:0 -0.5rem;box-shadow:0 4px 14px rgba(0,0,0,0.13);position:sticky;top:0;z-index:10}
 #manage-tabs{flex-shrink:0;padding:10px 0.5rem 12px;background:#fff;margin:0 -0.5rem}
 #manage-content{flex:1;overflow-y:auto;padding:10px 0 24px}
@@ -72,7 +73,7 @@ body{font-family:var(--font-sans);background:#f9f8f4;min-height:100vh;padding:0}
 .toolbar-grid{background:#f9f8f4;border-bottom:none;flex-direction:column;align-items:stretch;gap:0;padding:0;margin-bottom:10px}
 body.admin-mode .header-card-bottom{background:#e28a12}
 body.admin-mode .toolbar{border-bottom-color:#e28a12}
-body.admin-mode #screen-manage .toolbar,body.admin-mode #screen-master .toolbar{background:#e28a12}
+body.admin-mode #screen-manage .toolbar,body.admin-mode #screen-master .toolbar,body.admin-mode #screen-archive .toolbar{background:#e28a12}
 .header-card{background:#fff;border-radius:0 0 14px 14px;overflow:visible;box-shadow:0 4px 14px rgba(0,0,0,0.13)}
 .header-card-top{padding:12px 13px 10px;display:flex;justify-content:space-between;align-items:flex-start;position:relative;overflow:visible;min-height:54px}
 .header-card-bottom{background:#5aad4e;padding:10px 13px;display:flex;gap:6px;align-items:center;position:relative;z-index:1;border-bottom-right-radius:14px;border-top-left-radius:14px}
@@ -591,8 +592,8 @@ body{
 
   <div class="screen" id="screen-archive">
     <div class="toolbar">
-      <button class="btn" onclick="closeArchive()"><i class="ti ti-arrow-left"></i>グリッドへ戻る</button>
-      <span style="font-size:var(--fs-base);font-weight:500;color:var(--color-text-primary);margin-left:4px">過去データ</span>
+      <button class="btn-grid-chip btn-master" onclick="closeArchive()"><i class="ti ti-arrow-left" style="font-size:var(--fs-xs)"></i>グリッドへ戻る</button>
+      <span style="font-size:var(--fs-base);font-weight:600;color:#fff;margin-left:4px;flex:1;text-align:center">過去データ</span>
     </div>
     <div id="archive-content"></div>
   </div>
