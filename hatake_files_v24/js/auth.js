@@ -187,18 +187,21 @@ import { _applyLoadedData } from './data-loading.js';
     if(!dlg) return;
     // 現在のログイン状態に応じてUI切り替え
     _sb.auth.getSession().then(({data:{session}}) => {
+      const desc = document.getElementById('auth-modal-desc');
       if(session) {
         _updateAuthUI(session.user, window.APP_SUBSCRIBED, null);
         const title = document.getElementById('auth-modal-title');
         const sub   = document.getElementById('auth-modal-sub');
         if(title) title.textContent = 'アカウント情報';
         if(sub)   sub.textContent   = '';
+        if(desc)  desc.style.display = 'none';
       } else {
         _updateAuthUI(null, false, null);
         const title = document.getElementById('auth-modal-title');
         const sub   = document.getElementById('auth-modal-sub');
         if(title) title.textContent = 'アカウント登録';
         if(sub)   sub.textContent   = '月額150円・1ヶ月無料・いつでも解約OK';
+        if(desc)  desc.style.display = 'block';
       }
     });
     dlg.style.display = 'flex';

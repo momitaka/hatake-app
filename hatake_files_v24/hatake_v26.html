@@ -376,10 +376,13 @@ body{
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
       <div>
         <div style="font-size:17px;font-weight:700;color:#1a1915" id="auth-modal-title">アカウント登録</div>
-        <div style="font-size:var(--fs-xs);color:#9c9a93;margin-top:3px" id="auth-modal-sub">月額330円・いつでも解約OK</div>
+        <div style="font-size:var(--fs-xs);color:#9c9a93;margin-top:3px" id="auth-modal-sub">月額150円・1ヶ月無料・いつでも解約OK</div>
       </div>
       <button onclick="closeAuthModal()" style="width:28px;height:28px;border-radius:50%;border:none;background:#f5f5f0;color:#5f5e5a;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">×</button>
     </div>
+
+    <!-- v26: サブスク費用が何のためかを明示（TSK-17）。ログイン済みの時は非表示（auth.js側で制御） -->
+    <div id="auth-modal-desc" style="display:none;font-size:var(--fs-xs);color:#5f5e5a;line-height:1.6;background:#f5f5f0;border-radius:8px;padding:10px 12px;margin-bottom:16px">このアプリを広告なしで続けるための運営費です（サーバー代・データ保存費など）。</div>
 
     <!-- メール入力フォーム -->
     <div id="auth-email-form">
