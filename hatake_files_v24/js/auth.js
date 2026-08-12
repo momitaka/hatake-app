@@ -199,7 +199,7 @@ import { _applyLoadedData } from './data-loading.js';
         _updateAuthUI(null, false, null);
         const title = document.getElementById('auth-modal-title');
         const sub   = document.getElementById('auth-modal-sub');
-        if(title) title.textContent = 'アカウント登録';
+        if(title) title.textContent = '会員登録';
         if(sub)   sub.textContent   = '月額150円・1ヶ月無料・いつでも解約OK';
         if(desc)  desc.style.display = 'block';
       }
