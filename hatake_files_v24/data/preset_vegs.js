@@ -12,7 +12,7 @@ const PRESET_VEGS=[
   {id:'tomato',name:'トマト',emoji:'🍅',family:'ナス科',iconFile:'img1_tomato'},
   {id:'togarashi',name:'とうがらし',emoji:'🌶',family:'ナス科',iconFile:'img2_togarashi'},
   {id:'tsurumurasaki',name:'ツルムラサキ',emoji:'🌿',family:'ツルムラサキ科',iconFile:'img2_tsurumurasaki'},
-  {id:'daikon',name:'ダイコン',emoji:'🫛',family:'アブラナ科',iconFile:'img1_daikon'},
+  {id:'daikon',name:'ダイコン',emoji:'⚪',family:'アブラナ科',iconFile:'img1_daikon'},
   {id:'chingensai',name:'チンゲンサイ',emoji:'🥦',family:'アブラナ科',iconFile:'img2_chingensai'},
   {id:'sweet_potato',name:'サツマイモ',emoji:'🍠',family:'ヒルガオ科',iconFile:'img3_sweet_potato'},
   {id:'shungiku',name:'春菊',emoji:'🌼',family:'キク科',iconFile:'img2_shungiku'},
