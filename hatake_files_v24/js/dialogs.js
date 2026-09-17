@@ -27,9 +27,12 @@ export function showMilestoneDialog(type){
   }
   dlg.style.display='flex';
 }
-/** @param {string} msg @param {() => void} onOk */
-export function showConfirm(msg, onOk){
-  document.getElementById('dlg-custom-confirm-msg').textContent=msg;
+/** @param {string} msg @param {() => void} onOk @param {{align?:string,fontSize?:string}} [opts] 長文・箇条書きなど、既定の中央揃え・fs-baseでは読みにくいメッセージ用の表示調整 */
+export function showConfirm(msg, onOk, opts={}){
+  const msgEl=document.getElementById('dlg-custom-confirm-msg');
+  msgEl.textContent=msg;
+  msgEl.style.textAlign=opts.align||'center';
+  msgEl.style.fontSize=opts.fontSize||'var(--fs-base)';
   const dlg=document.getElementById('dlg-custom-confirm');
   const okBtn=document.getElementById('dlg-custom-confirm-ok');
   const cancelBtn=document.getElementById('dlg-custom-confirm-cancel');

@@ -42,6 +42,15 @@ function mergeTaskMaps(a,b){
   });
   return out;
 }
+/** @param {string} sid @returns {boolean} 工程表の実施記録・収穫記録・全体メモのいずれかに実績があるか（連携時の確認アラート表示判定に使用） */
+export function hasAnyRecord(sid){
+  const k=recordKey(sid);
+  const tasks=segData.tasks[k];
+  const hasTask=!!tasks&&Object.values(tasks).some(t=>t.done||t.skip||(t.doneDates&&t.doneDates.length));
+  const hasHarvest=(segData.harvestLogs[k]||[]).length>0;
+  const hasMemo=!!(segData.summaryMemo[k]||'').trim();
+  return hasTask||hasHarvest||hasMemo;
+}
 /** repSidを代表として、otherSids（既に連携済みのグループごと）を統合する */
 export function linkSegs(repSid,otherSids){
   if(!segData.linkGroups)segData.linkGroups={};

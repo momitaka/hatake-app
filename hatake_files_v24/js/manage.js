@@ -2,7 +2,7 @@
 // ===== 管理画面（工程表・ログ・収穫） =====
 import { navState, permState, gridState, segData } from './state.js';
 import { vegIconHtml, UNITS } from './helpers.js';
-import { buildSegs, getVeg, calcMajorStatus, calcProgress, getTaskState, setTaskState, getMilestoneDate, addDays, getMergedLogsByDate, getHarvestSummary, harvestTotalStr, getHarvestLogs, addHarvestLog, removeHarvestLog, getSummaryMemo, setSummaryMemo, getLinkedSids, linkSegs, unlinkOne, detachSegFromGroup } from './segments.js';
+import { buildSegs, getVeg, calcMajorStatus, calcProgress, getTaskState, setTaskState, getMilestoneDate, addDays, getMergedLogsByDate, getHarvestSummary, harvestTotalStr, getHarvestLogs, addHarvestLog, removeHarvestLog, getSummaryMemo, setSummaryMemo, getLinkedSids, linkSegs, unlinkOne, detachSegFromGroup, hasAnyRecord } from './segments.js';
 import { dispToISO, showTaskDateDialog, showMilestoneDialog, showConfirm } from './dialogs.js';
 import { pushUndo, saveLS, getLastTab, setLastTab } from './storage.js';
 import { isoShort, isoFull, daysBetween, todayISO } from './date-utils.js';
@@ -162,7 +162,13 @@ function showLinkPicker(sid){
   const close=()=>{dlg.style.display='none';confirmBtn.onclick=null;cancelBtn.onclick=null;};
   confirmBtn.onclick=()=>{
     if(!checked.size){close();return;}
-    pushUndo();linkSegs(sid,[...checked]);buildSegs();saveLS();close();renderManage();
+    const targets=[...checked];
+    const doMerge=()=>{pushUndo();linkSegs(sid,targets);buildSegs();saveLS();close();renderManage();};
+    if(hasAnyRecord(sid)||targets.some(hasAnyRecord)){
+      showConfirm('連携すると、工程表・収穫記録・全体メモがこの区画とまとめて1つになります。\n\n・工程表は、進んでいる方の状態に統合されます\n・収穫量の合計は、両方の数字を足し算した値になります\n・一度連携すると、あとで元の別々の記録には戻せません\n\nよろしいですか？',doMerge,{align:'left',fontSize:'var(--fs-sm)'});
+    }else{
+      doMerge();
+    }
   };
   cancelBtn.onclick=()=>close();
   dlg.style.display='flex';
