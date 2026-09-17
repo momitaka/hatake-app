@@ -3,7 +3,7 @@
 import { segData, masterData, gridState } from './state.js';
 import { isoShort, isoFull, daysBetween } from './date-utils.js';
 import { vegIconHtml } from './helpers.js';
-import { famStyle, getMergedLogsByDate } from './segments.js';
+import { famStyle, getMergedLogsByDate, getActionLogs, getSummaryMemo } from './segments.js';
 
 let archiveSortKey='completedDate',archiveSortDir='desc',archiveDetailSeg=null,currentSnapshotIdx=0;
 
@@ -238,7 +238,7 @@ export function renderArchiveDetail(el,segId){
   el.appendChild(hdr);
 
   // サマリー統計（読み取り専用）
-  const taskLogs=segData.actionLogs[segId]||[];
+  const taskLogs=getActionLogs(segId);
   const allLogDates=taskLogs.map(l=>l.date).sort();
   const lastLogDate=arch.lastLogDate||allLogDates[allLogDates.length-1]||null;
   let workPeriodVal='—',workPeriodSub='';
@@ -316,7 +316,7 @@ export function renderArchiveDetail(el,segId){
   summary.appendChild(miniGridWrap);
 
   // 全体メモ（読み取り専用）
-  const memo=segData.summaryMemo[segId]||'';
+  const memo=getSummaryMemo(segId);
   if(memo){const memoBox=document.createElement('div');memoBox.className='summary-memo-box';memoBox.innerHTML=`<div class="summary-memo-header"><i class="ti ti-notes" style="color:#9c9a93"></i>全体メモ</div><div class="summary-memo-body" style="font-size:var(--fs-sm);line-height:1.6;color:var(--color-text-primary);white-space:pre-wrap">${memo}</div>`;summary.appendChild(memoBox);}
   el.appendChild(summary);
 

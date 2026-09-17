@@ -4,7 +4,7 @@ import { gridState, segData, masterData, farmMeta, navState, undoStack } from '.
 import { FAMILIES } from './helpers.js';
 import { dispToISO } from './dialogs.js';
 import { vegIconHtml } from './helpers.js';
-import { buildSegs, getVeg, calcMajorStatus, calcProgress, getTaskState } from './segments.js';
+import { buildSegs, getVeg, calcMajorStatus, calcProgress, getTaskState, getHarvestLogs } from './segments.js';
 import { showConfirm } from './dialogs.js';
 import { saveLS, pushUndo, updUndoBtn, updateFarmNameDisplay } from './storage.js';
 import { permCanEditFarm } from './add-veg.js';
@@ -55,8 +55,8 @@ export function renderSegList(){
     let startDateDisp='';
     {if(seg.plantDate){startDateDisp=seg.plantDate.slice(5).replace('-','/')+'〜';}else{let earliest='';allTasks.forEach(t=>{(getTaskState(seg.id,t.id).doneDates||[]).forEach(d=>{const iso=dispToISO(d);if(iso&&(!earliest||iso<earliest))earliest=iso;});});if(earliest)startDateDisp=earliest.slice(5).replace('-','/')+'〜';}}
     const item=document.createElement('div');item.className='seg-item';item.style.cssText='flex-direction:column;align-items:stretch;gap:0';
-    const harvestTotal=(segData.harvestLogs[seg.id]||[]).reduce((s,h)=>s+(parseFloat(h.amount)||0),0);
-    const harvestUnit=(segData.harvestLogs[seg.id]||[]).find(h=>h.unit)?.unit||'';
+    const harvestTotal=getHarvestLogs(seg.id).reduce((s,h)=>s+(parseFloat(h.amount)||0),0);
+    const harvestUnit=getHarvestLogs(seg.id).find(h=>h.unit)?.unit||'';
     const harvestDisp=harvestTotal>0?`計 ${harvestTotal.toFixed(harvestTotal%1===0?0:1)}${harvestUnit}`:'';
     item.innerHTML=`<div style="display:flex;align-items:center;gap:7px;margin-bottom:4px"><span style="font-size:17px;line-height:1;flex-shrink:0">${veg?(vegIconHtml(veg,18)):'🌱'}</span><span style="font-size:var(--fs-base);font-weight:600;color:#1a1915;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${veg?veg.name:'—'}</span><span class="status-pill" style="background:${majorSt.bg};color:${majorSt.color};font-size:9px;padding:2px 7px;border-radius:99px;font-weight:500">${majorSt.name}</span></div><div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><div style="flex:1;height:3px;background:#d4edb8;border-radius:2px"><div style="height:3px;border-radius:2px;background:${majorSt.color};width:${pct}%"></div></div><span style="font-size:var(--fs-xs);font-weight:600;color:${majorSt.color};min-width:26px;text-align:right">${pct}%</span></div><div style="display:flex;align-items:center;gap:4px"><i class="ti ti-arrow-right" style="font-size:9px;color:#b4b2a9"></i><span style="font-size:var(--fs-xs);color:#9c9a93;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${nextTaskName||'—'}</span><span style="font-size:var(--fs-xs);color:#5aad4e;flex-shrink:0;font-weight:500">${harvestDisp}</span></div>`;
     item.addEventListener('click',()=>openManage(seg.id));list.appendChild(item);});
@@ -90,7 +90,7 @@ export function syncAisleInputs(){
   /** @type {HTMLInputElement} */ (document.getElementById('s-aisle-rows')).value=gridState.aisleRows.map(r=>r+1).join(', ');
   /** @type {HTMLInputElement} */ (document.getElementById('s-aisle-cols')).value=gridState.aisleCols.map(c=>c+1).join(', ');
 }
-export function resetAll(){if(!permCanEditFarm())return;showConfirm('全データをリセットしますか？',()=>{gridState.cells={};segData.segs={};segData.tasks={};segData.actionLogs={};segData.harvestLogs={};segData.summaryMemo={};segData.archived={};undoStack.length=0;renderGrid();updUndoBtn();saveLS();});}
+export function resetAll(){if(!permCanEditFarm())return;showConfirm('全データをリセットしますか？',()=>{gridState.cells={};segData.segs={};segData.tasks={};segData.actionLogs={};segData.harvestLogs={};segData.summaryMemo={};segData.archived={};segData.linkGroups={};undoStack.length=0;renderGrid();updUndoBtn();saveLS();});}
 
 export function openMaster(){document.getElementById('screen-register').classList.remove('active');document.getElementById('screen-master').classList.add('active');renderMasterList();if(navState.masterVeg)renderMasterDetail();}
 export function closeMaster(){document.getElementById('screen-master').classList.remove('active');document.getElementById('screen-register').classList.add('active');renderGrid();}

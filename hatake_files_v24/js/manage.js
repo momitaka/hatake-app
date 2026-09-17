@@ -2,7 +2,7 @@
 // ===== 管理画面（工程表・ログ・収穫） =====
 import { navState, permState, gridState, segData } from './state.js';
 import { vegIconHtml, UNITS } from './helpers.js';
-import { buildSegs, getVeg, calcMajorStatus, calcProgress, getTaskState, setTaskState, getMilestoneDate, addDays, getMergedLogsByDate, getHarvestSummary, harvestTotalStr } from './segments.js';
+import { buildSegs, getVeg, calcMajorStatus, calcProgress, getTaskState, setTaskState, getMilestoneDate, addDays, getMergedLogsByDate, getHarvestSummary, harvestTotalStr, getHarvestLogs, addHarvestLog, removeHarvestLog, getSummaryMemo, setSummaryMemo, getLinkedSids, linkSegs, unlinkOne, detachSegFromGroup } from './segments.js';
 import { dispToISO, showTaskDateDialog, showMilestoneDialog, showConfirm } from './dialogs.js';
 import { pushUndo, saveLS, getLastTab, setLastTab } from './storage.js';
 import { isoShort, isoFull, daysBetween, todayISO } from './date-utils.js';
@@ -103,7 +103,27 @@ export function renderLogTab(el,seg){
   stats.innerHTML=`${seedHtml}${transplantHtml}<div class="summary-stat"><div class="summary-stat-label">合計収穫量</div><div class="summary-stat-val" style="color:#2e7a28">${harvestTotalStr(navState.seg)||'未記録'}</div></div>`;
   stats.insertBefore(periodStat,stats.firstChild);
   summary.appendChild(stats);
-  const memoBox=document.createElement('div');memoBox.className='summary-memo-box';memoBox.innerHTML='<div class="summary-memo-header"><i class="ti ti-notes" style="color:#9c9a93"></i>全体メモ</div>';const memoBody=document.createElement('div');memoBody.className='summary-memo-body';const memoTa=document.createElement('textarea');memoTa.className='summary-memo-ta';memoTa.placeholder='この区画の栽培を振り返って...';memoTa.value=segData.summaryMemo[navState.seg]||'';const memoSave=document.createElement('button');memoSave.className='summary-save-btn';memoSave.innerHTML='<i class="ti ti-device-floppy" style="font-size:var(--fs-xs)"></i>保存';memoSave.addEventListener('click',()=>{segData.summaryMemo[navState.seg]=memoTa.value;saveLS();memoSave.textContent='保存しました';setTimeout(()=>{memoSave.innerHTML='<i class="ti ti-device-floppy" style="font-size:var(--fs-xs)"></i>保存';},1200);});memoBody.append(memoTa,memoSave);memoBox.appendChild(memoBody);summary.appendChild(memoBox);el.appendChild(summary);
+  const linkedOthers=getLinkedSids(navState.seg).filter(s=>s!==navState.seg&&segData.segs[s]);
+  const linkBox=document.createElement('div');linkBox.className='summary-memo-box';
+  linkBox.innerHTML='<div class="summary-memo-header"><i class="ti ti-link" style="color:#9c9a93"></i>連携中の区画</div>';
+  const linkBody=document.createElement('div');linkBody.style.cssText='padding:6px 0 2px';
+  const linkInfo=document.createElement('div');linkInfo.style.cssText='font-size:var(--fs-sm);line-height:1.8;color:'+(linkedOthers.length?'var(--color-text-secondary)':'var(--color-text-tertiary)');
+  linkInfo.textContent=linkedOthers.length?linkedOthers.map(s=>{const ss=segData.segs[s];return `${ss.row+1}行 ${Math.min(...ss.cols)+1}〜${Math.max(...ss.cols)+1}列`;}).join('、'):'他の区画とは連携していません。';
+  linkBody.appendChild(linkInfo);
+  if(permCanEditFarm()){
+    const linkBtnRow=document.createElement('div');linkBtnRow.style.cssText='display:flex;gap:8px;margin-top:8px';
+    const linkAddBtn=document.createElement('button');linkAddBtn.className='btn';linkAddBtn.style.cssText='font-size:var(--fs-xs);padding:6px 10px;flex:1';linkAddBtn.innerHTML='<i class="ti ti-link"></i> 他の区画と連携する';
+    linkAddBtn.addEventListener('click',()=>showLinkPicker(navState.seg));
+    linkBtnRow.appendChild(linkAddBtn);
+    if(linkedOthers.length){
+      const linkRmBtn=document.createElement('button');linkRmBtn.style.cssText='font-size:var(--fs-xs);padding:6px 10px;flex:1;border-radius:var(--border-radius-md);border:0.5px solid #e57373;background:#fff5f5;color:#c62828;cursor:pointer';linkRmBtn.innerHTML='<i class="ti ti-unlink"></i> この区画の連携を解除';
+      linkRmBtn.addEventListener('click',()=>{showConfirm('この区画をグループから外します。\nこれまでの記録はこの区画にそのまま引き継がれます。\nよろしいですか？',()=>{pushUndo();unlinkOne(navState.seg);buildSegs();saveLS();renderManage();});});
+      linkBtnRow.appendChild(linkRmBtn);
+    }
+    linkBody.appendChild(linkBtnRow);
+  }
+  linkBox.appendChild(linkBody);summary.appendChild(linkBox);
+  const memoBox=document.createElement('div');memoBox.className='summary-memo-box';memoBox.innerHTML='<div class="summary-memo-header"><i class="ti ti-notes" style="color:#9c9a93"></i>全体メモ</div>';const memoBody=document.createElement('div');memoBody.className='summary-memo-body';const memoTa=document.createElement('textarea');memoTa.className='summary-memo-ta';memoTa.placeholder='この区画の栽培を振り返って...';memoTa.value=getSummaryMemo(navState.seg);const memoSave=document.createElement('button');memoSave.className='summary-save-btn';memoSave.innerHTML='<i class="ti ti-device-floppy" style="font-size:var(--fs-xs)"></i>保存';memoSave.addEventListener('click',()=>{setSummaryMemo(navState.seg,memoTa.value);memoSave.textContent='保存しました';setTimeout(()=>{memoSave.innerHTML='<i class="ti ti-device-floppy" style="font-size:var(--fs-xs)"></i>保存';},1200);});memoBody.append(memoTa,memoSave);memoBox.appendChild(memoBody);summary.appendChild(memoBox);el.appendChild(summary);
   const logTitle=document.createElement('div');logTitle.className='log-section-title';logTitle.innerHTML='<i class="ti ti-clock" style="font-size:var(--fs-base)"></i>作業履歴';el.appendChild(logTitle);
   const byDate=getMergedLogsByDate(navState.seg);const sortedDates=Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
   if(!sortedDates.length){const p=document.createElement('p');p.style.cssText='font-size:var(--fs-xs);color:#9c9a93;padding:4px 0';p.textContent='タスクを完了するか収穫を記録すると表示されます。';el.appendChild(p);}
@@ -114,12 +134,42 @@ export function renderLogTab(el,seg){
   completeBtn.addEventListener('click',()=>openCompleteConfirm(navState.seg));
   completeBar.appendChild(completeBtn);
   const delDivider=document.createElement('hr');delDivider.style.cssText='border:none;border-top:0.5px solid var(--color-border-tertiary);margin:16px 0';completeBar.appendChild(delDivider);
-  const deleteBtn=document.createElement('button');deleteBtn.style.cssText='margin-top:0;width:100%;font-size:var(--fs-sm);padding:8px;border-radius:var(--border-radius-md);border:0.5px solid #e57373;background:#fff5f5;color:#c62828;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px';deleteBtn.innerHTML='<i class="ti ti-trash"></i>この区画の登録を削除';deleteBtn.addEventListener('click',()=>{showConfirm('この区画の登録を削除します。\n作業記録や収穫記録も失われます。\nよろしいですか？',()=>{pushUndo();const sid=navState.seg;Object.keys(gridState.cells).forEach(k=>{if(gridState.cells[k]&&gridState.cells[k].segId===sid)delete gridState.cells[k];});delete segData.tasks[sid];delete segData.actionLogs[sid];delete segData.harvestLogs[sid];delete segData.summaryMemo[sid];buildSegs();saveLS();goBack();renderGrid();});});
+  const deleteBtn=document.createElement('button');deleteBtn.style.cssText='margin-top:0;width:100%;font-size:var(--fs-sm);padding:8px;border-radius:var(--border-radius-md);border:0.5px solid #e57373;background:#fff5f5;color:#c62828;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px';deleteBtn.innerHTML='<i class="ti ti-trash"></i>この区画の登録を削除';deleteBtn.addEventListener('click',()=>{showConfirm('この区画の登録を削除します。\n作業記録や収穫記録も失われます。\nよろしいですか？',()=>{pushUndo();const sid=navState.seg;detachSegFromGroup(sid);Object.keys(gridState.cells).forEach(k=>{if(gridState.cells[k]&&gridState.cells[k].segId===sid)delete gridState.cells[k];});delete segData.tasks[sid];delete segData.actionLogs[sid];delete segData.harvestLogs[sid];delete segData.summaryMemo[sid];delete segData.linkGroups[sid];buildSegs();saveLS();goBack();renderGrid();});});
   completeBar.appendChild(deleteBtn);el.appendChild(completeBar);
 }
 
+/** @param {string} sid 連携先を選ぶ区画の候補ピッカーを開く */
+function showLinkPicker(sid){
+  buildSegs();
+  const linked=new Set(getLinkedSids(sid));
+  const candidates=Object.values(segData.segs).filter(s=>s.crop&&!linked.has(s.id));
+  const list=document.getElementById('dlg-link-list');list.innerHTML='';
+  const checked=new Set();
+  if(!candidates.length){
+    const p=document.createElement('div');p.style.cssText='font-size:var(--fs-sm);color:var(--color-text-tertiary)';p.textContent='連携できる他の区画がありません。';list.appendChild(p);
+  }else{
+    candidates.forEach(s=>{
+      const v=getVeg(s.crop);
+      const row=document.createElement('label');row.style.cssText='display:flex;align-items:center;gap:8px;font-size:var(--fs-sm)';
+      const cb=document.createElement('input');cb.type='checkbox';cb.addEventListener('change',()=>{if(cb.checked)checked.add(s.id);else checked.delete(s.id);});
+      const label=document.createElement('span');label.innerHTML=`${v?vegIconHtml(v,16):''} ${v?v.name:'不明'}（${s.row+1}行 ${Math.min(...s.cols)+1}〜${Math.max(...s.cols)+1}列）`;
+      row.append(cb,label);list.appendChild(row);
+    });
+  }
+  const dlg=document.getElementById('dlg-link-picker');
+  const confirmBtn=document.getElementById('btn-link-confirm');
+  const cancelBtn=document.getElementById('btn-link-cancel');
+  const close=()=>{dlg.style.display='none';confirmBtn.onclick=null;cancelBtn.onclick=null;};
+  confirmBtn.onclick=()=>{
+    if(!checked.size){close();return;}
+    pushUndo();linkSegs(sid,[...checked]);buildSegs();saveLS();close();renderManage();
+  };
+  cancelBtn.onclick=()=>close();
+  dlg.style.display='flex';
+}
+
 export function renderHarvestTab(el,seg){
-  const logs=segData.harvestLogs[navState.seg]||[];const inputRow=document.createElement('div');inputRow.className='harvest-input-row';
+  const logs=getHarvestLogs(navState.seg);const inputRow=document.createElement('div');inputRow.className='harvest-input-row';
   const gDate=document.createElement('div');gDate.className='harvest-input-group';gDate.innerHTML='<label>収穫日</label>';const iDate=document.createElement('input');iDate.type='date';iDate.value=todayISO();gDate.appendChild(iDate);
   const gAmt=document.createElement('div');gAmt.className='harvest-input-group';gAmt.innerHTML='<label>量</label>';const iAmt=document.createElement('input');iAmt.type='number';iAmt.inputMode='decimal';iAmt.min='0';iAmt.step='0.1';gAmt.appendChild(iAmt);
   const gUnit=document.createElement('div');gUnit.className='harvest-input-group';gUnit.innerHTML='<label>単位</label>';const iUnit=document.createElement('select');UNITS.forEach(u=>{const op=document.createElement('option');op.value=u;op.textContent=u;iUnit.appendChild(op);});
@@ -127,10 +177,10 @@ export function renderHarvestTab(el,seg){
   if(lastUnit)iUnit.value=lastUnit;
   gUnit.appendChild(iUnit);
   const addBtn=document.createElement('button');addBtn.className='harvest-add-btn';addBtn.textContent='追加';inputRow.append(gDate,gAmt,gUnit,addBtn);el.appendChild(inputRow);
-  addBtn.addEventListener('click',()=>{const date=iDate.value,amount=parseFloat(iAmt.value),unit=iUnit.value;if(!date||isNaN(amount)||amount<=0)return;pushUndo();if(!segData.harvestLogs[navState.seg])segData.harvestLogs[navState.seg]=[];segData.harvestLogs[navState.seg].push({id:`h_${Date.now()}`,date,amount,unit});segData.harvestLogs[navState.seg].sort((a,b)=>a.date.localeCompare(b.date));saveLS();renderManage();});
+  addBtn.addEventListener('click',()=>{const date=iDate.value,amount=parseFloat(iAmt.value),unit=iUnit.value;if(!date||isNaN(amount)||amount<=0)return;pushUndo();addHarvestLog(navState.seg,{id:`h_${Date.now()}`,date,amount,unit});renderManage();});
   const listWrap=document.createElement('div');listWrap.className='harvest-list';
   if(!logs.length){const emp=document.createElement('div');emp.className='harvest-empty';emp.textContent='まだ収穫記録がありません。';listWrap.appendChild(emp);}
-  else{[...logs].reverse().forEach(h=>{const row=document.createElement('div');row.className='harvest-row';const dateEl=document.createElement('div');dateEl.className='harvest-row-date';dateEl.textContent=h.date;const amtEl=document.createElement('div');amtEl.className='harvest-row-amount';amtEl.textContent=`${h.amount} ${h.unit}`;const delBtn=document.createElement('button');delBtn.className='harvest-del-btn';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>';if(!permCanEditFarm())delBtn.style.display='none';delBtn.addEventListener('click',()=>{showConfirm('この収穫記録を削除しますか？',()=>{pushUndo();segData.harvestLogs[navState.seg]=segData.harvestLogs[navState.seg].filter(x=>x.id!==h.id);saveLS();renderManage();});});row.append(dateEl,amtEl,delBtn);listWrap.appendChild(row);});}
+  else{[...logs].reverse().forEach(h=>{const row=document.createElement('div');row.className='harvest-row';const dateEl=document.createElement('div');dateEl.className='harvest-row-date';dateEl.textContent=h.date;const amtEl=document.createElement('div');amtEl.className='harvest-row-amount';amtEl.textContent=`${h.amount} ${h.unit}`;const delBtn=document.createElement('button');delBtn.className='harvest-del-btn';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>';if(!permCanEditFarm())delBtn.style.display='none';delBtn.addEventListener('click',()=>{showConfirm('この収穫記録を削除しますか？',()=>{pushUndo();removeHarvestLog(navState.seg,h.id);renderManage();});});row.append(dateEl,amtEl,delBtn);listWrap.appendChild(row);});}
   el.appendChild(listWrap);
   Object.entries(getHarvestSummary(navState.seg)).forEach(([unit,amt])=>{const totalEl=document.createElement('div');totalEl.className='harvest-total';totalEl.innerHTML=`<span class="harvest-total-label"><i class="ti ti-calculator" style="font-size:var(--fs-sm);margin-right:4px"></i>合計（${unit}）</span><span class="harvest-total-val">${amt} ${unit}</span>`;el.appendChild(totalEl);});
 }

@@ -70,7 +70,7 @@ export async function loadFromDB(){
       gridState.cells=d.cells;gridState.cols=d.COLS||8;gridState.rows=d.ROWS||6;
       segData.tasks=d.segTasks||{};segData.actionLogs=d.actionLogs||{};segData.harvestLogs=d.harvestLogs||{};
       segData.summaryMemo=d.segSummaryMemo||{};masterData.vegMaster=d.vegMaster||{};
-      segData.archived=d.archivedSegs||{};gridState.aisleRows=d.aisleRows||[];gridState.aisleCols=d.aisleCols||[];
+      segData.archived=d.archivedSegs||{};segData.linkGroups=d.segLinkGroups||{};gridState.aisleRows=d.aisleRows||[];gridState.aisleCols=d.aisleCols||[];
       return true;
     }
   }catch(e){console.error('DB load error',e);}

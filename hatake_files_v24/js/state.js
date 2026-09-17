@@ -35,10 +35,12 @@ export let undoStack=[];
 /** @type {{vegMaster: Object<string, any>, customIcons: Object<string, string>}} */
 export const masterData={vegMaster:{},customIcons:{}};
 // 区画データ（segIdキーで管理）。保存キー名（segTasks/actionLogs/harvestLogs/
-// segSummaryMemo/archivedSegs）はデータ互換のため変更しない。segsはcellsから
+// segSummaryMemo/archivedSegs/segLinkGroups）はデータ互換のため変更しない。segsはcellsから
 // buildSegs()で毎回再構築される派生データで永続化されない。
-/** @type {{segs: Object<string, any>, tasks: Object<string, any>, actionLogs: Object<string, any>, harvestLogs: Object<string, any>, summaryMemo: Object<string, any>, archived: Object<string, any>}} */
-export const segData={segs:{},tasks:{},actionLogs:{},harvestLogs:{},summaryMemo:{},archived:{}};
+// linkGroups: 非隣接区画を「同じ野菜」として連携させた際のエイリアス→代表segIdのマップ。
+// 値（代表segId）が他のマップ（tasks/harvestLogs/actionLogs/summaryMemo）の実データキーになる。
+/** @type {{segs: Object<string, any>, tasks: Object<string, any>, actionLogs: Object<string, any>, harvestLogs: Object<string, any>, summaryMemo: Object<string, any>, archived: Object<string, any>, linkGroups: Object<string, string>}} */
+export const segData={segs:{},tasks:{},actionLogs:{},harvestLogs:{},summaryMemo:{},archived:{},linkGroups:{}};
 // グリッドの物理構造。保存キー名（cells/COLS/ROWS/aisleRows/aisleCols）は
 // データ互換のため変更しない。COLS/ROWSはcols/rowsに短縮する。
 /** @type {{cells: Object<string, any>, cols: number, rows: number, aisleRows: number[], aisleCols: number[]}} */

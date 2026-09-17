@@ -3,7 +3,7 @@
 import { segData, gridState } from './state.js';
 import { todayISO } from './date-utils.js';
 import { vegIconHtml } from './helpers.js';
-import { getVeg, harvestTotalStr, getMilestoneDate } from './segments.js';
+import { getVeg, harvestTotalStr, getMilestoneDate, getActionLogs } from './segments.js';
 import { saveLS, pushUndo } from './storage.js';
 import { goBack } from './manage.js';
 
@@ -20,7 +20,7 @@ export function closeCompleteConfirm(){pendingCompleteSeg=null;document.getEleme
 export function executeComplete(sid){
   const seg=segData.segs[sid];if(!seg)return;const veg=getVeg(seg.crop);
   pushUndo();
-  const taskLogs=segData.actionLogs[sid]||[];
+  const taskLogs=getActionLogs(sid);
   const allLogDates=taskLogs.map(l=>l.date).sort();
   const lastLogDate=allLogDates[allLogDates.length-1]||null;
   segData.archived[sid]={

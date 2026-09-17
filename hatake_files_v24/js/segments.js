@@ -21,10 +21,91 @@ export function checkRotation(row,cols){
     .sort((a,b)=>b.completedDate.localeCompare(a.completedDate));
 }
 export function segIsRegistered(sid){return !!(segData.segs[sid]&&segData.segs[sid].crop)}
-export function getTaskState(sid,tid){return Object.assign({done:false,skip:false,doneDates:[]},(segData.tasks[sid]||{})[tid]||{})}
-export function setTaskState(sid,tid,patch){if(!segData.tasks[sid])segData.tasks[sid]={};segData.tasks[sid][tid]=Object.assign(getTaskState(sid,tid),patch);saveLS()}
+// ===== 区画連携（非隣接区画を「同じ野菜」として管理） =====
+// segData.linkGroupsはエイリアスsid→代表sidのマップ。tasks/harvestLogs/actionLogs/
+// summaryMemoの実データは常に代表sidのキーに集約する。代表sid自身はlinkGroupsのキーにならない。
+/** @param {string} sid @returns {string} 実データが格納されているキー（代表sid。未連携ならsid自身）*/
+export function recordKey(sid){return (segData.linkGroups&&segData.linkGroups[sid])||sid}
+/** @param {string} sid @returns {string[]} 同じグループに属する全sid（未連携ならsid自身のみ） */
+export function getLinkedSids(sid){
+  const rep=recordKey(sid);
+  const aliases=Object.keys(segData.linkGroups||{}).filter(k=>segData.linkGroups[k]===rep);
+  return Array.from(new Set([rep,...aliases]));
+}
+function cloneVal(v){return v!=null?JSON.parse(JSON.stringify(v)):v}
+function mergeTaskMaps(a,b){
+  const out=Object.assign({},a);
+  Object.keys(b||{}).forEach(tid=>{
+    if(!out[tid]){out[tid]=b[tid];return;}
+    const x=out[tid],y=b[tid];
+    out[tid]={done:!!(x.done||y.done),skip:!!(x.skip&&y.skip),doneDates:Array.from(new Set([...(x.doneDates||[]),...(y.doneDates||[])])).sort()};
+  });
+  return out;
+}
+/** repSidを代表として、otherSids（既に連携済みのグループごと）を統合する */
+export function linkSegs(repSid,otherSids){
+  if(!segData.linkGroups)segData.linkGroups={};
+  otherSids.forEach(rawSid=>{
+    if(rawSid===repSid)return;
+    const otherKey=recordKey(rawSid);
+    if(otherKey===repSid)return;
+    segData.tasks[repSid]=mergeTaskMaps(segData.tasks[repSid],segData.tasks[otherKey]);
+    segData.harvestLogs[repSid]=[...(segData.harvestLogs[repSid]||[]),...(segData.harvestLogs[otherKey]||[])].sort((a,b)=>a.date.localeCompare(b.date));
+    segData.actionLogs[repSid]=[...(segData.actionLogs[repSid]||[]),...(segData.actionLogs[otherKey]||[])];
+    const memoA=segData.summaryMemo[repSid]||'',memoB=segData.summaryMemo[otherKey]||'';
+    segData.summaryMemo[repSid]=memoA&&memoB?`${memoA}\n---\n${memoB}`:(memoA||memoB||'');
+    delete segData.tasks[otherKey];delete segData.harvestLogs[otherKey];delete segData.actionLogs[otherKey];delete segData.summaryMemo[otherKey];
+    Object.keys(segData.linkGroups).forEach(k=>{if(segData.linkGroups[k]===otherKey)segData.linkGroups[k]=repSid;});
+    segData.linkGroups[otherKey]=repSid;
+  });
+  saveLS();
+}
+/** sidをグループから切り離す。sidは現時点までの共有記録を自分専用に複製して引き継ぐ */
+export function unlinkOne(sid){
+  if(!segData.linkGroups)segData.linkGroups={};
+  const key=recordKey(sid);
+  if(key===sid){
+    const aliases=Object.keys(segData.linkGroups).filter(k=>segData.linkGroups[k]===sid);
+    if(!aliases.length)return;
+    const newRep=aliases[0];
+    segData.tasks[newRep]=cloneVal(segData.tasks[sid]);
+    segData.harvestLogs[newRep]=cloneVal(segData.harvestLogs[sid]);
+    segData.actionLogs[newRep]=cloneVal(segData.actionLogs[sid]);
+    segData.summaryMemo[newRep]=segData.summaryMemo[sid];
+    aliases.forEach(a=>{if(a===newRep)delete segData.linkGroups[a];else segData.linkGroups[a]=newRep;});
+  }else{
+    segData.tasks[sid]=cloneVal(segData.tasks[key]);
+    segData.harvestLogs[sid]=cloneVal(segData.harvestLogs[key]);
+    segData.actionLogs[sid]=cloneVal(segData.actionLogs[key]);
+    segData.summaryMemo[sid]=segData.summaryMemo[key];
+    delete segData.linkGroups[sid];
+  }
+  saveLS();
+}
+/** 区画の登録を完全に削除する前に呼ぶ。sid自身のデータは複製せず、残りのグループの代表を立て直すだけ行う */
+export function detachSegFromGroup(sid){
+  if(!segData.linkGroups)segData.linkGroups={};
+  const key=recordKey(sid);
+  if(key!==sid){delete segData.linkGroups[sid];return;}
+  const aliases=Object.keys(segData.linkGroups).filter(k=>segData.linkGroups[k]===sid);
+  if(!aliases.length)return;
+  const newRep=aliases[0];
+  segData.tasks[newRep]=segData.tasks[sid];
+  segData.harvestLogs[newRep]=segData.harvestLogs[sid];
+  segData.actionLogs[newRep]=segData.actionLogs[sid];
+  segData.summaryMemo[newRep]=segData.summaryMemo[sid];
+  aliases.forEach(a=>{if(a===newRep)delete segData.linkGroups[a];else segData.linkGroups[a]=newRep;});
+}
+export function getTaskState(sid,tid){const k=recordKey(sid);return Object.assign({done:false,skip:false,doneDates:[]},(segData.tasks[k]||{})[tid]||{})}
+export function setTaskState(sid,tid,patch){const k=recordKey(sid);if(!segData.tasks[k])segData.tasks[k]={};segData.tasks[k][tid]=Object.assign(getTaskState(sid,tid),patch);saveLS()}
+export function getHarvestLogs(sid){return segData.harvestLogs[recordKey(sid)]||[]}
+export function addHarvestLog(sid,entry){const k=recordKey(sid);if(!segData.harvestLogs[k])segData.harvestLogs[k]=[];segData.harvestLogs[k].push(entry);segData.harvestLogs[k].sort((a,b)=>a.date.localeCompare(b.date));saveLS()}
+export function removeHarvestLog(sid,id){const k=recordKey(sid);segData.harvestLogs[k]=(segData.harvestLogs[k]||[]).filter(x=>x.id!==id);saveLS()}
+export function getActionLogs(sid){return segData.actionLogs[recordKey(sid)]||[]}
+export function getSummaryMemo(sid){return segData.summaryMemo[recordKey(sid)]||''}
+export function setSummaryMemo(sid,text){segData.summaryMemo[recordKey(sid)]=text;saveLS()}
 export function getMilestoneDate(sid,cropId,ms){const v=getVeg(cropId);if(!v)return null;const tasks=v.phases.flatMap(p=>p.tasks).filter(t=>t.milestone===ms);for(const t of tasks){const state=getTaskState(sid,t.id);if(state.doneDates&&state.doneDates.length){const iso=dispToISO(state.doneDates[0]);if(iso)return iso;}}return null}
-export function getHarvestSummary(sid){const logs=segData.harvestLogs[sid]||[];const tot={};logs.forEach(h=>{if(!tot[h.unit])tot[h.unit]=0;tot[h.unit]+=Number(h.amount);});return tot}
+export function getHarvestSummary(sid){const logs=getHarvestLogs(sid);const tot={};logs.forEach(h=>{if(!tot[h.unit])tot[h.unit]=0;tot[h.unit]+=Number(h.amount);});return tot}
 export function harvestTotalStr(sid){const t=getHarvestSummary(sid);const e=Object.entries(t);if(!e.length)return null;return e.map(([u,a])=>`${a}${u}`).join(' / ')}
 export function getMergedLogsByDate(sid){
   const byDate={};
@@ -32,7 +113,7 @@ export function getMergedLogsByDate(sid){
   // segData.tasks の doneDates からタスクログを生成
   const seg=segData.segs[sid];if(seg){const veg=getVeg(seg.crop);if(veg&&veg.phases){veg.phases.forEach(ph=>{ph.tasks.forEach(t=>{const state=getTaskState(sid,t.id);(state.doneDates||[]).forEach(d=>{const iso=dispToISO(d);add(iso,{_type:'task',date:iso,task:t.name});});});});}}
   // segData.harvestLogs
-  (segData.harvestLogs[sid]||[]).forEach(h=>add(h.date,{...h,_type:'harvest'}));
+  getHarvestLogs(sid).forEach(h=>add(h.date,{...h,_type:'harvest'}));
   Object.keys(byDate).forEach(date=>{byDate[date].sort((a,b)=>a._type===b._type?0:a._type==='task'?-1:1);});
   return byDate;
 }

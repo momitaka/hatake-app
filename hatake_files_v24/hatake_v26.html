@@ -750,6 +750,18 @@ body{
     </div>
   </div>
 </div>
+<!-- 区画連携ピッカー：非隣接区画を「同じ野菜」として連携させる選択ダイアログ -->
+<div id="dlg-link-picker" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:100;background:rgba(0,0,0,0.4)">
+  <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.25rem;min-width:260px;max-width:340px;width:90%;max-height:80vh;overflow-y:auto">
+    <div style="font-size:var(--fs-base);font-weight:500;margin-bottom:8px">連携する区画を選択</div>
+    <div style="font-size:var(--fs-xs);color:var(--color-text-secondary);margin-bottom:12px;line-height:1.6">選んだ区画は工程表・収穫記録・全体メモをこの区画と共通で管理します。グリッド上の見た目は今まで通り別々のマスのままです。</div>
+    <div id="dlg-link-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px"></div>
+    <div class="dlg-btns">
+      <button class="btn" id="btn-link-cancel">キャンセル</button>
+      <button class="btn-primary" id="btn-link-confirm">連携する</button>
+    </div>
+  </div>
+</div>
 
 <!-- v25: 設定ファイル読み込みスクリプト -->
 <script>
