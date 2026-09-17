@@ -12,6 +12,11 @@ let regLinkChecked=new Set();
 function updateLinkLabel(){
   document.getElementById('dlg-link-label').textContent=regLinkChecked.size?`他の区画と連携する（任意）・${regLinkChecked.size}件選択中`:'他の区画と連携する（任意）';
 }
+// 作物を選ばなくても、連携先を1件以上選んでいれば登録可能（連携先の作物を引き継ぐ）
+function updateSaveEnabled(){
+  const cropId=/** @type {HTMLSelectElement} */ (document.getElementById('dlg-crop')).value;
+  /** @type {HTMLButtonElement} */ (document.getElementById('dlg-save')).disabled=!cropId&&!regLinkChecked.size;
+}
 
 export function showRegDlg(){
   // grid.js⇄registration-dialog.jsは相互依存（grid.jsがshowRegDlgを使う）のため
@@ -47,7 +52,7 @@ export function showRegDlg(){
       const row=document.createElement('label');row.style.cssText='display:flex;align-items:center;gap:8px;font-size:var(--fs-sm);padding:6px 8px;border-radius:var(--border-radius-md);cursor:pointer';
       row.addEventListener('mouseenter',()=>{row.style.background='var(--color-background-secondary)';});
       row.addEventListener('mouseleave',()=>{row.style.background='';});
-      const cb=document.createElement('input');cb.type='checkbox';cb.addEventListener('change',()=>{if(cb.checked)regLinkChecked.add(s.id);else regLinkChecked.delete(s.id);updateLinkLabel();});
+      const cb=document.createElement('input');cb.type='checkbox';cb.addEventListener('change',()=>{if(cb.checked)regLinkChecked.add(s.id);else regLinkChecked.delete(s.id);updateLinkLabel();updateSaveEnabled();});
       const rowLetter=String.fromCharCode(65+s.row),colStart=Math.min(...s.cols)+1,colEnd=Math.max(...s.cols)+1;
       const loc=colStart===colEnd?`${rowLetter}${colStart}`:`${rowLetter}${colStart}〜${rowLetter}${colEnd}`;
       const label=document.createElement('span');label.innerHTML=`${v?vegIconHtml(v,16):''} ${v?v.name:'不明'}（${loc}）`;
@@ -59,7 +64,7 @@ export function showRegDlg(){
 }
 document.getElementById('dlg-crop').addEventListener('change',()=>{
   const cropId=/** @type {HTMLSelectElement} */ (document.getElementById('dlg-crop')).value;
-  /** @type {HTMLButtonElement} */ (document.getElementById('dlg-save')).disabled=!cropId;
+  updateSaveEnabled();
   const warn=document.getElementById('dlg-rotation-warn');
   warn.style.display='none';warn.innerHTML='';
   if(!cropId||dragState.pendingRow<0)return;
@@ -82,11 +87,18 @@ document.getElementById('dlg-go-master').addEventListener('click',()=>{document.
 document.getElementById('dlg-add-new-veg').addEventListener('click',()=>{document.getElementById('dlg-register').style.display='none';addVegState.fromReg=true;openMaster();document.getElementById('btn-add-veg').click();});
 document.getElementById('dlg-register').addEventListener('mousedown',e=>{if(e.target===e.currentTarget&&Date.now()-(window._regDlgOpenTime||0)>500){document.getElementById('dlg-register').style.display='none';dragState.pendingRow=-1;dragState.pendingStart=-1;dragState.pendingEnd=-1;window.renderGrid();}});
 document.getElementById('dlg-save').addEventListener('click',()=>{
-  const cropId=/** @type {HTMLSelectElement} */ (document.getElementById('dlg-crop')).value,date=/** @type {HTMLInputElement} */ (document.getElementById('dlg-date-input')).value;if(!cropId)return;
+  let cropId=/** @type {HTMLSelectElement} */ (document.getElementById('dlg-crop')).value;
+  const date=/** @type {HTMLInputElement} */ (document.getElementById('dlg-date-input')).value;
+  const targets=[...regLinkChecked];
+  if(!cropId){
+    if(!targets.length)return;
+    cropId=(segData.segs[targets[0]]||{}).crop;
+    if(!cropId)return;
+  }
   document.getElementById('dlg-register').style.display='none';pushUndo();
   const sid=`s_${dragState.pendingRow}_${dragState.pendingStart}_${Date.now()}`;
   for(let c=dragState.pendingStart;c<=dragState.pendingEnd;c++){const k=K(dragState.pendingRow,c);if(!gridState.cells[k]||!gridState.cells[k].crop)gridState.cells[k]={segId:sid,crop:cropId,plantDate:date};}
   dragState.pendingRow=-1;dragState.pendingStart=-1;dragState.pendingEnd=-1;buildSegs();
-  if(regLinkChecked.size){const targets=[...regLinkChecked];linkSegs(targets[0],[sid,...targets.slice(1)]);}
+  if(targets.length){linkSegs(targets[0],[sid,...targets.slice(1)]);}
   window.renderGrid();saveLS();
 });
