@@ -1,7 +1,7 @@
 // @ts-check
 // ===== 管理画面（工程表・ログ・収穫） =====
 import { navState, permState, gridState, segData } from './state.js';
-import { vegIconHtml, UNITS } from './helpers.js';
+import { vegIconHtml, UNITS, SIZE_LABELS } from './helpers.js';
 import { buildSegs, getVeg, calcMajorStatus, calcProgress, getTaskState, setTaskState, getMilestoneDate, addDays, getMergedLogsByDate, getHarvestSummary, harvestTotalStr, getHarvestLogs, addHarvestLog, removeHarvestLog, getSummaryMemo, setSummaryMemo, getLinkedSids, linkSegs, unlinkOne, detachSegFromGroup, hasAnyRecord } from './segments.js';
 import { dispToISO, showTaskDateDialog, showMilestoneDialog, showConfirm } from './dialogs.js';
 import { pushUndo, saveLS, getLastTab, setLastTab } from './storage.js';
@@ -183,10 +183,45 @@ export function renderHarvestTab(el,seg){
   if(lastUnit)iUnit.value=lastUnit;
   gUnit.appendChild(iUnit);
   const addBtn=document.createElement('button');addBtn.className='harvest-add-btn';addBtn.textContent='追加';inputRow.append(gDate,gAmt,gUnit,addBtn);el.appendChild(inputRow);
-  addBtn.addEventListener('click',()=>{const date=iDate.value,amount=parseFloat(iAmt.value),unit=iUnit.value;if(!date||isNaN(amount)||amount<=0)return;pushUndo();addHarvestLog(navState.seg,{id:`h_${Date.now()}`,date,amount,unit});renderManage();});
+
+  const sizeToggle=document.createElement('button');sizeToggle.type='button';sizeToggle.className='harvest-size-toggle';sizeToggle.textContent='サイズ別に記録する';el.appendChild(sizeToggle);
+  const sizeRow=document.createElement('div');sizeRow.className='harvest-size-row';sizeRow.style.display='none';
+  const sizeInputs=SIZE_LABELS.map(label=>{
+    const g=document.createElement('div');g.className='harvest-input-group';g.innerHTML=`<label>${label}</label>`;
+    const inp=document.createElement('input');inp.type='number';inp.inputMode='decimal';inp.min='0';inp.step='0.1';
+    g.appendChild(inp);sizeRow.appendChild(g);return inp;
+  });
+  el.appendChild(sizeRow);
+  let sizeMode=false;
+  sizeToggle.addEventListener('click',()=>{
+    sizeMode=!sizeMode;
+    sizeRow.style.display=sizeMode?'flex':'none';
+    gAmt.style.display=sizeMode?'none':'flex';
+    sizeToggle.textContent=sizeMode?'サイズ別記録をやめる':'サイズ別に記録する';
+  });
+
+  addBtn.addEventListener('click',()=>{
+    const date=iDate.value,unit=iUnit.value;if(!date)return;
+    let amount,sizes;
+    if(sizeMode){
+      sizes=SIZE_LABELS.map((label,i)=>({label,amount:parseFloat(sizeInputs[i].value)})).filter(s=>!isNaN(s.amount)&&s.amount>0);
+      if(!sizes.length)return;
+      amount=sizes.reduce((sum,s)=>sum+s.amount,0);
+    }else{
+      amount=parseFloat(iAmt.value);if(isNaN(amount)||amount<=0)return;
+    }
+    pushUndo();
+    const entry=sizes?{id:`h_${Date.now()}`,date,amount,unit,sizes}:{id:`h_${Date.now()}`,date,amount,unit};
+    addHarvestLog(navState.seg,entry);
+    renderManage();
+  });
+
   const listWrap=document.createElement('div');listWrap.className='harvest-list';
   if(!logs.length){const emp=document.createElement('div');emp.className='harvest-empty';emp.textContent='まだ収穫記録がありません。';listWrap.appendChild(emp);}
-  else{[...logs].reverse().forEach(h=>{const row=document.createElement('div');row.className='harvest-row';const dateEl=document.createElement('div');dateEl.className='harvest-row-date';dateEl.textContent=h.date;const amtEl=document.createElement('div');amtEl.className='harvest-row-amount';amtEl.textContent=`${h.amount} ${h.unit}`;const delBtn=document.createElement('button');delBtn.className='harvest-del-btn';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>';if(!permCanEditFarm())delBtn.style.display='none';delBtn.addEventListener('click',()=>{showConfirm('この収穫記録を削除しますか？',()=>{pushUndo();removeHarvestLog(navState.seg,h.id);renderManage();});});row.append(dateEl,amtEl,delBtn);listWrap.appendChild(row);});}
+  else{[...logs].reverse().forEach(h=>{const row=document.createElement('div');row.className='harvest-row';const dateEl=document.createElement('div');dateEl.className='harvest-row-date';dateEl.textContent=h.date;
+    const amtEl=document.createElement('div');amtEl.className='harvest-row-amount';amtEl.textContent=`${h.amount} ${h.unit}`;
+    if(h.sizes&&h.sizes.length){const sizesEl=document.createElement('div');sizesEl.className='harvest-row-sizes';sizesEl.textContent=h.sizes.map(s=>`${s.label}${s.amount}`).join(' / ');amtEl.appendChild(sizesEl);}
+    const delBtn=document.createElement('button');delBtn.className='harvest-del-btn';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>';if(!permCanEditFarm())delBtn.style.display='none';delBtn.addEventListener('click',()=>{showConfirm('この収穫記録を削除しますか？',()=>{pushUndo();removeHarvestLog(navState.seg,h.id);renderManage();});});row.append(dateEl,amtEl,delBtn);listWrap.appendChild(row);});}
   el.appendChild(listWrap);
   Object.entries(getHarvestSummary(navState.seg)).forEach(([unit,amt])=>{const totalEl=document.createElement('div');totalEl.className='harvest-total';totalEl.innerHTML=`<span class="harvest-total-label"><i class="ti ti-calculator" style="font-size:var(--fs-sm);margin-right:4px"></i>合計（${unit}）</span><span class="harvest-total-val">${amt} ${unit}</span>`;el.appendChild(totalEl);});
 }
