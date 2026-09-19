@@ -109,7 +109,10 @@ export function getTaskState(sid,tid){const k=recordKey(sid);return Object.assig
 export function setTaskState(sid,tid,patch){const k=recordKey(sid);if(!segData.tasks[k])segData.tasks[k]={};segData.tasks[k][tid]=Object.assign(getTaskState(sid,tid),patch);saveLS()}
 export function getHarvestLogs(sid){return segData.harvestLogs[recordKey(sid)]||[]}
 export function addHarvestLog(sid,entry){const k=recordKey(sid);if(!segData.harvestLogs[k])segData.harvestLogs[k]=[];segData.harvestLogs[k].push(entry);segData.harvestLogs[k].sort((a,b)=>a.date.localeCompare(b.date));saveLS()}
-export function removeHarvestLog(sid,id){const k=recordKey(sid);segData.harvestLogs[k]=(segData.harvestLogs[k]||[]).filter(x=>x.id!==id);saveLS()}
+/** @param {string} sid @param {string} id @returns {any} 削除した収穫記録（Storage上の写真クリーンアップに使うためphotoPathを呼び出し元に返す）。無ければundefined */
+export function removeHarvestLog(sid,id){const k=recordKey(sid);const list=segData.harvestLogs[k]||[];const removed=list.find(x=>x.id===id);segData.harvestLogs[k]=list.filter(x=>x.id!==id);saveLS();return removed;}
+/** @param {string} sid @param {string} id @param {string|null} photoPath 収穫記録に紐づく写真のStorageパスを更新する（nullで削除） */
+export function setHarvestLogPhoto(sid,id,photoPath){const k=recordKey(sid);const entry=(segData.harvestLogs[k]||[]).find(x=>x.id===id);if(!entry)return;if(photoPath)entry.photoPath=photoPath;else delete entry.photoPath;saveLS()}
 export function getActionLogs(sid){return segData.actionLogs[recordKey(sid)]||[]}
 export function getSummaryMemo(sid){return segData.summaryMemo[recordKey(sid)]||''}
 export function setSummaryMemo(sid,text){segData.summaryMemo[recordKey(sid)]=text;saveLS()}
