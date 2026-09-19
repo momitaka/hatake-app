@@ -33,28 +33,16 @@ export function getLinkedSids(sid){
   return Array.from(new Set([rep,...aliases]));
 }
 function cloneVal(v){return v!=null?JSON.parse(JSON.stringify(v)):v}
-/** @typedef {{id:string,date:string,photos:string[]}} DoneEntry 工程実施の1回分の記録（旧データは日付文字列のみの配列だったため、読み出し時に都度この形へ正規化する） */
-/** @param {string|{id?:string,date:string,photos?:string[]}} raw @param {number} idx @returns {DoneEntry} */
-function normDoneEntry(raw,idx){
-  if(typeof raw==='string')return{id:`d_legacy_${idx}`,date:raw,photos:[]};
-  return{id:raw.id||`d_legacy_${idx}`,date:raw.date,photos:raw.photos||[]};
-}
-/** @param {any[]|undefined} arr @returns {DoneEntry[]} */
-function normDoneDates(arr){return (arr||[]).map((d,i)=>normDoneEntry(d,i))}
+/** @param {string|{date:string}} raw 実施日1件を表示用文字列に正規化する（TSK-60実装初期の一時期だけ{date,photos}形式で保存されたデータがあるため、そちらにも対応） @returns {string} */
+function normDoneDate(raw){return typeof raw==='string'?raw:(raw&&raw.date)||''}
 function mergeTaskMaps(a,b){
   const out=Object.assign({},a);
   Object.keys(b||{}).forEach(tid=>{
     if(!out[tid]){out[tid]=b[tid];return;}
     const x=out[tid],y=b[tid];
-    /** @type {Map<string,DoneEntry>} */
-    const merged=new Map();
-    [...normDoneDates(x.doneDates),...normDoneDates(y.doneDates)].forEach(e=>{
-      const existing=merged.get(e.date);
-      if(existing)existing.photos=Array.from(new Set([...(existing.photos||[]),...(e.photos||[])])).slice(0,2);
-      else merged.set(e.date,{...e});
-    });
-    const doneDates=Array.from(merged.values()).sort((p,q)=>p.date.localeCompare(q.date));
-    out[tid]={done:!!(x.done||y.done),skip:!!(x.skip&&y.skip),doneDates};
+    const doneDates=Array.from(new Set([...(x.doneDates||[]).map(normDoneDate),...(y.doneDates||[]).map(normDoneDate)])).sort();
+    const photos=Array.from(new Set([...(x.photos||[]),...(y.photos||[])])).slice(0,2);
+    out[tid]={done:!!(x.done||y.done),skip:!!(x.skip&&y.skip),doneDates,photos};
   });
   return out;
 }
@@ -121,10 +109,8 @@ export function detachSegFromGroup(sid){
   segData.summaryMemo[newRep]=segData.summaryMemo[sid];
   aliases.forEach(a=>{if(a===newRep)delete segData.linkGroups[a];else segData.linkGroups[a]=newRep;});
 }
-export function getTaskState(sid,tid){const k=recordKey(sid);const raw=Object.assign({done:false,skip:false,doneDates:[]},(segData.tasks[k]||{})[tid]||{});return Object.assign(raw,{doneDates:normDoneDates(raw.doneDates)})}
+export function getTaskState(sid,tid){const k=recordKey(sid);const raw=Object.assign({done:false,skip:false,doneDates:[],photos:[]},(segData.tasks[k]||{})[tid]||{});return Object.assign(raw,{doneDates:(raw.doneDates||[]).map(normDoneDate),photos:raw.photos||[]})}
 export function setTaskState(sid,tid,patch){const k=recordKey(sid);if(!segData.tasks[k])segData.tasks[k]={};segData.tasks[k][tid]=Object.assign(getTaskState(sid,tid),patch);saveLS()}
-/** @returns {string} 工程実施記録の新規idを生成する（写真のStorageパス命名にも使う） */
-export function genDoneEntryId(){return `d_${Date.now()}_${Math.random().toString(36).slice(2,7)}`}
 export function getHarvestLogs(sid){return segData.harvestLogs[recordKey(sid)]||[]}
 export function addHarvestLog(sid,entry){const k=recordKey(sid);if(!segData.harvestLogs[k])segData.harvestLogs[k]=[];segData.harvestLogs[k].push(entry);segData.harvestLogs[k].sort((a,b)=>a.date.localeCompare(b.date));saveLS()}
 /** @param {string} sid @param {string} id @returns {any} 削除した収穫記録（Storage上の写真クリーンアップに使うためphotoPathを呼び出し元に返す）。無ければundefined */
@@ -134,14 +120,14 @@ export function setHarvestLogPhoto(sid,id,photoPath){const k=recordKey(sid);cons
 export function getActionLogs(sid){return segData.actionLogs[recordKey(sid)]||[]}
 export function getSummaryMemo(sid){return segData.summaryMemo[recordKey(sid)]||''}
 export function setSummaryMemo(sid,text){segData.summaryMemo[recordKey(sid)]=text;saveLS()}
-export function getMilestoneDate(sid,cropId,ms){const v=getVeg(cropId);if(!v)return null;const tasks=v.phases.flatMap(p=>p.tasks).filter(t=>t.milestone===ms);for(const t of tasks){const state=getTaskState(sid,t.id);if(state.doneDates&&state.doneDates.length){const iso=dispToISO(state.doneDates[0].date);if(iso)return iso;}}return null}
+export function getMilestoneDate(sid,cropId,ms){const v=getVeg(cropId);if(!v)return null;const tasks=v.phases.flatMap(p=>p.tasks).filter(t=>t.milestone===ms);for(const t of tasks){const state=getTaskState(sid,t.id);if(state.doneDates&&state.doneDates.length){const iso=dispToISO(state.doneDates[0]);if(iso)return iso;}}return null}
 export function getHarvestSummary(sid){const logs=getHarvestLogs(sid);const tot={};logs.forEach(h=>{if(!tot[h.unit])tot[h.unit]=0;tot[h.unit]+=Number(h.amount);});return tot}
 export function harvestTotalStr(sid){const t=getHarvestSummary(sid);const e=Object.entries(t);if(!e.length)return null;return e.map(([u,a])=>`${a}${u}`).join(' / ')}
 export function getMergedLogsByDate(sid){
   const byDate={};
   function add(date,item){if(!date)return;if(!byDate[date])byDate[date]=[];byDate[date].push(item);}
   // segData.tasks の doneDates からタスクログを生成
-  const seg=segData.segs[sid];if(seg){const veg=getVeg(seg.crop);if(veg&&veg.phases){veg.phases.forEach(ph=>{ph.tasks.forEach(t=>{const state=getTaskState(sid,t.id);(state.doneDates||[]).forEach(d=>{const iso=dispToISO(d.date);add(iso,{_type:'task',date:iso,task:t.name});});});});}}
+  const seg=segData.segs[sid];if(seg){const veg=getVeg(seg.crop);if(veg&&veg.phases){veg.phases.forEach(ph=>{ph.tasks.forEach(t=>{const state=getTaskState(sid,t.id);(state.doneDates||[]).forEach(d=>{const iso=dispToISO(d);add(iso,{_type:'task',date:iso,task:t.name});});});});}}
   // segData.harvestLogs
   getHarvestLogs(sid).forEach(h=>add(h.date,{...h,_type:'harvest'}));
   Object.keys(byDate).forEach(date=>{byDate[date].sort((a,b)=>a._type===b._type?0:a._type==='task'?-1:1);});
