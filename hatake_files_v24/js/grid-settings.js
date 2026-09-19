@@ -53,7 +53,7 @@ export function renderSegList(){
     {let lastDoneIdx=-1;for(let i=0;i<allTasks.length;i++){const st=getTaskState(seg.id,allTasks[i].id);if(st.done)lastDoneIdx=i;}
     for(let i=lastDoneIdx+1;i<allTasks.length;i++){const t=allTasks[i];const st=getTaskState(seg.id,t.id);if(!st.skip){nextTaskName=t.name;break;}}}
     let startDateDisp='';
-    {if(seg.plantDate){startDateDisp=seg.plantDate.slice(5).replace('-','/')+'〜';}else{let earliest='';allTasks.forEach(t=>{(getTaskState(seg.id,t.id).doneDates||[]).forEach(d=>{const iso=dispToISO(d);if(iso&&(!earliest||iso<earliest))earliest=iso;});});if(earliest)startDateDisp=earliest.slice(5).replace('-','/')+'〜';}}
+    {if(seg.plantDate){startDateDisp=seg.plantDate.slice(5).replace('-','/')+'〜';}else{let earliest='';allTasks.forEach(t=>{(getTaskState(seg.id,t.id).doneDates||[]).forEach(d=>{const iso=dispToISO(d.date);if(iso&&(!earliest||iso<earliest))earliest=iso;});});if(earliest)startDateDisp=earliest.slice(5).replace('-','/')+'〜';}}
     const item=document.createElement('div');item.className='seg-item';item.style.cssText='flex-direction:column;align-items:stretch;gap:0';
     const harvestTotal=getHarvestLogs(seg.id).reduce((s,h)=>s+(parseFloat(h.amount)||0),0);
     const harvestUnit=getHarvestLogs(seg.id).find(h=>h.unit)?.unit||'';

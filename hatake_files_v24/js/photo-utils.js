@@ -57,6 +57,22 @@ export async function uploadHarvestPhoto(segKey,harvestId,file){
   }catch(e){console.error('harvest photo upload error',e);return null;}
 }
 
+/** @param {string} segKey 代表segId @param {string} entryId 工程実施記録のid @param {1|2} slot 実施前後を区別する枠番号 @param {File} file 圧縮してアップロードし、保存先パスを返す（失敗時はnull） @returns {Promise<string|null>} */
+export async function uploadTaskPhoto(segKey,entryId,slot,file){
+  const scope=_scopePrefix();if(!scope)return null;
+  try{
+    const blob=await compressImage(file);
+    const path=`${scope}/${segKey}/${entryId}_${slot}.jpg`;
+    const res=await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`,{
+      method:'POST',
+      headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+_authToken(),'Content-Type':'image/jpeg','x-upsert':'true'},
+      body:blob
+    });
+    if(!res.ok){console.error('task photo upload failed',res.status,await res.text().catch(()=>''));return null;}
+    return path;
+  }catch(e){console.error('task photo upload error',e);return null;}
+}
+
 /** @param {string} path @returns {Promise<string|null>} 表示用の期限付き署名URL（1時間有効） */
 export async function getHarvestPhotoUrl(path){
   if(!path)return null;

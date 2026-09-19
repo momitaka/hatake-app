@@ -2,7 +2,7 @@
 // ===== 管理画面（工程表・ログ・収穫） =====
 import { navState, permState, gridState, segData } from './state.js';
 import { vegIconHtml, UNITS, SIZE_LABELS } from './helpers.js';
-import { buildSegs, getVeg, calcMajorStatus, calcProgress, getTaskState, setTaskState, getMilestoneDate, addDays, getMergedLogsByDate, getHarvestSummary, harvestTotalStr, getHarvestLogs, addHarvestLog, removeHarvestLog, getSummaryMemo, setSummaryMemo, getLinkedSids, linkSegs, unlinkOne, detachSegFromGroup, hasAnyRecord, recordKey, setHarvestLogPhoto } from './segments.js';
+import { buildSegs, getVeg, calcMajorStatus, calcProgress, getTaskState, setTaskState, getMilestoneDate, addDays, getMergedLogsByDate, getHarvestSummary, harvestTotalStr, getHarvestLogs, addHarvestLog, removeHarvestLog, getSummaryMemo, setSummaryMemo, getLinkedSids, linkSegs, unlinkOne, detachSegFromGroup, hasAnyRecord, recordKey, setHarvestLogPhoto, genDoneEntryId } from './segments.js';
 import { dispToISO, showTaskDateDialog, showMilestoneDialog, showConfirm, showAlert } from './dialogs.js';
 import { pushUndo, saveLS, getLastTab, setLastTab } from './storage.js';
 import { isoShort, isoFull, daysBetween, todayISO } from './date-utils.js';
@@ -10,9 +10,9 @@ import { permCanEditFarm } from './add-veg.js';
 import { openCompleteConfirm } from './complete.js';
 import { renderGrid } from './grid.js';
 import { renderBasicTab } from './basic-tab.js';
-import { uploadHarvestPhoto, deleteHarvestPhoto, deleteHarvestPhotosForSeg, getHarvestPhotoUrl } from './photo-utils.js';
+import { uploadHarvestPhoto, uploadTaskPhoto, deleteHarvestPhoto, deleteHarvestPhotosForSeg, getHarvestPhotoUrl } from './photo-utils.js';
 
-// 収穫ログ写真の表示用署名URLキャッシュ（1時間有効。再描画のたびに毎回サインさせないための簡易キャッシュ）
+// 収穫ログ・工程実施ログ共通の写真表示用署名URLキャッシュ（1時間有効。再描画のたびに毎回サインさせないための簡易キャッシュ）
 /** @type {Map<string,string>} */
 const harvestPhotoUrlCache=new Map();
 
@@ -58,6 +58,103 @@ export function renderManage(){
   else{navState.tab='roadmap';renderRoadmapTab(el,seg,veg);}
 }
 
+/** @param {HTMLElement} datesWrap @param {any} task @param {any} state タスクの実施日チップ（写真枠つき）と「＋追加」チップを描画する */
+function renderTaskDates(datesWrap,task,state){
+  (state.doneDates||[]).forEach((entry,di)=>{
+    const entryWrap=document.createElement('div');entryWrap.className='task-date-entry';
+    const chip=document.createElement('div');chip.className='task-date-chip';chip.style.cursor='pointer';chip.textContent=entry.date;
+    chip.addEventListener('click',e=>{
+      e.stopPropagation();
+      const menu=document.getElementById('task-chip-menu');menu.style.display='flex';
+      document.getElementById('task-chip-menu-label').textContent=entry.date;
+      window._chipEdit=()=>{
+        menu.style.display='none';
+        showTaskDateDialog('日付を変更',task.name,(dateVal)=>{
+          if(!dateVal)return;pushUndo();
+          const dates=[...(state.doneDates||[])];
+          const disp=dateVal.slice(5).replace('-','/');
+          dates[di]={...dates[di],date:disp};
+          setTaskState(navState.seg,task.id,{done:dates.length>0,skip:false,doneDates:dates});
+          renderManage();renderGrid();
+        });
+      };
+      window._chipDelete=()=>{
+        menu.style.display='none';pushUndo();
+        const dates=[...(state.doneDates||[])];
+        const removed=dates.splice(di,1)[0];
+        setTaskState(navState.seg,task.id,{done:dates.length>0,skip:false,doneDates:dates});
+        renderManage();renderGrid();
+        if(removed)(removed.photos||[]).forEach(p=>{harvestPhotoUrlCache.delete(p);deleteHarvestPhoto(p);});
+      };
+    });
+    entryWrap.appendChild(chip);
+    for(let pi=0;pi<2;pi++)entryWrap.appendChild(buildTaskDatePhotoBox(task,state,di,entry,pi));
+    datesWrap.appendChild(entryWrap);
+  });
+  const addChip=document.createElement('div');addChip.className='task-date-chip';addChip.style.cursor='pointer';addChip.textContent='＋追加';
+  addChip.addEventListener('click',e=>{
+    e.stopPropagation();
+    showTaskDateDialog('追加の実施日',task.name,(dateVal)=>{
+      if(!dateVal)return;pushUndo();
+      const disp=dateVal.slice(5).replace('-','/');
+      const dates=[...(state.doneDates||[]),{id:genDoneEntryId(),date:disp,photos:[]}];
+      setTaskState(navState.seg,task.id,{done:true,skip:false,doneDates:dates});
+      renderManage();renderGrid();
+      if(task.milestone==='firstHarvest')setLastTab(navState.seg,'harvest');
+      if(task.milestone==='germination'||task.milestone==='firstHarvest')setTimeout(()=>showMilestoneDialog(task.milestone),300);
+    });
+  });
+  datesWrap.appendChild(addChip);
+}
+
+/** @param {any} task @param {any} state @param {number} di 実施日エントリのdoneDates配列内index @param {{id:string,date:string,photos:string[]}} entry @param {number} pi 写真枠番号（0=1枚目/実施前想定, 1=2枚目/実施後想定） @returns {HTMLElement} */
+function buildTaskDatePhotoBox(task,state,di,entry,pi){
+  const path=(entry.photos||[])[pi];
+  const box=document.createElement('div');box.className='task-date-photo';
+  if(path){
+    const img=/** @type {HTMLImageElement} */(document.createElement('img'));img.className='task-date-photo-img';box.appendChild(img);
+    const cachedUrl=harvestPhotoUrlCache.get(path);
+    if(cachedUrl)img.src=cachedUrl;
+    else getHarvestPhotoUrl(path).then(url=>{if(url){harvestPhotoUrlCache.set(path,url);img.src=url;}});
+    box.addEventListener('click',e=>{
+      e.stopPropagation();
+      openHarvestPhotoLightbox(harvestPhotoUrlCache.get(path)||img.src,()=>{
+        pushUndo();harvestPhotoUrlCache.delete(path);
+        const dates=[...(state.doneDates||[])];
+        const newPhotos=(dates[di].photos||[]).filter(/** @param {string} p */p=>p!==path);
+        dates[di]={...dates[di],photos:newPhotos};
+        setTaskState(navState.seg,task.id,{doneDates:dates});
+        renderManage();
+        deleteHarvestPhoto(path);
+      });
+    });
+  }else{
+    box.classList.add('empty');box.innerHTML='<i class="ti ti-camera-plus"></i>';
+    const input=/** @type {HTMLInputElement} */(document.createElement('input'));input.type='file';input.accept='image/*';input.style.display='none';
+    box.appendChild(input);
+    box.addEventListener('click',e=>{e.stopPropagation();input.click();});
+    input.addEventListener('click',e=>e.stopPropagation());
+    input.addEventListener('change',()=>{
+      const file=input.files&&input.files[0];if(!file)return;
+      box.style.opacity='0.5';box.style.pointerEvents='none';
+      uploadTaskPhoto(recordKey(navState.seg),entry.id,/** @type {1|2} */(pi+1),file).then(path2=>{
+        if(path2){
+          pushUndo();
+          const dates=[...(state.doneDates||[])];
+          const newPhotos=[...(dates[di].photos||[])];newPhotos[pi]=path2;
+          dates[di]={...dates[di],photos:newPhotos};
+          setTaskState(navState.seg,task.id,{doneDates:dates});
+          renderManage();
+        }else{
+          box.style.opacity='1';box.style.pointerEvents='auto';
+          showAlert('写真のアップロードに失敗しました。通信環境を確認して再度お試しください。');
+        }
+      });
+    });
+  }
+  return box;
+}
+
 export function renderRoadmapTab(el,seg,veg){
   if(!veg||!veg.phases||!veg.phases.length){const b=document.createElement('div');b.className='ai-banner';b.innerHTML='<div class="ai-banner-text">工程表がありません。栽培レシピで生成してください。</div>';el.appendChild(b);return;}
   const{pct,phaseIdx}=calcProgress(navState.seg,seg.crop);
@@ -79,10 +176,10 @@ export function renderRoadmapTab(el,seg,veg){
       const scheduledDate=_baseDate?addDays(_baseDate,_relDay):null;
       const dayLabel=_relLabel+(scheduledDate?' ('+scheduledDate+')':'');
       const main=document.createElement('div');main.className='task-main';const cbWrap=document.createElement('div');cbWrap.className='task-cb-wrap';const cb=document.createElement('input');cb.type='checkbox';cb.className='task-cb';cb.checked=state.done;cbWrap.appendChild(cb);
-      const clickable=document.createElement('div');clickable.className='task-clickable';const body=document.createElement('div');body.className='task-body';if(isPest){const lbl=document.createElement('div');lbl.className='task-pest-label';lbl.innerHTML='<i class="ti ti-bug" style="font-size:10px"></i>病害虫チェック';body.appendChild(lbl);}const nameEl=document.createElement('div');nameEl.className='task-name'+(state.done?' done-text':'');nameEl.textContent=task.name;const descEl=document.createElement('div');descEl.className='task-desc';descEl.textContent=task.desc;const datesWrap=document.createElement('div');datesWrap.className='task-dates';(state.doneDates||[]).forEach((d,di)=>{const chip=document.createElement('div');chip.className='task-date-chip';chip.style.cursor='pointer';chip.textContent=d;chip.addEventListener('click',e=>{e.stopPropagation();const menu=document.getElementById('task-chip-menu');menu.style.display='flex';document.getElementById('task-chip-menu-label').textContent=d;window._chipEdit=()=>{menu.style.display='none';showTaskDateDialog('日付を変更',task.name,(dateVal)=>{if(!dateVal)return;pushUndo();const dates=[...(state.doneDates||[])];const disp=dateVal.slice(5).replace('-','/');dates[di]=disp;setTaskState(navState.seg,task.id,{done:dates.length>0,skip:false,doneDates:dates});renderManage();renderGrid();});};window._chipDelete=()=>{menu.style.display='none';pushUndo();const dates=[...(state.doneDates||[])];dates.splice(di,1);setTaskState(navState.seg,task.id,{done:dates.length>0,skip:false,doneDates:dates});renderManage();renderGrid();};});datesWrap.appendChild(chip);});const addChip=document.createElement('div');addChip.className='task-date-chip';addChip.style.cursor='pointer';addChip.textContent='＋追加';addChip.addEventListener('click',e=>{e.stopPropagation();showTaskDateDialog('追加の実施日',task.name,(dateVal)=>{if(!dateVal)return;pushUndo();const disp=dateVal.slice(5).replace('-','/');const dates=[...(state.doneDates||[]),disp];setTaskState(navState.seg,task.id,{done:true,skip:false,doneDates:dates});renderManage();renderGrid();if(task.milestone==='firstHarvest')setLastTab(navState.seg,'harvest');if(task.milestone==='germination'||task.milestone==='firstHarvest')setTimeout(()=>showMilestoneDialog(task.milestone),300);});});datesWrap.appendChild(addChip);body.append(nameEl,descEl,datesWrap);const dayBadge=document.createElement('div');dayBadge.className='task-day-badge';dayBadge.textContent=dayLabel;if(_relDay===0)dayBadge.style.fontWeight='600';const expandIcon=document.createElement('div');expandIcon.className='task-expand-icon';expandIcon.innerHTML='<i class="ti ti-chevron-down"></i>';clickable.append(body,dayBadge,expandIcon);main.append(cbWrap,clickable);
+      const clickable=document.createElement('div');clickable.className='task-clickable';const body=document.createElement('div');body.className='task-body';if(isPest){const lbl=document.createElement('div');lbl.className='task-pest-label';lbl.innerHTML='<i class="ti ti-bug" style="font-size:10px"></i>病害虫チェック';body.appendChild(lbl);}const nameEl=document.createElement('div');nameEl.className='task-name'+(state.done?' done-text':'');nameEl.textContent=task.name;const descEl=document.createElement('div');descEl.className='task-desc';descEl.textContent=task.desc;const datesWrap=document.createElement('div');datesWrap.className='task-dates';renderTaskDates(datesWrap,task,state);body.append(nameEl,descEl,datesWrap);const dayBadge=document.createElement('div');dayBadge.className='task-day-badge';dayBadge.textContent=dayLabel;if(_relDay===0)dayBadge.style.fontWeight='600';const expandIcon=document.createElement('div');expandIcon.className='task-expand-icon';expandIcon.innerHTML='<i class="ti ti-chevron-down"></i>';clickable.append(body,dayBadge,expandIcon);main.append(cbWrap,clickable);
       const detail=document.createElement('div');detail.className='task-detail';if(task.memo){const m=document.createElement('div');m.className='task-detail-memo';m.textContent=task.memo;detail.appendChild(m);}if(task.url){const a=document.createElement('a');a.className='task-detail-url';a.href=task.url;a.target='_blank';a.innerHTML='<i class="ti ti-brand-youtube" style="font-size:var(--fs-base)"></i>参考動画を見る';detail.appendChild(a);}card.append(main,detail);block.appendChild(card);
       clickable.addEventListener('click',()=>{const isOpen=detail.classList.contains('open');detail.classList.toggle('open',!isOpen);expandIcon.querySelector('i').className=`ti ${isOpen?'ti-chevron-down':'ti-chevron-up'}`;});
-      cb.addEventListener('change',e=>{e.stopPropagation();if(cb.checked){showTaskDateDialog('実施日を選択',task.name,(dateVal)=>{if(!dateVal)return;pushUndo();const disp=dateVal.slice(5).replace('-','/');const dates=[...(state.doneDates||[]),disp];setTaskState(navState.seg,task.id,{done:true,skip:false,doneDates:dates});renderManage();renderGrid();if(task.milestone==='firstHarvest')setLastTab(navState.seg,'harvest');if(task.milestone==='germination'||task.milestone==='firstHarvest')setTimeout(()=>showMilestoneDialog(task.milestone),300);},()=>{cb.checked=false;});}else{pushUndo();const dates=[...(state.doneDates||[])];dates.pop();setTaskState(navState.seg,task.id,{done:dates.length>0,skip:false,doneDates:dates});renderManage();renderGrid();}});
+      cb.addEventListener('change',e=>{e.stopPropagation();if(cb.checked){showTaskDateDialog('実施日を選択',task.name,(dateVal)=>{if(!dateVal)return;pushUndo();const disp=dateVal.slice(5).replace('-','/');const dates=[...(state.doneDates||[]),{id:genDoneEntryId(),date:disp,photos:[]}];setTaskState(navState.seg,task.id,{done:true,skip:false,doneDates:dates});renderManage();renderGrid();if(task.milestone==='firstHarvest')setLastTab(navState.seg,'harvest');if(task.milestone==='germination'||task.milestone==='firstHarvest')setTimeout(()=>showMilestoneDialog(task.milestone),300);},()=>{cb.checked=false;});}else{pushUndo();const dates=[...(state.doneDates||[])];const removed=dates.pop();setTaskState(navState.seg,task.id,{done:dates.length>0,skip:false,doneDates:dates});renderManage();renderGrid();if(removed)(removed.photos||[]).forEach(p=>{harvestPhotoUrlCache.delete(p);deleteHarvestPhoto(p);});}});
     });
     el.appendChild(block);
   });
@@ -92,7 +189,7 @@ export function renderLogTab(el,seg){
   const notice=document.createElement('div');notice.className='complete-notice';notice.id='complete-notice';notice.innerHTML='<i class="ti ti-info-circle" style="font-size:var(--fs-base);flex-shrink:0;margin-top:1px"></i><span>管理を完了する場合は内容を確認して下部の「この野菜の管理を完了」を押下してください。</span>';el.appendChild(notice);
   const summary=document.createElement('div');summary.className='summary-section';
   // doneDates から全日付を収集して作業期間を計算
-  const allTaskDates=[];const _seg2=segData.segs[navState.seg];if(_seg2){const _veg2=getVeg(_seg2.crop);if(_veg2&&_veg2.phases){_veg2.phases.forEach(ph=>{ph.tasks.forEach(t=>{(getTaskState(navState.seg,t.id).doneDates||[]).forEach(d=>{const iso=dispToISO(d);if(iso)allTaskDates.push(iso);});});});}}
+  const allTaskDates=[];const _seg2=segData.segs[navState.seg];if(_seg2){const _veg2=getVeg(_seg2.crop);if(_veg2&&_veg2.phases){_veg2.phases.forEach(ph=>{ph.tasks.forEach(t=>{(getTaskState(navState.seg,t.id).doneDates||[]).forEach(d=>{const iso=dispToISO(d.date);if(iso)allTaskDates.push(iso);});});});}}
   allTaskDates.sort();
   let workPeriodVal='—',workPeriodSub='';
   if(seg.plantDate){const today=new Date().toISOString().slice(0,10);const elapsed=daysBetween(seg.plantDate,today);workPeriodVal=`${isoShort(seg.plantDate)}〜 （${elapsed}日経過）`;}

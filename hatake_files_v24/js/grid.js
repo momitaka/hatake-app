@@ -80,7 +80,7 @@ export function renderGrid(){
         lbl.innerHTML=veg?(vegIconHtml(veg,14)+'<span style="margin-left:2px">'+veg.name+'</span>'):'';
         inner.appendChild(lbl);
         if(majorSt){const stLbl=document.createElement('div');stLbl.style.cssText=`font-size:8px;font-weight:500;color:${majorSt.color};line-height:1.2`;stLbl.textContent=majorSt.name;inner.appendChild(stLbl);}
-        {let dtDisp='';if(seg.plantDate){dtDisp=seg.plantDate.slice(5).replace('-','/')+'〜';}else{const veg2=getVeg(seg.crop);const allT=(veg2&&veg2.phases)?veg2.phases.flatMap(p=>p.tasks):[];let earliest='';allT.forEach(t=>{(getTaskState(seg.id,t.id).doneDates||[]).forEach(d=>{const iso=dispToISO(d);if(iso&&(!earliest||iso<earliest))earliest=iso;});});if(earliest)dtDisp=earliest.slice(5).replace('-','/')+'〜';}if(dtDisp){const dtLbl=document.createElement('div');dtLbl.style.cssText='font-size:7px;color:#9c9a93;line-height:1.2;margin-top:1px';dtLbl.textContent=dtDisp;inner.appendChild(dtLbl);}}
+        {let dtDisp='';if(seg.plantDate){dtDisp=seg.plantDate.slice(5).replace('-','/')+'〜';}else{const veg2=getVeg(seg.crop);const allT=(veg2&&veg2.phases)?veg2.phases.flatMap(p=>p.tasks):[];let earliest='';allT.forEach(t=>{(getTaskState(seg.id,t.id).doneDates||[]).forEach(d=>{const iso=dispToISO(d.date);if(iso&&(!earliest||iso<earliest))earliest=iso;});});if(earliest)dtDisp=earliest.slice(5).replace('-','/')+'〜';}if(dtDisp){const dtLbl=document.createElement('div');dtLbl.style.cssText='font-size:7px;color:#9c9a93;line-height:1.2;margin-top:1px';dtLbl.textContent=dtDisp;inner.appendChild(dtLbl);}}
       }
       td.appendChild(inner);
       if(registered){td.style.cursor='pointer';td.addEventListener('click',()=>openManage(sid));}
