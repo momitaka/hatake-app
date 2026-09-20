@@ -161,12 +161,10 @@ export function renderRoadmapTab(el,seg,veg){
     const block=document.createElement('div');block.className='phase-block';block.innerHTML=`<div class="phase-heading"><div class="phase-radio ${isDone?'done':isCurrent?'active':''}"></div><span class="phase-name" style="color:${isCurrent?'#1a1915':'#5f5e5a'}">${phase.name}</span>${phase.period?'<span class="phase-period">（'+phase.period+'）</span>':''}</div>`;
     phase.tasks.forEach(task=>{
       const state=getTaskState(navState.seg,task.id);const isPest=task.type==='pest';const card=document.createElement('div');card.className='task-card'+(isPest?' pest':'');
-      const _gm=veg.growMethod||'seedling';const _isSeed=_gm==='seed_pot'||_gm==='seed_ground';
       const _allTasks=veg.phases?veg.phases.flatMap(p=>p.tasks):[];
-      const _pivotMilestone=_isSeed?'sowing':'planting';
-      const _pivotTask=_allTasks.find(t=>t.milestone===_pivotMilestone);
+      const _pivotTask=_allTasks.find(t=>t.milestone==='sowing')||_allTasks.find(t=>t.milestone==='planting');
       const _pivotDay=_pivotTask?_pivotTask.day:0;
-      const _pivotDate=_isSeed?getMilestoneDate(navState.seg,seg.crop,'sowing'):getMilestoneDate(navState.seg,seg.crop,'planting');
+      const _pivotDate=_pivotTask?getMilestoneDate(navState.seg,seg.crop,_pivotTask.milestone):null;
       const _baseDate=_pivotDate||seg.plantDate||null;
       const _relDay=task.day-_pivotDay;
       const _relLabel=_relDay===0?'0日':(_relDay>0?'+'+_relDay+'日':_relDay+'日');
