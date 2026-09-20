@@ -165,6 +165,9 @@ const DEFAULT_PHASE_SPAN=14;
  * tasks[].dayはフェーズをまたいで比較できる値ではない（AI生成レシピではフェーズごとにリセットされることがある）ため
  * 区間の根拠には使わず、各タスクの位置づけはフェーズ内でのtask.dayの相対位置をフェーズ区間へ比例配分して求める。
  * 最終フェーズ（撤収など）が短すぎて帯が潰れないよう、全体の8%以上の幅は確保する。
+ * オクラ・バジル等、実際の収穫がレシピの想定期間を超えて長引くこともあるため、経過日数が
+ * 最終フェーズの想定終了日を超えている場合は、最終フェーズの帯を今日まで伸ばす（伸ばさないと
+ * 「今日」マーカーが範囲外の右端に張り付き、あたかも栽培が終了したかのように見えてしまうため）。
  * @param {string} sid @param {string} cropId
  * @returns {{segments:Array<{phaseIdx:number,name:string,color:string,start:number,end:number,widthPct:number}>,markerPct:number|null,ticks:Array<{pct:number,label:string}>,taskRelDay:Object<string,number>,baseDate:string|null}|null}
  */
@@ -188,12 +191,11 @@ export function getPhaseTimeline(sid,cropId){
   let total=last.end-firstStart;
   const minLastSpan=total*0.08;
   if(last.end-last.start<minLastSpan){last.end=last.start+minLastSpan;total=last.end-firstStart;}
-  const segments=raw.map(r=>({...r,widthPct:total>0?(r.end-r.start)/total*100:100/raw.length}));
 
   // 各タスクの累積日：フェーズ内でのtask.dayの相対位置を、そのフェーズの区間（start〜end）へ比例配分して求める
   const taskCumulativeDay=/** @type {Object<string,number>} */({});
   v.phases.forEach((p,i)=>{
-    const{start,end}=segments[i];
+    const{start,end}=raw[i];
     const days=p.tasks.map(t=>t.day);
     const lo=Math.min(...days),hi=Math.max(...days);
     p.tasks.forEach(t=>{
@@ -207,10 +209,16 @@ export function getPhaseTimeline(sid,cropId){
   const taskRelDay=/** @type {Object<string,number>} */({});
   all.forEach(t=>{taskRelDay[t.id]=Math.round(taskCumulativeDay[t.id]-pivotCumDay);});
 
+  let todayDay=null;
+  if(baseDate){
+    todayDay=pivotCumDay+daysBetween(baseDate,todayISO());
+    if(todayDay>=last.end){last.end=todayDay+Math.max(7,(todayDay-firstStart)*0.08);total=last.end-firstStart;}
+  }
+  const segments=raw.map(r=>({...r,widthPct:total>0?(r.end-r.start)/total*100:100/raw.length}));
+
   let markerPct=null;
   const ticks=/** @type {Array<{pct:number,label:string}>} */([]);
-  if(baseDate&&total>0){
-    const todayDay=pivotCumDay+daysBetween(baseDate,todayISO());
+  if(baseDate&&total>0&&todayDay!=null){
     markerPct=Math.max(0,Math.min(100,(todayDay-firstStart)/total*100));
     let lastPct=-100;
     for(let i=1;i<segments.length;i++){
