@@ -163,8 +163,15 @@ body.admin-mode #screen-manage .toolbar,body.admin-mode #screen-master .toolbar,
 .task-name.done-text{text-decoration:line-through;color:var(--color-text-tertiary)}
 .task-desc{font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-top:2px}
 .task-dates{display:flex;align-items:center;gap:5px;margin-top:6px;overflow-x:auto;-webkit-overflow-scrolling:touch}
-.task-date-chip{height:34px;box-sizing:border-box;display:inline-flex;align-items:center;font-size:var(--fs-xs);padding:0 10px;border-radius:6px;background:#d4f0b8;color:#2e7a28;border:0.5px solid #a0d870;white-space:nowrap;flex-shrink:0}
+.task-date-chip{height:34px;box-sizing:border-box;display:inline-flex;align-items:center;gap:5px;font-size:var(--fs-xs);padding:0 10px;border-radius:6px;background:#d4f0b8;color:#2e7a28;border:0.5px solid #a0d870;white-space:nowrap;flex-shrink:0}
+.task-date-chip-memo-dot{width:6px;height:6px;border-radius:50%;background:#2e7a28;flex-shrink:0}
 .task-dates-divider{width:1px;align-self:stretch;background:var(--color-border-tertiary);flex-shrink:0;margin:0 2px}
+.task-memo-preview{margin-top:4px}
+.task-memo-line{display:flex;gap:6px;align-items:baseline;padding:5px 4px;font-size:var(--fs-xs);cursor:pointer;border-radius:var(--border-radius-md)}
+.task-memo-line:hover{background:var(--color-background-secondary)}
+.task-memo-line-date{color:#2e7a28;font-weight:500;flex-shrink:0}
+.task-memo-line-text{color:var(--color-text-secondary);line-height:1.5}
+.log-entry-memo{width:100%;font-size:var(--fs-xs);color:var(--color-text-secondary);padding:4px 0 0 32px;line-height:1.5}
 .task-photo-box{width:34px;height:34px;flex-shrink:0;border-radius:6px;position:relative;overflow:visible}
 .task-photo-box-img{width:34px;height:34px;object-fit:cover;border-radius:6px;border:0.5px solid var(--color-border-secondary);display:block;cursor:pointer}
 .task-photo-box.empty{display:flex;align-items:center;justify-content:center;border:0.5px dashed var(--color-border-secondary);color:var(--color-text-tertiary);font-size:14px;cursor:pointer}
@@ -203,7 +210,7 @@ body.admin-mode #screen-manage .toolbar,body.admin-mode #screen-master .toolbar,
 .log-date-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
 .log-date-label{font-size:var(--fs-sm);font-weight:500;color:var(--color-text-primary);white-space:nowrap}
 .log-date-line{flex:1;height:0.5px;background:var(--color-border-tertiary)}
-.log-entry{display:flex;align-items:center;gap:10px;padding:8px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);margin-bottom:5px}
+.log-entry{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:8px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);margin-bottom:5px}
 .log-entry-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:var(--fs-xs)}
 .log-entry-icon.task{background:var(--color-background-secondary);color:var(--color-text-secondary)}
 .log-entry-icon.harvest{background:#d4f0b8;color:#2e7a28}
@@ -217,9 +224,14 @@ body.admin-mode #screen-manage .toolbar,body.admin-mode #screen-master .toolbar,
 .harvest-input-group select{font-size:var(--fs-sm);padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
 .harvest-add-btn{font-size:var(--fs-md);padding:6px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-success);background:var(--color-background-success);color:var(--color-text-success);cursor:pointer;font-weight:500;white-space:nowrap;align-self:flex-end}
 .harvest-list{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
-.harvest-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary)}
+.harvest-row{display:flex;flex-direction:column;padding:8px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary)}
+.harvest-row-top{display:flex;align-items:center;gap:10px}
 .harvest-row-date{font-size:var(--fs-sm);color:var(--color-text-secondary);white-space:nowrap}
 .harvest-row-amount{font-size:var(--fs-base);font-weight:500;color:var(--color-text-primary);flex:1}
+.harvest-memo-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-tertiary);cursor:pointer;flex-shrink:0}
+.harvest-memo-btn.has-memo{color:var(--color-text-success);border-color:var(--color-border-success);background:var(--color-background-success)}
+.harvest-row-memo{margin-top:8px;padding-top:8px;border-top:0.5px dashed var(--color-border-tertiary);font-size:var(--fs-xs);color:var(--color-text-secondary);line-height:1.5;cursor:pointer;border-radius:var(--border-radius-md)}
+.harvest-row-memo:hover{background:var(--color-background-secondary)}
 .harvest-del-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-tertiary);cursor:pointer;flex-shrink:0}
 .harvest-del-btn:hover{color:var(--color-text-danger)}
 .harvest-total{padding:12px 14px;border-radius:var(--border-radius-md);background:#d4f0b8;border:0.5px solid #a0d870;display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
@@ -725,8 +737,26 @@ body{
     </div>
     <div style="display:flex;gap:8px;align-items:center;margin-top:14px">
       <input type="date" id="dlg-task-date-input" style="flex:1;min-width:0;padding:10px 8px;border-radius:8px;border:1px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:var(--fs-md);box-sizing:border-box">
-      <button class="btn-primary" style="flex-shrink:0;white-space:nowrap" onclick="document.getElementById('dlg-task-date').style.display='none';if(window._taskDateConfirm)window._taskDateConfirm(document.getElementById('dlg-task-date-input').value);">記録</button>
     </div>
+    <div id="dlg-task-date-memo-wrap" style="display:none;margin-top:10px">
+      <div style="font-size:var(--fs-xs);color:var(--color-text-secondary);margin-bottom:5px;display:flex;align-items:center;gap:4px"><i class="ti ti-note" aria-hidden="true"></i>メモ（任意）</div>
+      <textarea id="dlg-task-date-memo" placeholder="気づいたことを記入..." style="width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:1px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:var(--fs-sm);font-family:inherit;resize:vertical;min-height:56px"></textarea>
+    </div>
+    <button class="btn-primary" style="width:100%;margin-top:14px" onclick="document.getElementById('dlg-task-date').style.display='none';if(window._taskDateConfirm)window._taskDateConfirm(document.getElementById('dlg-task-date-input').value,document.getElementById('dlg-task-date-memo').value);">記録</button>
+  </div>
+</div>
+
+<div id="dlg-harvest-memo" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:110;background:rgba(0,0,0,0.35)" onclick="this.style.display='none';if(window._harvestMemoCancel)window._harvestMemoCancel();">
+  <div style="background:var(--color-background-primary);border-radius:12px;padding:16px 16px 18px;width:88%;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,0.18)" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2px">
+      <div>
+        <div style="font-size:var(--fs-base);font-weight:600;color:var(--color-text-primary)">メモ</div>
+        <div style="font-size:var(--fs-sm);color:var(--color-text-secondary);margin-top:2px" id="dlg-harvest-memo-sub"></div>
+      </div>
+      <button onclick="document.getElementById('dlg-harvest-memo').style.display='none';if(window._harvestMemoCancel)window._harvestMemoCancel();" style="background:none;border:none;padding:2px 4px;cursor:pointer;color:var(--color-text-tertiary);font-size:18px;line-height:1;flex-shrink:0">✕</button>
+    </div>
+    <textarea id="dlg-harvest-memo-input" placeholder="気づいたことを記入..." style="width:100%;box-sizing:border-box;margin-top:12px;padding:8px;border-radius:8px;border:1px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:var(--fs-sm);font-family:inherit;resize:vertical;min-height:64px"></textarea>
+    <button class="btn-primary" style="width:100%;margin-top:14px" onclick="document.getElementById('dlg-harvest-memo').style.display='none';if(window._harvestMemoConfirm)window._harvestMemoConfirm(document.getElementById('dlg-harvest-memo-input').value);">記録</button>
   </div>
 </div>
 

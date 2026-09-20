@@ -33,14 +33,16 @@ export function getLinkedSids(sid){
   return Array.from(new Set([rep,...aliases]));
 }
 function cloneVal(v){return v!=null?JSON.parse(JSON.stringify(v)):v}
-/** @param {string|{date:string}} raw 実施日1件を表示用文字列に正規化する（TSK-60実装初期の一時期だけ{date,photos}形式で保存されたデータがあるため、そちらにも対応） @returns {string} */
-function normDoneDate(raw){return typeof raw==='string'?raw:(raw&&raw.date)||''}
+/** @param {string|{date:string,memo?:string}} raw 実施日1件を{date,memo}形式に正規化する（旧データはdateのみの文字列で保存されているため、そちらにも対応） @returns {{date:string,memo:string}} */
+function normDoneDate(raw){return typeof raw==='string'?{date:raw,memo:''}:{date:(raw&&raw.date)||'',memo:(raw&&raw.memo)||''}}
 function mergeTaskMaps(a,b){
   const out=Object.assign({},a);
   Object.keys(b||{}).forEach(tid=>{
     if(!out[tid]){out[tid]=b[tid];return;}
     const x=out[tid],y=b[tid];
-    const doneDates=Array.from(new Set([...(x.doneDates||[]).map(normDoneDate),...(y.doneDates||[]).map(normDoneDate)])).sort();
+    const byDate=/** @type {Object<string,{date:string,memo:string}>} */({});
+    [...(x.doneDates||[]).map(normDoneDate),...(y.doneDates||[]).map(normDoneDate)].forEach(d=>{if(!byDate[d.date])byDate[d.date]=d;else if(d.memo&&!byDate[d.date].memo)byDate[d.date].memo=d.memo;});
+    const doneDates=Object.values(byDate).sort((p,q)=>p.date.localeCompare(q.date));
     const photos=Array.from(new Set([...(x.photos||[]),...(y.photos||[])])).slice(0,2);
     out[tid]={done:!!(x.done||y.done),skip:!!(x.skip&&y.skip),doneDates,photos};
   });
@@ -117,17 +119,19 @@ export function addHarvestLog(sid,entry){const k=recordKey(sid);if(!segData.harv
 export function removeHarvestLog(sid,id){const k=recordKey(sid);const list=segData.harvestLogs[k]||[];const removed=list.find(x=>x.id===id);segData.harvestLogs[k]=list.filter(x=>x.id!==id);saveLS();return removed;}
 /** @param {string} sid @param {string} id @param {string|null} photoPath 収穫記録に紐づく写真のStorageパスを更新する（nullで削除） */
 export function setHarvestLogPhoto(sid,id,photoPath){const k=recordKey(sid);const entry=(segData.harvestLogs[k]||[]).find(x=>x.id===id);if(!entry)return;if(photoPath)entry.photoPath=photoPath;else delete entry.photoPath;saveLS()}
+/** @param {string} sid @param {string} id @param {string} memo 収穫記録にメモを設定する（空文字なら削除） */
+export function setHarvestLogMemo(sid,id,memo){const k=recordKey(sid);const entry=(segData.harvestLogs[k]||[]).find(x=>x.id===id);if(!entry)return;if(memo)entry.memo=memo;else delete entry.memo;saveLS()}
 export function getActionLogs(sid){return segData.actionLogs[recordKey(sid)]||[]}
 export function getSummaryMemo(sid){return segData.summaryMemo[recordKey(sid)]||''}
 export function setSummaryMemo(sid,text){segData.summaryMemo[recordKey(sid)]=text;saveLS()}
-export function getMilestoneDate(sid,cropId,ms){const v=getVeg(cropId);if(!v)return null;const tasks=v.phases.flatMap(p=>p.tasks).filter(t=>t.milestone===ms);for(const t of tasks){const state=getTaskState(sid,t.id);if(state.doneDates&&state.doneDates.length){const iso=dispToISO(state.doneDates[0]);if(iso)return iso;}}return null}
+export function getMilestoneDate(sid,cropId,ms){const v=getVeg(cropId);if(!v)return null;const tasks=v.phases.flatMap(p=>p.tasks).filter(t=>t.milestone===ms);for(const t of tasks){const state=getTaskState(sid,t.id);if(state.doneDates&&state.doneDates.length){const iso=dispToISO(state.doneDates[0].date);if(iso)return iso;}}return null}
 export function getHarvestSummary(sid){const logs=getHarvestLogs(sid);const tot={};logs.forEach(h=>{if(!tot[h.unit])tot[h.unit]=0;tot[h.unit]+=Number(h.amount);});return tot}
 export function harvestTotalStr(sid){const t=getHarvestSummary(sid);const e=Object.entries(t);if(!e.length)return null;return e.map(([u,a])=>`${a}${u}`).join(' / ')}
 export function getMergedLogsByDate(sid){
   const byDate={};
   function add(date,item){if(!date)return;if(!byDate[date])byDate[date]=[];byDate[date].push(item);}
   // segData.tasks の doneDates からタスクログを生成
-  const seg=segData.segs[sid];if(seg){const veg=getVeg(seg.crop);if(veg&&veg.phases){veg.phases.forEach(ph=>{ph.tasks.forEach(t=>{const state=getTaskState(sid,t.id);(state.doneDates||[]).forEach(d=>{const iso=dispToISO(d);add(iso,{_type:'task',date:iso,task:t.name});});});});}}
+  const seg=segData.segs[sid];if(seg){const veg=getVeg(seg.crop);if(veg&&veg.phases){veg.phases.forEach(ph=>{ph.tasks.forEach(t=>{const state=getTaskState(sid,t.id);(state.doneDates||[]).forEach(d=>{const iso=dispToISO(d.date);add(iso,{_type:'task',date:iso,task:t.name,memo:d.memo||''});});});});}}
   // segData.harvestLogs
   getHarvestLogs(sid).forEach(h=>add(h.date,{...h,_type:'harvest'}));
   Object.keys(byDate).forEach(date=>{byDate[date].sort((a,b)=>a._type===b._type?0:a._type==='task'?-1:1);});

@@ -50,13 +50,25 @@ export function showAlert(msg, onOk){
   okBtn.onclick=()=>close();
   dlg.style.display='flex';
 }
-/** @param {string} title @param {string} taskName @param {(dateVal: string) => void} onConfirm @param {(() => void)} [onCancel] */
-export function showTaskDateDialog(title, taskName, onConfirm, onCancel){
+/** @param {string} title @param {string} taskName @param {(dateVal: string, memoVal: string) => void} onConfirm @param {(() => void)} [onCancel] @param {{showMemo?:boolean,memo?:string}} [opts] opts.showMemo=trueでメモ欄を表示（工程実施日の記録・編集用）。作業開始日など日付のみの用途では省略してメモ欄を隠す */
+export function showTaskDateDialog(title, taskName, onConfirm, onCancel, opts){
   const dlg=document.getElementById('dlg-task-date');
   document.getElementById('dlg-task-date-title').textContent=title;
   document.getElementById('dlg-task-date-name').textContent=taskName;
   /** @type {HTMLInputElement} */ (document.getElementById('dlg-task-date-input')).value=todayISO();
+  const showMemo=!!(opts&&opts.showMemo);
+  /** @type {HTMLElement} */ (document.getElementById('dlg-task-date-memo-wrap')).style.display=showMemo?'block':'none';
+  /** @type {HTMLTextAreaElement} */ (document.getElementById('dlg-task-date-memo')).value=(opts&&opts.memo)||'';
   window._taskDateConfirm=onConfirm;
   window._taskDateCancel=onCancel||null;
+  dlg.style.display='flex';
+}
+/** @param {string} subtitle @param {string} initialMemo @param {(memoVal: string) => void} onConfirm @param {(() => void)} [onCancel] 収穫記録1件のメモ入力ダイアログを開く。収穫日は記録済みのためここでは編集しない */
+export function showHarvestMemoDialog(subtitle, initialMemo, onConfirm, onCancel){
+  const dlg=document.getElementById('dlg-harvest-memo');
+  document.getElementById('dlg-harvest-memo-sub').textContent=subtitle;
+  /** @type {HTMLTextAreaElement} */ (document.getElementById('dlg-harvest-memo-input')).value=initialMemo||'';
+  window._harvestMemoConfirm=onConfirm;
+  window._harvestMemoCancel=onCancel||null;
   dlg.style.display='flex';
 }

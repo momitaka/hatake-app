@@ -26,8 +26,10 @@ declare global {
     _regDlgOpenTime?: number;
     _chipEdit?: () => void;
     _chipDelete?: () => void;
-    _taskDateConfirm?: (dateVal: string) => void;
+    _taskDateConfirm?: (dateVal: string, memoVal: string) => void;
     _taskDateCancel?: (() => void) | null;
+    _harvestMemoConfirm?: (memoVal: string) => void;
+    _harvestMemoCancel?: (() => void) | null;
     openAuthModal?: () => void;
     closeAuthModal?: () => void;
     sendMagicLink?: () => Promise<void>;
