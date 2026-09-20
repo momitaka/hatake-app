@@ -2,7 +2,7 @@
 // ===== 区画データ構造・作物ヘルパー =====
 import { gridState, segData, masterData } from './state.js';
 import { K, daysBetween, todayISO, addDaysISO, junLabel } from './date-utils.js';
-import { FAMILIES, MAJOR_STATUS, PHASE_COLORS } from './helpers.js';
+import { FAMILIES, MAJOR_STATUS, PHASE_COLORS, stripPhaseSuffix } from './helpers.js';
 import { dispToISO } from './dialogs.js';
 import { saveLS } from './storage.js';
 
@@ -167,7 +167,7 @@ export function getPhaseTimeline(sid,cropId){
     const start=prevEnd!=null?prevEnd:Math.min(...days);
     const end=Math.max(...days);
     prevEnd=end;
-    return{phaseIdx:i,name:p.name,color:PHASE_COLORS[i%PHASE_COLORS.length],start,end};
+    return{phaseIdx:i,name:stripPhaseSuffix(p.name),color:PHASE_COLORS[i%PHASE_COLORS.length],start,end};
   });
   const firstStart=raw[0].start;
   const last=raw[raw.length-1];

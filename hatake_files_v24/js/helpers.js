@@ -21,6 +21,8 @@ export const MAJOR_STATUS=[{id:'ready',name:'準備中',color:'#854F0B',bg:'#FAE
 // 工程表のフェーズ帯タイムライン用の配色。フェーズ名やフェーズ数はレシピごとに異なるため、
 // veg.phasesの配列インデックスに対して循環的に割り当てる（インデックスが同じでも野菜が違えば別フェーズを指す）
 export const PHASE_COLORS=['#B98A4A','#9CC168','#3F9E88','#E8973D','#A9A79E','#7C9CC9','#C97C9C','#8AA6A3'];
+/** @param {string} name @returns {string} フェーズ名末尾の「フェーズ」を除去する（AI生成レシピは名称に「フェーズ」を含むことがあり、タイムラインや凡例で重複表示されて冗長になるため） */
+export function stripPhaseSuffix(name){return name&&name.endsWith('フェーズ')?name.slice(0,-4):name;}
 export const UNITS=['個','g','kg','袋','束','本'];
 export const SIZE_LABELS=['小','中','大','過大','不良'];
 
