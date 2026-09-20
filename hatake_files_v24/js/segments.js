@@ -151,21 +151,35 @@ export function getPivotInfo(sid,cropId){
   const baseDate=pivotDate||(seg&&seg.plantDate)||null;
   return{pivotDay,baseDate};
 }
+/** @param {string} [period] @returns {number|null} 「15〜30日」「〜14日」「101日〜」等の表記から末尾側の数値を抽出する。数値が無ければnull */
+function parsePeriodEnd(period){
+  if(!period)return null;
+  const nums=(String(period).match(/\d+/g)||[]).map(Number);
+  return nums.length?nums[nums.length-1]:null;
+}
+// periodが読み取れない、または前フェーズ以下で累積値として不整合なフェーズに割り当てる暫定の所要日数
+const DEFAULT_PHASE_SPAN=14;
 /**
  * 工程表のフェーズ帯タイムライン（色分け・現在地マーカー・旬メモリ）を算出する。
- * フェーズの区間はtasks[].dayのmin/maxから求め、隙間なく連続するよう前フェーズの終端を次フェーズの起点とする。
+ * フェーズの区間はphase.period（例:「15〜30日」）の末尾の数値を累積終了日として算出する。
+ * tasks[].dayはフェーズをまたいで比較できる値ではない（AI生成レシピではフェーズごとにリセットされることがある）ため
+ * 区間の根拠には使わず、各タスクの位置づけはフェーズ内でのtask.dayの相対位置をフェーズ区間へ比例配分して求める。
  * 最終フェーズ（撤収など）が短すぎて帯が潰れないよう、全体の8%以上の幅は確保する。
  * @param {string} sid @param {string} cropId
- * @returns {{segments:Array<{phaseIdx:number,name:string,color:string,start:number,end:number,widthPct:number}>,markerPct:number|null,ticks:Array<{pct:number,label:string}>}|null}
+ * @returns {{segments:Array<{phaseIdx:number,name:string,color:string,start:number,end:number,widthPct:number}>,markerPct:number|null,ticks:Array<{pct:number,label:string}>,taskRelDay:Object<string,number>,baseDate:string|null}|null}
  */
 export function getPhaseTimeline(sid,cropId){
   const v=getVeg(cropId);if(!v||!v.phases.length)return null;
-  const{pivotDay,baseDate}=getPivotInfo(sid,cropId);
-  let prevEnd=/** @type {number|null} */(null);
+  const{baseDate}=getPivotInfo(sid,cropId);
+  let prevEnd=0;
   const raw=v.phases.map((p,i)=>{
-    const days=p.tasks.map(t=>t.day);
-    const start=prevEnd!=null?prevEnd:Math.min(...days);
-    const end=Math.max(...days);
+    const n=parsePeriodEnd(p.period);
+    let end;
+    if(n==null)end=prevEnd+DEFAULT_PHASE_SPAN;
+    else if(n>prevEnd)end=n; // 累積終了日として妥当
+    else end=prevEnd+n; // 累積として不整合（このフェーズ単体の所要日数として書かれている等）とみなす
+    if(end<=prevEnd)end=prevEnd+DEFAULT_PHASE_SPAN;
+    const start=prevEnd;
     prevEnd=end;
     return{phaseIdx:i,name:stripPhaseSuffix(p.name),color:PHASE_COLORS[i%PHASE_COLORS.length],start,end};
   });
@@ -175,18 +189,36 @@ export function getPhaseTimeline(sid,cropId){
   const minLastSpan=total*0.08;
   if(last.end-last.start<minLastSpan){last.end=last.start+minLastSpan;total=last.end-firstStart;}
   const segments=raw.map(r=>({...r,widthPct:total>0?(r.end-r.start)/total*100:100/raw.length}));
+
+  // 各タスクの累積日：フェーズ内でのtask.dayの相対位置を、そのフェーズの区間（start〜end）へ比例配分して求める
+  const taskCumulativeDay=/** @type {Object<string,number>} */({});
+  v.phases.forEach((p,i)=>{
+    const{start,end}=segments[i];
+    const days=p.tasks.map(t=>t.day);
+    const lo=Math.min(...days),hi=Math.max(...days);
+    p.tasks.forEach(t=>{
+      const ratio=hi>lo?(t.day-lo)/(hi-lo):0;
+      taskCumulativeDay[t.id]=start+ratio*(end-start);
+    });
+  });
+  const all=v.phases.flatMap(p=>p.tasks);
+  const pivotTask=all.find(t=>t.milestone==='sowing')||all.find(t=>t.milestone==='planting');
+  const pivotCumDay=pivotTask?taskCumulativeDay[pivotTask.id]:0;
+  const taskRelDay=/** @type {Object<string,number>} */({});
+  all.forEach(t=>{taskRelDay[t.id]=Math.round(taskCumulativeDay[t.id]-pivotCumDay);});
+
   let markerPct=null;
   const ticks=/** @type {Array<{pct:number,label:string}>} */([]);
   if(baseDate&&total>0){
-    const todayDay=pivotDay+daysBetween(baseDate,todayISO());
+    const todayDay=pivotCumDay+daysBetween(baseDate,todayISO());
     markerPct=Math.max(0,Math.min(100,(todayDay-firstStart)/total*100));
     let lastPct=-100;
     for(let i=1;i<segments.length;i++){
       const pct=(segments[i].start-firstStart)/total*100;
       if(pct-lastPct<8)continue; // 目盛り同士が近すぎて重なる場合は間引く
-      const label=junLabel(addDaysISO(baseDate,segments[i].start-pivotDay));
+      const label=junLabel(addDaysISO(baseDate,segments[i].start-pivotCumDay));
       if(label){ticks.push({pct,label});lastPct=pct;}
     }
   }
-  return{segments,markerPct,ticks};
+  return{segments,markerPct,ticks,taskRelDay,baseDate};
 }

@@ -2,7 +2,7 @@
 // ===== 管理画面（工程表・ログ・収穫） =====
 import { navState, permState, gridState, segData } from './state.js';
 import { vegIconHtml, UNITS, SIZE_LABELS, PHASE_COLORS, stripPhaseSuffix } from './helpers.js';
-import { buildSegs, getVeg, calcMajorStatus, calcProgress, getTaskState, setTaskState, getMilestoneDate, getPivotInfo, getPhaseTimeline, getMergedLogsByDate, getHarvestSummary, harvestTotalStr, getHarvestLogs, addHarvestLog, removeHarvestLog, getSummaryMemo, setSummaryMemo, getLinkedSids, linkSegs, unlinkOne, detachSegFromGroup, hasAnyRecord, recordKey, setHarvestLogPhoto, setHarvestLogMemo } from './segments.js';
+import { buildSegs, getVeg, calcMajorStatus, calcProgress, getTaskState, setTaskState, getMilestoneDate, getPhaseTimeline, getMergedLogsByDate, getHarvestSummary, harvestTotalStr, getHarvestLogs, addHarvestLog, removeHarvestLog, getSummaryMemo, setSummaryMemo, getLinkedSids, linkSegs, unlinkOne, detachSegFromGroup, hasAnyRecord, recordKey, setHarvestLogPhoto, setHarvestLogMemo } from './segments.js';
 import { dispToISO, showTaskDateDialog, showMilestoneDialog, showConfirm, showAlert, showHarvestMemoDialog } from './dialogs.js';
 import { pushUndo, saveLS, getLastTab, setLastTab } from './storage.js';
 import { isoShort, isoFull, daysBetween, todayISO, addDaysISO, junLabel } from './date-utils.js';
@@ -171,9 +171,8 @@ function buildTaskPhotoBox(task,state,pi){
   return box;
 }
 
-/** @param {HTMLElement} el @param {any} seg @param {any} veg @param {number} phaseIdx 工程表タブ上部のフェーズ帯タイムライン（色分け・現在地マーカー・旬メモリ・凡例）を描画する */
-function renderPhaseTimeline(el,seg,veg,phaseIdx){
-  const data=getPhaseTimeline(navState.seg,seg.crop);
+/** @param {HTMLElement} el @param {any} data getPhaseTimeline()の結果 @param {number} phaseIdx 工程表タブ上部のフェーズ帯タイムライン（色分け・現在地マーカー・旬メモリ・凡例）を描画する */
+function renderPhaseTimeline(el,data,phaseIdx){
   if(!data)return;
   const wrap=document.createElement('div');wrap.className='phase-timeline';
   const barWrap=document.createElement('div');barWrap.className='phase-timeline-barwrap';
@@ -213,15 +212,16 @@ export function renderRoadmapTab(el,seg,veg){
   if(!veg||!veg.phases||!veg.phases.length){const b=document.createElement('div');b.className='ai-banner';b.innerHTML='<div class="ai-banner-text">工程表がありません。栽培レシピで生成してください。</div>';el.appendChild(b);return;}
   const{pct,phaseIdx}=calcProgress(navState.seg,seg.crop);
   const wrap=document.createElement('div');wrap.className='progress-wrap';wrap.innerHTML=`<div class="progress-label"><div class="progress-title">${vegIconHtml(veg,18)} ${veg.name} 工程表</div><div class="progress-pct">${pct}%</div></div>`;el.appendChild(wrap);
-  renderPhaseTimeline(el,seg,veg,phaseIdx);
-  const{pivotDay:_pivotDay,baseDate:_baseDate}=getPivotInfo(navState.seg,seg.crop);
+  const timeline=getPhaseTimeline(navState.seg,seg.crop);
+  renderPhaseTimeline(el,timeline,phaseIdx);
+  const _baseDate=timeline?timeline.baseDate:null;
   veg.phases.forEach((phase,pi)=>{
     const isCurrent=pi===phaseIdx,isDone=pi<phaseIdx;
     const block=document.createElement('div');block.className='phase-block';block.style.borderLeftColor=PHASE_COLORS[pi%PHASE_COLORS.length];
     block.innerHTML=`<div class="phase-heading"><div class="phase-radio ${isDone?'done':isCurrent?'active':''}"></div><span class="phase-name" style="color:${isCurrent?'#1a1915':'#5f5e5a'}">${stripPhaseSuffix(phase.name)}</span>${phase.period?'<span class="phase-period">（'+phase.period+'）</span>':''}</div>`;
     phase.tasks.forEach(task=>{
       const state=getTaskState(navState.seg,task.id);const isPest=task.type==='pest';const card=document.createElement('div');card.className='task-card'+(isPest?' pest':'');
-      const _relDay=task.day-_pivotDay;
+      const _relDay=timeline&&timeline.taskRelDay[task.id]!=null?timeline.taskRelDay[task.id]:0;
       const _relLabel=_relDay===0?'0日':(_relDay>0?'+'+_relDay+'日':_relDay+'日');
       const _dueJun=_baseDate?junLabel(addDaysISO(_baseDate,_relDay)):null;
       const main=document.createElement('div');main.className='task-main';const cbWrap=document.createElement('div');cbWrap.className='task-cb-wrap';const cb=document.createElement('input');cb.type='checkbox';cb.className='task-cb';cb.checked=state.done;cbWrap.appendChild(cb);
