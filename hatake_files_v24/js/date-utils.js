@@ -33,3 +33,7 @@ export const isoFull=s=>{if(!s)return '';const[y,m,d]=s.split('-');return `${y}�
 export const isoShort=s=>{if(!s)return '';const[y,m,d]=s.split('-');return `${y}/${parseInt(m)}/${parseInt(d)}`};
 /** @param {string} a @param {string} b @returns {number} */
 export const daysBetween=(a,b)=>Math.round((new Date(b).getTime()-new Date(a).getTime())/86400000);
+/** @param {string|null} dateStr YYYY-MM-DD @param {number} days @returns {string|null} 加算した日付をYYYY-MM-DD形式で返す */
+export function addDaysISO(dateStr,days){if(!dateStr)return null;const d=new Date(dateStr);d.setDate(d.getDate()+days);return d.toISOString().slice(0,10);}
+/** @param {string|null} dateStr YYYY-MM-DD @returns {string|null} 「M月上旬/中旬/下旬」形式のラベル（1〜10日=上旬、11〜20日=中旬、21日〜=下旬） */
+export function junLabel(dateStr){if(!dateStr)return null;const d=new Date(dateStr);const day=d.getDate();const jun=day<=10?'上旬':day<=20?'中旬':'下旬';return `${d.getMonth()+1}月${jun}`;}

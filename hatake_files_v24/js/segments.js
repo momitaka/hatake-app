@@ -1,8 +1,8 @@
 // @ts-check
 // ===== 区画データ構造・作物ヘルパー =====
 import { gridState, segData, masterData } from './state.js';
-import { K } from './date-utils.js';
-import { FAMILIES, MAJOR_STATUS } from './helpers.js';
+import { K, daysBetween, todayISO, addDaysISO, junLabel } from './date-utils.js';
+import { FAMILIES, MAJOR_STATUS, PHASE_COLORS } from './helpers.js';
 import { dispToISO } from './dialogs.js';
 import { saveLS } from './storage.js';
 
@@ -140,4 +140,53 @@ export function getMergedLogsByDate(sid){
 export function getNextTask(sid,cropId){const v=getVeg(cropId);if(!v||!v.phases.length)return null;const all=v.phases.flatMap(p=>p.tasks);let lastCheckedIdx=-1;all.forEach((t,i)=>{if(getTaskState(sid,t.id).done)lastCheckedIdx=i;});const nextIdx=lastCheckedIdx+1;return nextIdx<all.length?all[nextIdx]:null;}
 export function calcProgress(sid,cropId){const v=getVeg(cropId);if(!v)return{pct:0,phaseIdx:0};const all=v.phases.flatMap(p=>p.tasks);let lastCheckedIdx=-1;all.forEach((t,i)=>{if(getTaskState(sid,t.id).done)lastCheckedIdx=i;});const pct=all.length?Math.round((lastCheckedIdx+1)/all.length*100):0;let phaseIdx=0;if(lastCheckedIdx>=0){let count=0;for(let i=0;i<v.phases.length;i++){count+=v.phases[i].tasks.length;if(lastCheckedIdx<count){phaseIdx=i;break;}phaseIdx=i;}}return{pct,phaseIdx}}
 export function calcMajorStatus(sid,cropId){const v=getVeg(cropId);if(!v||!v.phases.length)return MAJOR_STATUS[0];const{phaseIdx}=calcProgress(sid,cropId);return MAJOR_STATUS.find(m=>m.id===v.phases[phaseIdx].majorStatus)||MAJOR_STATUS[0]}
-export function addDays(dateStr,days){if(!dateStr)return null;const d=new Date(dateStr);d.setDate(d.getDate()+days);return `${d.getMonth()+1}/${d.getDate()}`}
+/** @param {string} sid @param {string} cropId @returns {{pivotDay:number,baseDate:string|null}} 基準タスク（milestone==='sowing'|'planting'）のday値と、実日付換算に使う基準日（記録された実施日、無ければ定植日） */
+export function getPivotInfo(sid,cropId){
+  const v=getVeg(cropId);if(!v)return{pivotDay:0,baseDate:null};
+  const all=v.phases.flatMap(p=>p.tasks);
+  const pivotTask=all.find(t=>t.milestone==='sowing')||all.find(t=>t.milestone==='planting');
+  const pivotDay=pivotTask?pivotTask.day:0;
+  const pivotDate=pivotTask?getMilestoneDate(sid,cropId,pivotTask.milestone):null;
+  const seg=segData.segs[sid];
+  const baseDate=pivotDate||(seg&&seg.plantDate)||null;
+  return{pivotDay,baseDate};
+}
+/**
+ * 工程表のフェーズ帯タイムライン（色分け・現在地マーカー・旬メモリ）を算出する。
+ * フェーズの区間はtasks[].dayのmin/maxから求め、隙間なく連続するよう前フェーズの終端を次フェーズの起点とする。
+ * 最終フェーズ（撤収など）が短すぎて帯が潰れないよう、全体の8%以上の幅は確保する。
+ * @param {string} sid @param {string} cropId
+ * @returns {{segments:Array<{phaseIdx:number,name:string,color:string,start:number,end:number,widthPct:number}>,markerPct:number|null,ticks:Array<{pct:number,label:string}>}|null}
+ */
+export function getPhaseTimeline(sid,cropId){
+  const v=getVeg(cropId);if(!v||!v.phases.length)return null;
+  const{pivotDay,baseDate}=getPivotInfo(sid,cropId);
+  let prevEnd=/** @type {number|null} */(null);
+  const raw=v.phases.map((p,i)=>{
+    const days=p.tasks.map(t=>t.day);
+    const start=prevEnd!=null?prevEnd:Math.min(...days);
+    const end=Math.max(...days);
+    prevEnd=end;
+    return{phaseIdx:i,name:p.name,color:PHASE_COLORS[i%PHASE_COLORS.length],start,end};
+  });
+  const firstStart=raw[0].start;
+  const last=raw[raw.length-1];
+  let total=last.end-firstStart;
+  const minLastSpan=total*0.08;
+  if(last.end-last.start<minLastSpan){last.end=last.start+minLastSpan;total=last.end-firstStart;}
+  const segments=raw.map(r=>({...r,widthPct:total>0?(r.end-r.start)/total*100:100/raw.length}));
+  let markerPct=null;
+  const ticks=/** @type {Array<{pct:number,label:string}>} */([]);
+  if(baseDate&&total>0){
+    const todayDay=pivotDay+daysBetween(baseDate,todayISO());
+    markerPct=Math.max(0,Math.min(100,(todayDay-firstStart)/total*100));
+    let lastPct=-100;
+    for(let i=1;i<segments.length;i++){
+      const pct=(segments[i].start-firstStart)/total*100;
+      if(pct-lastPct<8)continue; // 目盛り同士が近すぎて重なる場合は間引く
+      const label=junLabel(addDaysISO(baseDate,segments[i].start-pivotDay));
+      if(label){ticks.push({pct,label});lastPct=pct;}
+    }
+  }
+  return{segments,markerPct,ticks};
+}

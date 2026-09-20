@@ -1,11 +1,11 @@
 // @ts-check
 // ===== 管理画面（工程表・ログ・収穫） =====
 import { navState, permState, gridState, segData } from './state.js';
-import { vegIconHtml, UNITS, SIZE_LABELS } from './helpers.js';
-import { buildSegs, getVeg, calcMajorStatus, calcProgress, getTaskState, setTaskState, getMilestoneDate, addDays, getMergedLogsByDate, getHarvestSummary, harvestTotalStr, getHarvestLogs, addHarvestLog, removeHarvestLog, getSummaryMemo, setSummaryMemo, getLinkedSids, linkSegs, unlinkOne, detachSegFromGroup, hasAnyRecord, recordKey, setHarvestLogPhoto, setHarvestLogMemo } from './segments.js';
+import { vegIconHtml, UNITS, SIZE_LABELS, PHASE_COLORS } from './helpers.js';
+import { buildSegs, getVeg, calcMajorStatus, calcProgress, getTaskState, setTaskState, getMilestoneDate, getPivotInfo, getPhaseTimeline, getMergedLogsByDate, getHarvestSummary, harvestTotalStr, getHarvestLogs, addHarvestLog, removeHarvestLog, getSummaryMemo, setSummaryMemo, getLinkedSids, linkSegs, unlinkOne, detachSegFromGroup, hasAnyRecord, recordKey, setHarvestLogPhoto, setHarvestLogMemo } from './segments.js';
 import { dispToISO, showTaskDateDialog, showMilestoneDialog, showConfirm, showAlert, showHarvestMemoDialog } from './dialogs.js';
 import { pushUndo, saveLS, getLastTab, setLastTab } from './storage.js';
-import { isoShort, isoFull, daysBetween, todayISO } from './date-utils.js';
+import { isoShort, isoFull, daysBetween, todayISO, addDaysISO, junLabel } from './date-utils.js';
 import { permCanEditFarm } from './add-veg.js';
 import { openCompleteConfirm } from './complete.js';
 import { renderGrid } from './grid.js';
@@ -171,26 +171,61 @@ function buildTaskPhotoBox(task,state,pi){
   return box;
 }
 
+/** @param {HTMLElement} el @param {any} seg @param {any} veg @param {number} phaseIdx 工程表タブ上部のフェーズ帯タイムライン（色分け・現在地マーカー・旬メモリ・凡例）を描画する */
+function renderPhaseTimeline(el,seg,veg,phaseIdx){
+  const data=getPhaseTimeline(navState.seg,seg.crop);
+  if(!data)return;
+  const wrap=document.createElement('div');wrap.className='phase-timeline';
+  const barWrap=document.createElement('div');barWrap.className='phase-timeline-barwrap';
+  if(data.markerPct!=null){
+    const marker=document.createElement('div');marker.className='phase-timeline-marker';marker.style.left=data.markerPct+'%';
+    marker.innerHTML='<div class="phase-timeline-marker-label">今日</div><div class="phase-timeline-marker-flag"></div>';
+    barWrap.appendChild(marker);
+  }
+  const bar=document.createElement('div');bar.className='phase-timeline-bar';
+  data.segments.forEach(s=>{
+    const segEl=document.createElement('div');segEl.className='phase-timeline-seg';segEl.style.flex=`${s.widthPct} 1 0%`;segEl.style.background=s.color;
+    if(s.widthPct>=18)segEl.innerHTML=`<span class="phase-timeline-seg-label">${s.name}</span>`;
+    bar.appendChild(segEl);
+  });
+  barWrap.appendChild(bar);wrap.appendChild(barWrap);
+  if(data.ticks.length){
+    const ticksEl=document.createElement('div');ticksEl.className='phase-timeline-ticks';
+    data.ticks.forEach(t=>{
+      const tick=document.createElement('div');tick.className='phase-timeline-tick';tick.style.left=t.pct+'%';
+      tick.innerHTML=`<div class="phase-timeline-tick-mark"></div><div class="phase-timeline-tick-label">${t.label}</div>`;
+      ticksEl.appendChild(tick);
+    });
+    wrap.appendChild(ticksEl);
+  }
+  const legend=document.createElement('div');legend.className='phase-timeline-legend';
+  data.segments.forEach(s=>{
+    const isCurrent=s.phaseIdx===phaseIdx;
+    const item=document.createElement('div');item.className='phase-timeline-legend-item';
+    item.innerHTML=`<span class="phase-timeline-legend-dot" style="background:${s.color}"></span><span class="phase-timeline-legend-label${isCurrent?' current':''}">${s.name}</span>`;
+    legend.appendChild(item);
+  });
+  wrap.appendChild(legend);
+  el.appendChild(wrap);
+}
+
 export function renderRoadmapTab(el,seg,veg){
   if(!veg||!veg.phases||!veg.phases.length){const b=document.createElement('div');b.className='ai-banner';b.innerHTML='<div class="ai-banner-text">工程表がありません。栽培レシピで生成してください。</div>';el.appendChild(b);return;}
   const{pct,phaseIdx}=calcProgress(navState.seg,seg.crop);
-  const wrap=document.createElement('div');wrap.className='progress-wrap';wrap.innerHTML=`<div class="progress-label"><div class="progress-title">${vegIconHtml(veg,18)} ${veg.name} 工程表</div><div class="progress-pct">${pct}%</div></div><div class="progress-bar-outer"><div class="progress-bar-inner" style="width:${pct}%"></div></div>`;el.appendChild(wrap);
+  const wrap=document.createElement('div');wrap.className='progress-wrap';wrap.innerHTML=`<div class="progress-label"><div class="progress-title">${vegIconHtml(veg,18)} ${veg.name} 工程表</div><div class="progress-pct">${pct}%</div></div>`;el.appendChild(wrap);
+  renderPhaseTimeline(el,seg,veg,phaseIdx);
+  const{pivotDay:_pivotDay,baseDate:_baseDate}=getPivotInfo(navState.seg,seg.crop);
   veg.phases.forEach((phase,pi)=>{
     const isCurrent=pi===phaseIdx,isDone=pi<phaseIdx;
-    const block=document.createElement('div');block.className='phase-block';block.innerHTML=`<div class="phase-heading"><div class="phase-radio ${isDone?'done':isCurrent?'active':''}"></div><span class="phase-name" style="color:${isCurrent?'#1a1915':'#5f5e5a'}">${phase.name}</span>${phase.period?'<span class="phase-period">（'+phase.period+'）</span>':''}</div>`;
+    const block=document.createElement('div');block.className='phase-block';block.style.borderLeftColor=PHASE_COLORS[pi%PHASE_COLORS.length];
+    block.innerHTML=`<div class="phase-heading"><div class="phase-radio ${isDone?'done':isCurrent?'active':''}"></div><span class="phase-name" style="color:${isCurrent?'#1a1915':'#5f5e5a'}">${phase.name}</span>${phase.period?'<span class="phase-period">（'+phase.period+'）</span>':''}</div>`;
     phase.tasks.forEach(task=>{
       const state=getTaskState(navState.seg,task.id);const isPest=task.type==='pest';const card=document.createElement('div');card.className='task-card'+(isPest?' pest':'');
-      const _allTasks=veg.phases?veg.phases.flatMap(p=>p.tasks):[];
-      const _pivotTask=_allTasks.find(t=>t.milestone==='sowing')||_allTasks.find(t=>t.milestone==='planting');
-      const _pivotDay=_pivotTask?_pivotTask.day:0;
-      const _pivotDate=_pivotTask?getMilestoneDate(navState.seg,seg.crop,_pivotTask.milestone):null;
-      const _baseDate=_pivotDate||seg.plantDate||null;
       const _relDay=task.day-_pivotDay;
       const _relLabel=_relDay===0?'0日':(_relDay>0?'+'+_relDay+'日':_relDay+'日');
-      const scheduledDate=_baseDate?addDays(_baseDate,_relDay):null;
-      const dayLabel=_relLabel+(scheduledDate?' ('+scheduledDate+'頃)':'');
+      const _dueJun=_baseDate?junLabel(addDaysISO(_baseDate,_relDay)):null;
       const main=document.createElement('div');main.className='task-main';const cbWrap=document.createElement('div');cbWrap.className='task-cb-wrap';const cb=document.createElement('input');cb.type='checkbox';cb.className='task-cb';cb.checked=state.done;cbWrap.appendChild(cb);
-      const clickable=document.createElement('div');clickable.className='task-clickable';const body=document.createElement('div');body.className='task-body';if(isPest){const lbl=document.createElement('div');lbl.className='task-pest-label';lbl.innerHTML='<i class="ti ti-bug" style="font-size:10px"></i>病害虫チェック';body.appendChild(lbl);}const nameEl=document.createElement('div');nameEl.className='task-name'+(state.done?' done-text':'');nameEl.textContent=task.name;const descEl=document.createElement('div');descEl.className='task-desc';descEl.textContent=task.desc;const textCol=document.createElement('div');textCol.className='task-header-text';textCol.append(nameEl,descEl);const dayBadge=document.createElement('div');dayBadge.className='task-day-badge';dayBadge.textContent=dayLabel;if(_relDay===0)dayBadge.style.fontWeight='600';const headerRow=document.createElement('div');headerRow.className='task-header-row';headerRow.append(textCol,dayBadge);const datesWrap=document.createElement('div');datesWrap.className='task-dates';renderTaskDates(datesWrap,task,state);const divider=document.createElement('div');divider.className='task-dates-divider';datesWrap.appendChild(divider);renderTaskPhotos(datesWrap,task,state);const memoPreviewWrap=document.createElement('div');memoPreviewWrap.className='task-memo-preview';renderTaskMemoPreview(memoPreviewWrap,task,state);body.append(headerRow,datesWrap,memoPreviewWrap);const expandIcon=document.createElement('div');expandIcon.className='task-expand-icon';expandIcon.innerHTML='<i class="ti ti-chevron-down"></i>';clickable.append(body,expandIcon);main.append(cbWrap,clickable);
+      const clickable=document.createElement('div');clickable.className='task-clickable';const body=document.createElement('div');body.className='task-body';if(isPest){const lbl=document.createElement('div');lbl.className='task-pest-label';lbl.innerHTML='<i class="ti ti-bug" style="font-size:10px"></i>病害虫チェック';body.appendChild(lbl);}const nameEl=document.createElement('div');nameEl.className='task-name'+(state.done?' done-text':'');nameEl.textContent=task.name;const descEl=document.createElement('div');descEl.className='task-desc';descEl.textContent=task.desc;const textCol=document.createElement('div');textCol.className='task-header-text';textCol.append(nameEl,descEl);const dayBadge=document.createElement('div');dayBadge.className='task-day-badge';if(_dueJun)dayBadge.innerHTML=`${_dueJun}まで<span class="task-day-badge-sub">(${_relLabel})</span>`;else dayBadge.textContent=_relLabel;if(_relDay===0)dayBadge.style.fontWeight='600';const headerRow=document.createElement('div');headerRow.className='task-header-row';headerRow.append(textCol,dayBadge);const datesWrap=document.createElement('div');datesWrap.className='task-dates';renderTaskDates(datesWrap,task,state);const divider=document.createElement('div');divider.className='task-dates-divider';datesWrap.appendChild(divider);renderTaskPhotos(datesWrap,task,state);const memoPreviewWrap=document.createElement('div');memoPreviewWrap.className='task-memo-preview';renderTaskMemoPreview(memoPreviewWrap,task,state);body.append(headerRow,datesWrap,memoPreviewWrap);const expandIcon=document.createElement('div');expandIcon.className='task-expand-icon';expandIcon.innerHTML='<i class="ti ti-chevron-down"></i>';clickable.append(body,expandIcon);main.append(cbWrap,clickable);
       const detail=document.createElement('div');detail.className='task-detail';if(task.memo){const m=document.createElement('div');m.className='task-detail-memo';m.textContent=task.memo;detail.appendChild(m);}if(task.url){const a=document.createElement('a');a.className='task-detail-url';a.href=task.url;a.target='_blank';a.innerHTML='<i class="ti ti-brand-youtube" style="font-size:var(--fs-base)"></i>参考動画を見る';detail.appendChild(a);}card.append(main,detail);block.appendChild(card);
       clickable.addEventListener('click',()=>{const isOpen=detail.classList.contains('open');detail.classList.toggle('open',!isOpen);expandIcon.querySelector('i').className=`ti ${isOpen?'ti-chevron-down':'ti-chevron-up'}`;});
       cb.addEventListener('change',e=>{e.stopPropagation();if(cb.checked){showTaskDateDialog('実施日を選択',task.name,(dateVal,memoVal)=>{if(!dateVal)return;pushUndo();const disp=dateVal.slice(5).replace('-','/');const dates=[...(state.doneDates||[]),{date:disp,memo:memoVal||''}];setTaskState(navState.seg,task.id,{done:true,skip:false,doneDates:dates});renderManage();renderGrid();if(task.milestone==='firstHarvest')setLastTab(navState.seg,'harvest');if(task.milestone==='germination'||task.milestone==='firstHarvest')setTimeout(()=>showMilestoneDialog(task.milestone),300);},()=>{cb.checked=false;},{showMemo:true});}else{pushUndo();const dates=[...(state.doneDates||[])];dates.pop();setTaskState(navState.seg,task.id,{done:dates.length>0,skip:false,doneDates:dates});renderManage();renderGrid();}});
