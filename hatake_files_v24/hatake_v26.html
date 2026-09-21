@@ -99,6 +99,7 @@ body.admin-mode #screen-manage .toolbar,body.admin-mode #screen-master .toolbar,
 .col-num-corner{}
 .seg-list-wrap{margin-top:0}
 .seg-list-wrap h3{font-size:var(--fs-xs);font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:5px;letter-spacing:0.04em;color:#1a5c16}
+.grid-area-wrap h3{font-size:var(--fs-xs);font-weight:600;margin:0 0 8px;display:flex;align-items:center;gap:5px;letter-spacing:0.04em;color:var(--theme-color)}
 .hint{font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-bottom:8px}
 .seg-list{display:grid;grid-template-columns:1fr 1fr;gap:5px}
 .seg-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;border-radius:10px;background:var(--color-background-primary);cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.07)}
@@ -565,10 +566,10 @@ body{
             <button class="btn" id="btn-weather-geolocate"><i class="ti ti-current-location"></i>現在地から取得</button>
             <button class="btn" id="btn-save-weather-loc">保存</button>
           </div>
-          <div id="weather-loc-status" style="font-size:var(--fs-xs);color:var(--color-text-tertiary)">グリッド上部に前後1週間の降水量・気温を表示します。</div>
+          <div id="weather-loc-status" style="font-size:var(--fs-xs);color:var(--color-text-tertiary)">畑マップ上部に前後1週間の降水量・気温を表示します。</div>
         </div>
         <hr class="divider farm-settings-only" style="margin:10px 0">
-        <div class="settings-section-label farm-settings-only">グリッドサイズ</div>
+        <div class="settings-section-label farm-settings-only">マスの数</div>
         <div class="settings-row farm-settings-only">
           <span class="settings-label">列</span><input type="number" inputmode="numeric" id="s-cols" value="8" min="2" max="20">
           <span class="settings-label">行</span><input type="number" inputmode="numeric" id="s-rows" value="6" min="2" max="20">
@@ -588,7 +589,7 @@ body{
           <button class="btn farm-settings-only" onclick="applyAisles()" style="align-self:flex-start"><i class="ti ti-refresh"></i>適用</button>
         </div>
         <hr class="divider" style="margin:10px 0">
-        <div style="font-size:var(--fs-xs);color:var(--color-text-secondary);margin-bottom:8px" class="farm-settings-only">全区画データを削除します。元に戻せません。</div>
+        <div style="font-size:var(--fs-xs);color:var(--color-text-secondary);margin-bottom:8px" class="farm-settings-only">全栽培エリアのデータを削除します。元に戻せません。</div>
         <button class="btn-danger-outline farm-settings-only" onclick="resetAll()"><i class="ti ti-trash"></i>全データをリセット</button>
       </div>
     </div>
@@ -603,7 +604,8 @@ body{
       <div class="weather-summary" id="weather-summary"></div>
       <div class="weather-detail" id="weather-detail"></div>
     </div>
-    <div style="background:#fff;padding:8px 0.5rem 10px;margin:0 -0.5rem">
+    <div class="grid-area-wrap" style="background:#fff;padding:8px 0.5rem 10px;margin:0 -0.5rem">
+      <h3><i class="ti ti-layout-grid" style="font-size:var(--fs-base)"></i>畑マップ</h3>
       <div class="grid-wrap" id="grid-wrap"><table class="grid-table" id="grid-table"></table></div>
     </div>
     <div class="seg-list-wrap" style="background:#f5faed;margin:0 -0.5rem;padding:8px 0.5rem 12px">
@@ -615,14 +617,14 @@ body{
 
   <div class="screen" id="screen-manage">
     <div id="manage-static"></div>
-    <div class="toolbar"><button class="btn-grid-chip btn-master" onclick="goBack()"><i class="ti ti-arrow-left" style="font-size:var(--fs-xs)"></i>グリッドへ戻る</button><div style="flex:1"></div><button class="btn-grid-chip admin-only" id="btn-complete-manage" onclick="navState.tab='log';renderManage();setTimeout(()=>{const n=document.getElementById('complete-notice');if(n){n.classList.add('highlight');setTimeout(()=>n.classList.remove('highlight'),2500);}},50);" style="background:#fff;border-color:#fff;color:#c62828;font-weight:600"><i class="ti ti-flag-check" style="font-size:var(--fs-xs)"></i>管理の完了</button></div>
+    <div class="toolbar"><button class="btn-grid-chip btn-master" onclick="goBack()"><i class="ti ti-arrow-left" style="font-size:var(--fs-xs)"></i>畑へ戻る</button><div style="flex:1"></div><button class="btn-grid-chip admin-only" id="btn-complete-manage" onclick="navState.tab='log';renderManage();setTimeout(()=>{const n=document.getElementById('complete-notice');if(n){n.classList.add('highlight');setTimeout(()=>n.classList.remove('highlight'),2500);}},50);" style="background:#fff;border-color:#fff;color:#c62828;font-weight:600"><i class="ti ti-flag-check" style="font-size:var(--fs-xs)"></i>管理の完了</button></div>
     <div id="manage-tabs"></div>
     <div id="manage-content"></div>
   </div>
 
   <div class="screen" id="screen-archive">
     <div class="toolbar">
-      <button class="btn-grid-chip btn-master" onclick="closeArchive()"><i class="ti ti-arrow-left" style="font-size:var(--fs-xs)"></i>グリッドへ戻る</button>
+      <button class="btn-grid-chip btn-master" onclick="closeArchive()"><i class="ti ti-arrow-left" style="font-size:var(--fs-xs)"></i>畑へ戻る</button>
       <span style="font-size:var(--fs-base);font-weight:600;color:#fff;margin-left:4px;flex:1;text-align:center">過去データ</span>
     </div>
     <div id="archive-content"></div>
@@ -630,7 +632,7 @@ body{
 
   <div class="screen" id="screen-master">
     <div class="toolbar">
-      <button class="btn-grid-chip btn-master" onclick="closeMaster()"><i class="ti ti-arrow-left" style="font-size:var(--fs-xs)"></i>グリッドへ戻る</button>
+      <button class="btn-grid-chip btn-master" onclick="closeMaster()"><i class="ti ti-arrow-left" style="font-size:var(--fs-xs)"></i>畑へ戻る</button>
       <span style="font-size:var(--fs-base);font-weight:600;color:#fff;margin-left:4px;flex:1;text-align:center">栽培レシピ</span>
       <div id="master-toolbar-btns" style="display:none;gap:6px;align-items:center"></div>
     </div>
@@ -670,14 +672,14 @@ body{
 <div id="dlg-register" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:99;background:rgba(0,0,0,0.4)">
   <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.25rem;min-width:260px;max-width:320px;width:90%">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <div style="font-size:var(--fs-base);font-weight:500;display:flex;align-items:center;gap:6px"><i class="ti ti-plant-2" style="color:#5aad4e"></i>区画を登録</div>
+      <div style="font-size:var(--fs-base);font-weight:500;display:flex;align-items:center;gap:6px"><i class="ti ti-plant-2" style="color:#5aad4e"></i>栽培エリアを登録</div>
       <button id="btn-dlg-cancel" style="background:none;border:none;padding:2px 4px;cursor:pointer;color:var(--color-text-tertiary);font-size:18px;line-height:1;flex-shrink:0">✕</button>
     </div>
     <div id="dlg-preview" style="font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-bottom:12px"></div>
     <div id="dlg-no-veg" style="display:none;margin-bottom:14px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);font-size:var(--fs-sm);color:var(--color-text-secondary);line-height:1.6">登録できる野菜がありません。<br>先に栽培レシピに野菜を追加してください。<br><button id="dlg-go-master" class="btn-primary" style="margin-top:8px;font-size:var(--fs-sm);padding:5px 14px">栽培レシピに追加する</button></div>
     <div id="dlg-crop-field" class="dlg-field"><label>作物</label><select id="dlg-crop"><option value="">— 選択してください —</option></select><div style="margin-top:11px"><button id="dlg-add-new-veg" style="font-size:var(--fs-xs);color:var(--color-text-secondary);background:none;border:none;cursor:pointer;padding:8px 0;display:inline-flex;align-items:center;gap:3px"><i class="ti ti-plus" style="font-size:var(--fs-xs)"></i>新しい野菜を追加する</button></div></div>
     <div id="dlg-link-field" style="display:none;margin-bottom:14px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);overflow:hidden">
-      <button type="button" id="dlg-link-toggle" style="width:100%;padding:7px 10px;background:var(--color-background-secondary);border:none;font-size:var(--fs-xs);color:var(--color-text-secondary);display:flex;align-items:center;gap:5px;cursor:pointer;text-align:left"><i class="ti ti-link" style="font-size:var(--fs-xs)"></i><span id="dlg-link-label" style="flex:1">他の区画と連携する（任意）</span><i class="ti ti-chevron-down" id="dlg-link-chevron" style="font-size:var(--fs-xs)"></i></button>
+      <button type="button" id="dlg-link-toggle" style="width:100%;padding:7px 10px;background:var(--color-background-secondary);border:none;font-size:var(--fs-xs);color:var(--color-text-secondary);display:flex;align-items:center;gap:5px;cursor:pointer;text-align:left"><i class="ti ti-link" style="font-size:var(--fs-xs)"></i><span id="dlg-link-label" style="flex:1">他の栽培エリアと連携する（任意）</span><i class="ti ti-chevron-down" id="dlg-link-chevron" style="font-size:var(--fs-xs)"></i></button>
       <div id="dlg-link-body" style="display:none;border-top:0.5px solid var(--color-border-tertiary)">
         <div id="dlg-link-candidates" style="display:flex;flex-direction:column;gap:2px;padding:6px 4px;max-height:160px;overflow-y:auto"></div>
       </div>
@@ -792,8 +794,8 @@ body{
     <div id="dlg-complete-target" style="font-size:var(--fs-base);font-weight:500;margin-bottom:10px"></div>
     <ul style="font-size:var(--fs-sm);color:var(--color-text-secondary);line-height:1.7;margin:0 0 4px 18px;padding:0">
       <li>この操作は<b style="color:var(--color-text-danger)">取り消せません</b></li>
-      <li>この区画は<b>グリッドから消えます</b>（枠は未登録状態に戻ります）</li>
-      <li>作業ログ・収穫・全体メモは<b>アーカイブに保存され</b>、削除されません</li>
+      <li>この栽培エリアは<b>畑から消えます</b>（枠は未登録状態に戻ります）</li>
+      <li>作業記録・収穫・全体メモは<b>アーカイブに保存され</b>、削除されません</li>
     </ul>
     <div class="dlg-btns">
       <button class="btn" id="btn-complete-cancel">キャンセル</button>
@@ -804,8 +806,8 @@ body{
 <!-- 区画連携ピッカー：非隣接区画を「同じ野菜」として連携させる選択ダイアログ -->
 <div id="dlg-link-picker" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:100;background:rgba(0,0,0,0.4)">
   <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.25rem;min-width:260px;max-width:340px;width:90%;max-height:80vh;overflow-y:auto">
-    <div style="font-size:var(--fs-base);font-weight:500;margin-bottom:8px">連携する区画を選択</div>
-    <div style="font-size:var(--fs-xs);color:var(--color-text-secondary);margin-bottom:12px;line-height:1.6">選んだ区画は工程表・収穫記録・全体メモをこの区画と共通で管理します。グリッド上の見た目は今まで通り別々のマスのままです。</div>
+    <div style="font-size:var(--fs-base);font-weight:500;margin-bottom:8px">連携する栽培エリアを選択</div>
+    <div style="font-size:var(--fs-xs);color:var(--color-text-secondary);margin-bottom:12px;line-height:1.6">選んだ栽培エリアは工程表・収穫記録・全体メモをこの栽培エリアと共通で管理します。畑マップ上の見た目は今まで通り別々のマスのままです。</div>
     <div id="dlg-link-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px"></div>
     <div class="dlg-btns">
       <button class="btn" id="btn-link-cancel">キャンセル</button>

@@ -265,7 +265,7 @@ export function renderArchiveDetail(el,segId){
   miniGridWrap.style.cssText='margin-bottom:10px';
   const miniGridLabel=document.createElement('div');
   miniGridLabel.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-bottom:6px';
-  miniGridLabel.textContent='栽培エリア（完了時のグリッド状態）';
+  miniGridLabel.textContent='栽培エリア（完了時の畑マップ状態）';
   miniGridWrap.appendChild(miniGridLabel);
   const gs=arch.gridSnapshot||[];
   const gCols=arch.gridCOLS||gridState.cols;const gRows=arch.gridROWS||gridState.rows;
