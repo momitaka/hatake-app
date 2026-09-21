@@ -154,7 +154,7 @@ export function renderMasterDetail(){
           downBtn.addEventListener('click',()=>{const tasks=masterData.vegMaster[veg.id].phases[pi].tasks;if(ti>=tasks.length-1)return;[tasks[ti],tasks[ti+1]]=[tasks[ti+1],tasks[ti]];saveLS();renderMasterDetail();});
           delBtn.addEventListener('click',()=>{
             const doDelete=()=>{masterData.vegMaster[veg.id].phases[pi].tasks.splice(ti,1);saveLS();renderMasterDetail();};
-            if(inUse){showConfirm(`このタスクを削除すると、この野菜を使用中の作物区画の記録が参照できなくなる場合があります。\n削除しますか？`,doDelete);return;}
+            if(inUse){showConfirm(`このタスクを削除すると、この野菜を使用中の栽培区画の記録が参照できなくなる場合があります。\n削除しますか？`,doDelete);return;}
             doDelete();
           });
         }
@@ -172,7 +172,7 @@ export function renderMasterSaveBar(col,veg){
   if(!slot)return;
   slot.innerHTML='';
   if(!permCanEditFarm()){slot.style.display='none';return;}
-  const delBtn=document.createElement('button');delBtn.className='btn-delete-master';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>削除';delBtn.addEventListener('click',()=>{const usedCells=Object.values(gridState.cells).filter(c=>c&&c.crop===veg.id);if(usedCells.length>0){showAlert(`「${veg.name}」は現在${usedCells.length}つの作物区画で使用中のため削除できません。\n作物区画の管理画面から野菜を外すか、作物区画を削除してから再度お試しください。`);return;}showConfirm(`「${veg.name}」をレシピから削除しますか？`,()=>{delete masterData.vegMaster[veg.id];navState.masterVeg=null;saveLS();renderMasterList();renderMasterDetail();});});
+  const delBtn=document.createElement('button');delBtn.className='btn-delete-master';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>削除';delBtn.addEventListener('click',()=>{const usedCells=Object.values(gridState.cells).filter(c=>c&&c.crop===veg.id);if(usedCells.length>0){showAlert(`「${veg.name}」は現在${usedCells.length}つの栽培区画で使用中のため削除できません。\n栽培区画の管理画面から野菜を外すか、栽培区画を削除してから再度お試しください。`);return;}showConfirm(`「${veg.name}」をレシピから削除しますか？`,()=>{delete masterData.vegMaster[veg.id];navState.masterVeg=null;saveLS();renderMasterList();renderMasterDetail();});});
   const saveBtn=document.createElement('button');saveBtn.className='btn-save-master';saveBtn.innerHTML='<i class="ti ti-device-floppy"></i>保存';saveBtn.addEventListener('click',()=>{saveLS();if(addVegState.fromReg){addVegState.fromReg=false;saveBtn.textContent='完了';setTimeout(()=>{closeMaster();populateCropSelect();/** @type {HTMLSelectElement} */ (document.getElementById('dlg-crop')).value=navState.masterVeg||'';/** @type {HTMLButtonElement} */ (document.getElementById('dlg-save')).disabled=!navState.masterVeg;document.getElementById('dlg-register').style.display='flex';},1200);}else{saveBtn.textContent='完了';setTimeout(()=>closeMaster(),1200);}});
   slot.append(delBtn,saveBtn);slot.style.display='flex';
 }
@@ -219,6 +219,6 @@ export async function aiGenerate(vegId){
       if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-sparkles"></i>再生成';}
     }
   };
-  if(inUse){showConfirm(`「${veg.name}」は作物区画に登録されています。\n工程表を再生成するとタスクの記録（チェック済み）がリセットされます。続けますか？`,doGenerate);return;}
+  if(inUse){showConfirm(`「${veg.name}」は栽培区画に登録されています。\n工程表を再生成するとタスクの記録（チェック済み）がリセットされます。続けますか？`,doGenerate);return;}
   doGenerate();
 }
