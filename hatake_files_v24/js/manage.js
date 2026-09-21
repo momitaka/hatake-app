@@ -4,7 +4,7 @@ import { navState, permState, gridState, segData } from './state.js';
 import { vegIconHtml, UNITS, SIZE_LABELS, PHASE_COLORS, stripPhaseSuffix } from './helpers.js';
 import { buildSegs, getVeg, calcMajorStatus, calcProgress, getTaskState, setTaskState, getMilestoneDate, getPhaseTimeline, getMergedLogsByDate, getHarvestSummary, harvestTotalStr, getHarvestLogs, addHarvestLog, removeHarvestLog, getSummaryMemo, setSummaryMemo, getLinkedSids, linkSegs, unlinkOne, detachSegFromGroup, hasAnyRecord, recordKey, setHarvestLogPhoto, setHarvestLogMemo } from './segments.js';
 import { dispToISO, showTaskDateDialog, showMilestoneDialog, showConfirm, showAlert, showHarvestMemoDialog } from './dialogs.js';
-import { pushUndo, saveLS, getLastTab, setLastTab } from './storage.js';
+import { saveLS, getLastTab, setLastTab } from './storage.js';
 import { isoShort, isoFull, daysBetween, todayISO, addDaysISO, junLabel } from './date-utils.js';
 import { permCanEditFarm } from './add-veg.js';
 import { openCompleteConfirm } from './complete.js';
@@ -16,7 +16,7 @@ import { uploadHarvestPhoto, uploadTaskPhoto, deleteHarvestPhoto, deleteHarvestP
 /** @type {Map<string,string>} */
 const harvestPhotoUrlCache=new Map();
 
-/** @param {string} dataUrl @param {() => void} onDelete タップで拡大表示するライトボックスを開く。削除ボタンは誤タップ防止のためここにのみ置く */
+/** @param {string} dataUrl @param {() => void} onDelete タップで拡大表示するライトボックスを開く。削除ボタンは誤タップ防止のためここにのみ置き、削除実行前に確認ダイアログを挟む */
 function openHarvestPhotoLightbox(dataUrl,onDelete){
   const overlay=document.createElement('div');
   overlay.style.cssText='position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:300;background:rgba(0,0,0,0.8);padding:24px;box-sizing:border-box';
@@ -25,7 +25,7 @@ function openHarvestPhotoLightbox(dataUrl,onDelete){
   img.src=dataUrl;
   img.style.cssText='display:block;max-width:100%;max-height:calc(100vh - 48px);border-radius:var(--border-radius-md);box-shadow:0 4px 20px rgba(0,0,0,0.4)';
   const delBtn=document.createElement('button');delBtn.type='button';delBtn.style.cssText='position:absolute;top:-14px;right:-14px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-danger);cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.3)';delBtn.innerHTML='<i class="ti ti-trash"></i>';
-  delBtn.addEventListener('click',e=>{e.stopPropagation();overlay.remove();onDelete();});
+  delBtn.addEventListener('click',e=>{e.stopPropagation();showConfirm('この写真を削除しますか？',()=>{overlay.remove();onDelete();});});
   imgWrap.append(img,delBtn);
   overlay.appendChild(imgWrap);
   overlay.addEventListener('click',()=>overlay.remove());
@@ -70,11 +70,14 @@ function renderTaskDates(datesWrap,task,state){
       document.getElementById('task-chip-menu-label').textContent=d.date;
       window._chipEdit=()=>{menu.style.display='none';openTaskDateEditor(task,state,di);};
       window._chipDelete=()=>{
-        menu.style.display='none';pushUndo();
-        const dates=[...(state.doneDates||[])];
-        dates.splice(di,1);
-        setTaskState(navState.seg,task.id,{done:dates.length>0,skip:false,doneDates:dates});
-        renderManage();renderGrid();
+        menu.style.display='none';
+        showConfirm('この実施日の記録を削除しますか？',()=>{
+          
+          const dates=[...(state.doneDates||[])];
+          dates.splice(di,1);
+          setTaskState(navState.seg,task.id,{done:dates.length>0,skip:false,doneDates:dates});
+          renderManage();renderGrid();
+        });
       };
     });
     datesWrap.appendChild(chip);
@@ -83,7 +86,7 @@ function renderTaskDates(datesWrap,task,state){
   addChip.addEventListener('click',e=>{
     e.stopPropagation();
     showTaskDateDialog('追加の実施日',task.name,(dateVal,memoVal)=>{
-      if(!dateVal)return;pushUndo();
+      if(!dateVal)return;
       const disp=dateVal.slice(5).replace('-','/');
       const dates=[...(state.doneDates||[]),{date:disp,memo:memoVal||''}];
       setTaskState(navState.seg,task.id,{done:true,skip:false,doneDates:dates});
@@ -99,7 +102,7 @@ function renderTaskDates(datesWrap,task,state){
 function openTaskDateEditor(task,state,di){
   const entry=(state.doneDates||[])[di];if(!entry)return;
   showTaskDateDialog('日付を変更',task.name,(dateVal,memoVal)=>{
-    if(!dateVal)return;pushUndo();
+    if(!dateVal)return;
     const dates=[...(state.doneDates||[])];
     const disp=dateVal.slice(5).replace('-','/');
     dates[di]={date:disp,memo:memoVal||''};
@@ -139,7 +142,7 @@ function buildTaskPhotoBox(task,state,pi){
     box.addEventListener('click',e=>{
       e.stopPropagation();
       openHarvestPhotoLightbox(harvestPhotoUrlCache.get(path)||img.src,()=>{
-        pushUndo();harvestPhotoUrlCache.delete(path);
+        harvestPhotoUrlCache.delete(path);
         const photos=(state.photos||[]).filter(/** @param {string} p */p=>p!==path);
         setTaskState(navState.seg,task.id,{photos});
         renderManage();
@@ -157,7 +160,7 @@ function buildTaskPhotoBox(task,state,pi){
       box.style.opacity='0.5';box.style.pointerEvents='none';
       uploadTaskPhoto(recordKey(navState.seg),task.id,/** @type {1|2} */(pi+1),file).then(path2=>{
         if(path2){
-          pushUndo();
+          
           const photos=[...(state.photos||[])];photos[pi]=path2;
           setTaskState(navState.seg,task.id,{photos});
           renderManage();
@@ -228,7 +231,7 @@ export function renderRoadmapTab(el,seg,veg){
       const clickable=document.createElement('div');clickable.className='task-clickable';const body=document.createElement('div');body.className='task-body';if(isPest){const lbl=document.createElement('div');lbl.className='task-pest-label';lbl.innerHTML='<i class="ti ti-bug" style="font-size:10px"></i>病害虫チェック';body.appendChild(lbl);}const nameEl=document.createElement('div');nameEl.className='task-name'+(state.done?' done-text':'');nameEl.textContent=task.name;const descEl=document.createElement('div');descEl.className='task-desc';descEl.textContent=task.desc;const textCol=document.createElement('div');textCol.className='task-header-text';textCol.append(nameEl,descEl);const dayBadge=document.createElement('div');dayBadge.className='task-day-badge';if(_dueJun)dayBadge.innerHTML=`〜${_dueJun}<span class="task-day-badge-sub">(${_relLabel})</span>`;else dayBadge.textContent=_relLabel;if(_relDay===0)dayBadge.style.fontWeight='600';const headerRow=document.createElement('div');headerRow.className='task-header-row';headerRow.append(textCol,dayBadge);const datesWrap=document.createElement('div');datesWrap.className='task-dates';renderTaskDates(datesWrap,task,state);const divider=document.createElement('div');divider.className='task-dates-divider';datesWrap.appendChild(divider);renderTaskPhotos(datesWrap,task,state);const memoPreviewWrap=document.createElement('div');memoPreviewWrap.className='task-memo-preview';renderTaskMemoPreview(memoPreviewWrap,task,state);body.append(headerRow,datesWrap,memoPreviewWrap);const expandIcon=document.createElement('div');expandIcon.className='task-expand-icon';expandIcon.innerHTML='<i class="ti ti-chevron-down"></i>';clickable.append(body,expandIcon);main.append(cbWrap,clickable);
       const detail=document.createElement('div');detail.className='task-detail';if(task.memo){const m=document.createElement('div');m.className='task-detail-memo';m.textContent=task.memo;detail.appendChild(m);}if(task.url){const a=document.createElement('a');a.className='task-detail-url';a.href=task.url;a.target='_blank';a.innerHTML='<i class="ti ti-brand-youtube" style="font-size:var(--fs-base)"></i>参考動画を見る';detail.appendChild(a);}card.append(main,detail);block.appendChild(card);
       clickable.addEventListener('click',()=>{const isOpen=detail.classList.contains('open');detail.classList.toggle('open',!isOpen);expandIcon.querySelector('i').className=`ti ${isOpen?'ti-chevron-down':'ti-chevron-up'}`;});
-      cb.addEventListener('change',e=>{e.stopPropagation();if(cb.checked){showTaskDateDialog('実施日を選択',task.name,(dateVal,memoVal)=>{if(!dateVal)return;pushUndo();const disp=dateVal.slice(5).replace('-','/');const dates=[...(state.doneDates||[]),{date:disp,memo:memoVal||''}];setTaskState(navState.seg,task.id,{done:true,skip:false,doneDates:dates});renderManage();renderGrid();if(task.milestone==='firstHarvest')setLastTab(navState.seg,'harvest');if(task.milestone==='germination'||task.milestone==='firstHarvest')setTimeout(()=>showMilestoneDialog(task.milestone),300);},()=>{cb.checked=false;},{showMemo:true});}else{pushUndo();const dates=[...(state.doneDates||[])];dates.pop();setTaskState(navState.seg,task.id,{done:dates.length>0,skip:false,doneDates:dates});renderManage();renderGrid();}});
+      cb.addEventListener('change',e=>{e.stopPropagation();if(cb.checked){showTaskDateDialog('実施日を選択',task.name,(dateVal,memoVal)=>{if(!dateVal)return;const disp=dateVal.slice(5).replace('-','/');const dates=[...(state.doneDates||[]),{date:disp,memo:memoVal||''}];setTaskState(navState.seg,task.id,{done:true,skip:false,doneDates:dates});renderManage();renderGrid();if(task.milestone==='firstHarvest')setLastTab(navState.seg,'harvest');if(task.milestone==='germination'||task.milestone==='firstHarvest')setTimeout(()=>showMilestoneDialog(task.milestone),300);},()=>{cb.checked=false;},{showMemo:true});}else{const dates=[...(state.doneDates||[])];dates.pop();setTaskState(navState.seg,task.id,{done:dates.length>0,skip:false,doneDates:dates});renderManage();renderGrid();}});
     });
     el.appendChild(block);
   });
@@ -267,7 +270,7 @@ export function renderLogTab(el,seg){
   const periodStyle=permState.isAdmin?'cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;color:'+(periodNotSet?'#b4b2a9':'inherit'):'';
   const periodDispVal=periodNotSet&&permState.isAdmin?'未設定':workPeriodVal;
   periodStat.innerHTML='<div class="summary-stat-label">作業期間</div><div class="summary-stat-val" id="work-period-val" style="'+periodStyle+'">'+periodDispVal+'</div>'+(workPeriodSub?'<div class="summary-stat-sub">'+workPeriodSub+'</div>':'');
-  if(permState.isAdmin){periodStat.querySelector('#work-period-val').addEventListener('click',()=>{if(seg.plantDate){const menu=document.getElementById('task-chip-menu');menu.style.display='flex';document.getElementById('task-chip-menu-label').textContent='作業開始日';window._chipEdit=()=>{menu.style.display='none';showTaskDateDialog('作業開始日を変更','作業開始日',(dateVal)=>{if(!dateVal)return;pushUndo();Object.keys(gridState.cells).forEach(k=>{if(gridState.cells[k]&&gridState.cells[k].segId===navState.seg)gridState.cells[k].plantDate=dateVal;});buildSegs();saveLS();renderManage();renderGrid();});};window._chipDelete=()=>{menu.style.display='none';pushUndo();Object.keys(gridState.cells).forEach(k=>{if(gridState.cells[k]&&gridState.cells[k].segId===navState.seg)gridState.cells[k].plantDate=null;});buildSegs();saveLS();renderManage();renderGrid();};}else{showTaskDateDialog('作業開始日を設定','作業開始日',(dateVal)=>{if(!dateVal)return;pushUndo();Object.keys(gridState.cells).forEach(k=>{if(gridState.cells[k]&&gridState.cells[k].segId===navState.seg)gridState.cells[k].plantDate=dateVal;});buildSegs();saveLS();renderManage();renderGrid();});}});}
+  if(permState.isAdmin){periodStat.querySelector('#work-period-val').addEventListener('click',()=>{if(seg.plantDate){const menu=document.getElementById('task-chip-menu');menu.style.display='flex';document.getElementById('task-chip-menu-label').textContent='作業開始日';window._chipEdit=()=>{menu.style.display='none';showTaskDateDialog('作業開始日を変更','作業開始日',(dateVal)=>{if(!dateVal)return;Object.keys(gridState.cells).forEach(k=>{if(gridState.cells[k]&&gridState.cells[k].segId===navState.seg)gridState.cells[k].plantDate=dateVal;});buildSegs();saveLS();renderManage();renderGrid();});};window._chipDelete=()=>{menu.style.display='none';showConfirm('作業開始日を削除しますか？\n工程表の日付計算に影響します。',()=>{Object.keys(gridState.cells).forEach(k=>{if(gridState.cells[k]&&gridState.cells[k].segId===navState.seg)gridState.cells[k].plantDate=null;});buildSegs();saveLS();renderManage();renderGrid();});};}else{showTaskDateDialog('作業開始日を設定','作業開始日',(dateVal)=>{if(!dateVal)return;Object.keys(gridState.cells).forEach(k=>{if(gridState.cells[k]&&gridState.cells[k].segId===navState.seg)gridState.cells[k].plantDate=dateVal;});buildSegs();saveLS();renderManage();renderGrid();});}});}
   stats.innerHTML=`${seedHtml}${transplantHtml}<div class="summary-stat"><div class="summary-stat-label">合計収穫量</div><div class="summary-stat-val" style="color:#2e7a28">${harvestTotalStr(navState.seg)||'未記録'}</div></div>`;
   stats.insertBefore(periodStat,stats.firstChild);
   summary.appendChild(stats);
@@ -285,7 +288,7 @@ export function renderLogTab(el,seg){
     linkBtnRow.appendChild(linkAddBtn);
     if(linkedOthers.length){
       const linkRmBtn=document.createElement('button');linkRmBtn.style.cssText='font-size:var(--fs-xs);padding:6px 10px;flex:1;border-radius:var(--border-radius-md);border:0.5px solid #e57373;background:#fff5f5;color:#c62828;cursor:pointer';linkRmBtn.innerHTML='<i class="ti ti-unlink"></i> この区画の連携を解除';
-      linkRmBtn.addEventListener('click',()=>{showConfirm('この区画をグループから外します。\nこれまでの記録はこの区画にそのまま引き継がれます。\nよろしいですか？',()=>{pushUndo();unlinkOne(navState.seg);buildSegs();saveLS();renderManage();});});
+      linkRmBtn.addEventListener('click',()=>{showConfirm('この区画をグループから外します。\nこれまでの記録はこの区画にそのまま引き継がれます。\nよろしいですか？',()=>{unlinkOne(navState.seg);buildSegs();saveLS();renderManage();});});
       linkBtnRow.appendChild(linkRmBtn);
     }
     linkBody.appendChild(linkBtnRow);
@@ -302,7 +305,7 @@ export function renderLogTab(el,seg){
   completeBtn.addEventListener('click',()=>openCompleteConfirm(navState.seg));
   completeBar.appendChild(completeBtn);
   const delDivider=document.createElement('hr');delDivider.style.cssText='border:none;border-top:0.5px solid var(--color-border-tertiary);margin:16px 0';completeBar.appendChild(delDivider);
-  const deleteBtn=document.createElement('button');deleteBtn.style.cssText='margin-top:0;width:100%;font-size:var(--fs-sm);padding:8px;border-radius:var(--border-radius-md);border:0.5px solid #e57373;background:#fff5f5;color:#c62828;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px';deleteBtn.innerHTML='<i class="ti ti-trash"></i>この区画の登録を削除';deleteBtn.addEventListener('click',()=>{showConfirm('この区画の登録を削除します。\n作業記録や収穫記録も失われます。\nよろしいですか？',()=>{pushUndo();const sid=navState.seg;const photoSegKey=recordKey(sid);const wasLinked=getLinkedSids(sid).length>1;detachSegFromGroup(sid);Object.keys(gridState.cells).forEach(k=>{if(gridState.cells[k]&&gridState.cells[k].segId===sid)delete gridState.cells[k];});delete segData.tasks[sid];delete segData.actionLogs[sid];delete segData.harvestLogs[sid];delete segData.summaryMemo[sid];delete segData.linkGroups[sid];buildSegs();saveLS();goBack();renderGrid();if(!wasLinked)deleteHarvestPhotosForSeg(photoSegKey);});});
+  const deleteBtn=document.createElement('button');deleteBtn.style.cssText='margin-top:0;width:100%;font-size:var(--fs-sm);padding:8px;border-radius:var(--border-radius-md);border:0.5px solid #e57373;background:#fff5f5;color:#c62828;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px';deleteBtn.innerHTML='<i class="ti ti-trash"></i>この区画の登録を削除';deleteBtn.addEventListener('click',()=>{showConfirm('この区画の登録を削除します。\n作業記録や収穫記録も失われます。\nよろしいですか？',()=>{const sid=navState.seg;const photoSegKey=recordKey(sid);const wasLinked=getLinkedSids(sid).length>1;detachSegFromGroup(sid);Object.keys(gridState.cells).forEach(k=>{if(gridState.cells[k]&&gridState.cells[k].segId===sid)delete gridState.cells[k];});delete segData.tasks[sid];delete segData.actionLogs[sid];delete segData.harvestLogs[sid];delete segData.summaryMemo[sid];delete segData.linkGroups[sid];buildSegs();saveLS();goBack();renderGrid();if(!wasLinked)deleteHarvestPhotosForSeg(photoSegKey);});});
   completeBar.appendChild(deleteBtn);el.appendChild(completeBar);
 }
 
@@ -331,7 +334,7 @@ function showLinkPicker(sid){
   confirmBtn.onclick=()=>{
     if(!checked.size){close();return;}
     const targets=[...checked];
-    const doMerge=()=>{pushUndo();linkSegs(sid,targets);buildSegs();saveLS();close();renderManage();};
+    const doMerge=()=>{linkSegs(sid,targets);buildSegs();saveLS();close();renderManage();};
     if(hasAnyRecord(sid)||targets.some(hasAnyRecord)){
       showConfirm('連携すると、工程表・収穫記録・全体メモがこの区画とまとめて1つになります。\n\n・工程表は、進んでいる方の状態に統合されます\n・収穫量の合計は、両方の数字を足し算した値になります\n・一度連携すると、あとで元の別々の記録には戻せません\n\nよろしいですか？',doMerge,{align:'left',fontSize:'var(--fs-sm)'});
     }else{
@@ -345,7 +348,7 @@ function showLinkPicker(sid){
 /** @param {any} h 収穫記録1件のメモ編集ダイアログを開く（日付は記録済みのものをそのまま使う） */
 function openHarvestMemoEditor(h){
   showHarvestMemoDialog(`${h.date}　${h.amount} ${h.unit}`,h.memo||'',(memoVal)=>{
-    pushUndo();
+    
     setHarvestLogMemo(navState.seg,h.id,memoVal||'');
     renderManage();
   });
@@ -387,7 +390,7 @@ export function renderHarvestTab(el,seg){
     }else{
       amount=parseFloat(iAmt.value);if(isNaN(amount)||amount<=0)return;
     }
-    pushUndo();
+    
     const entry=sizes?{id:`h_${Date.now()}`,date,amount,unit,sizes}:{id:`h_${Date.now()}`,date,amount,unit};
     addHarvestLog(navState.seg,entry);
     renderManage();
@@ -406,7 +409,7 @@ export function renderHarvestTab(el,seg){
       photoBox.style.cursor='pointer';
       photoBox.addEventListener('click',()=>{
         openHarvestPhotoLightbox(harvestPhotoUrlCache.get(photoPath)||img.src,()=>{
-          pushUndo();harvestPhotoUrlCache.delete(photoPath);setHarvestLogPhoto(navState.seg,h.id,null);renderManage();
+          harvestPhotoUrlCache.delete(photoPath);setHarvestLogPhoto(navState.seg,h.id,null);renderManage();
           deleteHarvestPhoto(photoPath);
         });
       });
@@ -419,7 +422,7 @@ export function renderHarvestTab(el,seg){
         const file=rowPhotoInput.files&&rowPhotoInput.files[0];if(!file)return;
         photoBox.style.opacity='0.5';photoBox.style.pointerEvents='none';
         uploadHarvestPhoto(recordKey(navState.seg),h.id,file).then(path=>{
-          if(path){pushUndo();setHarvestLogPhoto(navState.seg,h.id,path);renderManage();}
+          if(path){setHarvestLogPhoto(navState.seg,h.id,path);renderManage();}
           else{photoBox.style.opacity='1';photoBox.style.pointerEvents='auto';showAlert('写真のアップロードに失敗しました。通信環境を確認して再度お試しください。');}
         });
       });
@@ -428,7 +431,7 @@ export function renderHarvestTab(el,seg){
     const amtEl=document.createElement('div');amtEl.className='harvest-row-amount';amtEl.textContent=`${h.amount} ${h.unit}`;
     if(h.sizes&&h.sizes.length){const sizesEl=document.createElement('div');sizesEl.className='harvest-row-sizes';sizesEl.textContent=h.sizes.map(s=>`${s.label}${s.amount}`).join(' / ');amtEl.appendChild(sizesEl);}
     const memoBtn=document.createElement('button');memoBtn.className='harvest-memo-btn'+(h.memo?' has-memo':'');memoBtn.innerHTML='<i class="ti ti-note" style="font-size:var(--fs-sm)"></i>';memoBtn.setAttribute('aria-label','メモ');memoBtn.addEventListener('click',()=>openHarvestMemoEditor(h));
-    const delBtn=document.createElement('button');delBtn.className='harvest-del-btn';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>';if(!permCanEditFarm())delBtn.style.display='none';delBtn.addEventListener('click',()=>{showConfirm('この収穫記録を削除しますか？',()=>{pushUndo();const removed=removeHarvestLog(navState.seg,h.id);renderManage();if(removed&&removed.photoPath){harvestPhotoUrlCache.delete(removed.photoPath);deleteHarvestPhoto(removed.photoPath);}});});topRow.append(photoBox,dateEl,amtEl,memoBtn,delBtn);row.appendChild(topRow);
+    const delBtn=document.createElement('button');delBtn.className='harvest-del-btn';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>';if(!permCanEditFarm())delBtn.style.display='none';delBtn.addEventListener('click',()=>{showConfirm('この収穫記録を削除しますか？',()=>{const removed=removeHarvestLog(navState.seg,h.id);renderManage();if(removed&&removed.photoPath){harvestPhotoUrlCache.delete(removed.photoPath);deleteHarvestPhoto(removed.photoPath);}});});topRow.append(photoBox,dateEl,amtEl,memoBtn,delBtn);row.appendChild(topRow);
     if(h.memo){const memoLine=document.createElement('div');memoLine.className='harvest-row-memo';memoLine.textContent=h.memo;memoLine.addEventListener('click',()=>openHarvestMemoEditor(h));row.appendChild(memoLine);}
     listWrap.appendChild(row);});}
   el.appendChild(listWrap);

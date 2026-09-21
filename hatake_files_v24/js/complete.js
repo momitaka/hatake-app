@@ -4,7 +4,7 @@ import { segData, gridState } from './state.js';
 import { todayISO } from './date-utils.js';
 import { vegIconHtml } from './helpers.js';
 import { getVeg, harvestTotalStr, getMilestoneDate, getActionLogs } from './segments.js';
-import { saveLS, pushUndo } from './storage.js';
+import { saveLS } from './storage.js';
 import { goBack } from './manage.js';
 
 let pendingCompleteSeg=null;
@@ -19,7 +19,7 @@ export function showArchiveDone(){document.getElementById('dlg-archive-done').st
 export function closeCompleteConfirm(){pendingCompleteSeg=null;document.getElementById('dlg-complete-confirm').style.display='none';}
 export function executeComplete(sid){
   const seg=segData.segs[sid];if(!seg)return;const veg=getVeg(seg.crop);
-  pushUndo();
+  
   const taskLogs=getActionLogs(sid);
   const allLogDates=taskLogs.map(l=>l.date).sort();
   const lastLogDate=allLogDates[allLogDates.length-1]||null;

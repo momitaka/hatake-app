@@ -81,16 +81,11 @@ body.admin-mode #screen-manage .toolbar,body.admin-mode #screen-master .toolbar,
 .btn-grid-icon:hover{background:#d4f0b8}
 .btn-grid-chip{background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:99px;padding:4px 11px;font-size:var(--fs-xs);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
 .btn-grid-chip:hover{background:rgba(255,255,255,0.3)}
-.btn-grid-chip.btn-undo{background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.2)}
-.btn-grid-chip.btn-undo:not(:disabled){background:#fff;border-color:#fff;color:#2e7a28;font-weight:600}
 .btn-grid-chip.btn-master{background:#fff;color:#2e7a28;border-color:#fff;font-weight:600}
 .btn-grid-chip.btn-master:hover{background:#d4f0b8}
 .btn-grid-chip:disabled{opacity:0.4;cursor:default}
 .btn{font-size:var(--fs-sm);padding:4px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px}
 .btn:hover{background:var(--color-background-secondary)}
-.btn-undo{font-size:var(--fs-sm);padding:4px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
-.btn-undo:disabled{opacity:0.4;cursor:default}
-.undo-count{font-size:var(--fs-xs);color:var(--color-text-tertiary)}
 .grid-wrap{margin-bottom:12px;width:100%;position:relative}
 .cell-empty-bg{background-repeat:no-repeat}
 .grid-table{position:relative;z-index:1}
@@ -518,23 +513,11 @@ body{
           </div>
         </div>
         <div class="header-card-bottom">
-          <button class="btn-grid-chip btn-undo" id="undo-btn" disabled><i class="ti ti-arrow-back-up" style="font-size:var(--fs-xs)"></i>取り消し</button>
-          <span class="undo-count" id="undo-count" style="color:rgba(255,255,255,0.7)"></span>
           <div style="flex:1"></div>
           <button class="btn-grid-chip btn-master" id="btn-open-master"><i class="ti ti-plant-2" style="font-size:var(--fs-xs)"></i>栽培レシピ</button>
           <button class="btn-grid-icon market-only" id="btn-open-account" title="アカウント" onclick="openAuthModal()"><i class="ti ti-user" id="account-header-icon"></i></button>
           <button class="btn-grid-icon" id="btn-open-archive" title="過去データ"><i class="ti ti-archive"></i></button>
           <button class="btn-grid-icon" id="btn-settings" title="設定"><i class="ti ti-settings"></i></button>
-        </div>
-      </div>
-    </div>
-    <div id="dlg-undo-confirm" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:300;align-items:center;justify-content:center">
-      <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);padding:20px 24px;width:min(320px,90vw);box-shadow:0 8px 32px rgba(0,0,0,0.18)">
-        <div style="font-size:var(--fs-base);font-weight:600;margin-bottom:6px;color:var(--color-text-primary)">操作を取り消しますか？</div>
-        <div style="font-size:var(--fs-sm);color:var(--color-text-secondary);margin-bottom:18px">直前の変更を元に戻します。この操作は取り消せません。</div>
-        <div style="display:flex;gap:8px;justify-content:flex-end">
-          <button class="btn" id="btn-undo-cancel">キャンセル</button>
-          <button class="btn" id="btn-undo-ok" style="background:var(--color-text-danger);border-color:var(--color-text-danger);color:#fff">取り消す</button>
         </div>
       </div>
     </div>
@@ -936,13 +919,13 @@ body{
 <script type="module" src="js/basic-tab.js"></script>
 <script type="module" src="js/auth.js"></script>
 <script type="module">
-import { SUPABASE_URL, SUPABASE_ANON_KEY, ADMIN_PASSWORD, IS_DEV, LS_KEY, DB_ID, SUPABASE_TABLE, permState, MAX_UNDO, undoStack, masterData, segData, gridState, dragState, farmMeta, navState, addVegState } from './js/state.js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, ADMIN_PASSWORD, IS_DEV, LS_KEY, DB_ID, SUPABASE_TABLE, permState, masterData, segData, gridState, dragState, farmMeta, navState, addVegState } from './js/state.js';
 import { K, todayISO, initDateSelects, getDateFromSelects, todayDisp, isoFull, isoShort, daysBetween } from './js/date-utils.js';
 import { dispToISO, showMilestoneDialog, showConfirm, showAlert, showTaskDateDialog } from './js/dialogs.js';
 import { vegIconHtml, FAMILIES, MAJOR_STATUS, UNITS, ALL_ICONS, TOMATO_SAMPLE } from './js/helpers.js';
 import { permRequireAdmin, permRequireSupervisor } from './js/permissions.js';
 import { marketAuth, saveToDB, loadFromDB } from './js/db.js';
-import { _dataStrategy, saveLS, updateFarmNameDisplay, loadLS, showSaveBanner, pushUndo, doUndo, updUndoBtn } from './js/storage.js';
+import { _dataStrategy, saveLS, updateFarmNameDisplay, loadLS, showSaveBanner } from './js/storage.js';
 import { buildSegs, getVeg, vegFamily, famStyle, ROTATION_FAMILIES, checkRotation, segIsRegistered, getTaskState, setTaskState, getMilestoneDate, getHarvestSummary, harvestTotalStr, getMergedLogsByDate, getNextTask, calcProgress, calcMajorStatus } from './js/segments.js';
 import { showRegDlg } from './js/registration-dialog.js';
 import { openCompleteConfirm } from './js/complete.js';

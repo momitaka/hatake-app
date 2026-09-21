@@ -1,10 +1,10 @@
 // @ts-check
-// ===== ローカルストレージ・Undo管理 =====
+// ===== ローカルストレージ管理 =====
 // v25: ストレージ抽象化
 // freeDataStrategy='session' → sessionStorage（バックグラウンドで破棄）
 // freeDataStrategy='localStorage' → localStorage（個人版・従来通り）
 // APP_SUBSCRIBED=true → Supabase永続保存も行う
-import { LS_KEY, MAX_UNDO, undoStack, masterData, segData, gridState, farmMeta, navState } from './state.js';
+import { LS_KEY, masterData, segData, gridState, farmMeta } from './state.js';
 import { TOMATO_SAMPLE, vegIconHtml } from './helpers.js';
 import { saveToDB } from './db.js';
 import { buildSegs } from './segments.js';
@@ -58,20 +58,6 @@ export function showSaveBanner(){
   clearTimeout(_saveBannerTimer);
   _saveBannerTimer=setTimeout(()=>{b.style.display='none';},6000);
 }
-export function pushUndo(){undoStack.push(JSON.stringify({cells:gridState.cells,COLS:gridState.cols,ROWS:gridState.rows,segTasks:segData.tasks,actionLogs:segData.actionLogs,harvestLogs:segData.harvestLogs,segSummaryMemo:segData.summaryMemo,vegMaster:masterData.vegMaster,archivedSegs:segData.archived,segLinkGroups:segData.linkGroups,aisleRows:gridState.aisleRows,aisleCols:gridState.aisleCols}));if(undoStack.length>MAX_UNDO)undoStack.shift();updUndoBtn()}
-export function doUndo(){
-  if(!undoStack.length)return;const s=JSON.parse(undoStack.pop());gridState.cells=s.cells;gridState.cols=s.COLS;gridState.rows=s.ROWS;segData.tasks=s.segTasks||{};segData.actionLogs=s.actionLogs||{};segData.harvestLogs=s.harvestLogs||{};segData.summaryMemo=s.segSummaryMemo||{};masterData.vegMaster=s.vegMaster||{};segData.archived=s.archivedSegs||{};segData.linkGroups=s.segLinkGroups||{};gridState.aisleRows=s.aisleRows||[];gridState.aisleCols=s.aisleCols||[];
-  // renderGridはgrid.js⇄storage.jsの相互依存（grid.jsがupdateFarmNameDisplayを使う）、
-  // renderManageはmanage.js⇄storage.jsの相互依存（manage.jsがpushUndo/saveLSを使う）のため、
-  // どちらも循環import回避の恒久的なwindow経由参照とする
-  buildSegs();window.renderGrid();if(navState.seg&&document.getElementById('screen-manage').classList.contains('active'))window.renderManage();saveLS();updUndoBtn();
-}
-export function updUndoBtn(){const b=/** @type {HTMLButtonElement} */ (document.getElementById('undo-btn')),c=document.getElementById('undo-count');b.disabled=!undoStack.length;c.textContent=undoStack.length?`(${undoStack.length})`:''}
-document.getElementById('undo-btn').addEventListener('click',()=>{if(!undoStack.length)return;document.getElementById('dlg-undo-confirm').style.display='flex';});
-document.getElementById('btn-undo-cancel').addEventListener('click',()=>{document.getElementById('dlg-undo-confirm').style.display='none';});
-document.getElementById('btn-undo-ok').addEventListener('click',()=>{document.getElementById('dlg-undo-confirm').style.display='none';doUndo();});
-document.getElementById('dlg-undo-confirm').addEventListener('mousedown',e=>{if(e.target===e.currentTarget)document.getElementById('dlg-undo-confirm').style.display='none';});
-document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();if(!undoStack.length)return;document.getElementById('dlg-undo-confirm').style.display='flex';}});
 
 // openArchiveはstorage.js→archive.js→segments.js→storage.jsの3者循環を避けるため
 // window経由で参照する（恒久的。segments.js⇄storage.js間の循環importは実際は問題なく

@@ -4,7 +4,7 @@ import { dragState, masterData, gridState, segData, addVegState } from './state.
 import { K, todayISO, daysBetween } from './date-utils.js';
 import { getVeg, ROTATION_FAMILIES, checkRotation, buildSegs, linkSegs } from './segments.js';
 import { vegIconHtml } from './helpers.js';
-import { saveLS, pushUndo } from './storage.js';
+import { saveLS } from './storage.js';
 import { openMaster } from './grid-settings.js';
 
 /** 登録ダイアログで選択中の連携先sid（登録と同時に連携する候補） @type {Set<string>} */
@@ -95,7 +95,7 @@ document.getElementById('dlg-save').addEventListener('click',()=>{
     cropId=(segData.segs[targets[0]]||{}).crop;
     if(!cropId)return;
   }
-  document.getElementById('dlg-register').style.display='none';pushUndo();
+  document.getElementById('dlg-register').style.display='none';
   const sid=`s_${dragState.pendingRow}_${dragState.pendingStart}_${Date.now()}`;
   for(let c=dragState.pendingStart;c<=dragState.pendingEnd;c++){const k=K(dragState.pendingRow,c);if(!gridState.cells[k]||!gridState.cells[k].crop)gridState.cells[k]={segId:sid,crop:cropId,plantDate:date};}
   dragState.pendingRow=-1;dragState.pendingStart=-1;dragState.pendingEnd=-1;buildSegs();

@@ -1,12 +1,12 @@
 // @ts-check
 // ===== グリッド設定・畑名・凡例 =====
-import { gridState, segData, masterData, farmMeta, navState, undoStack } from './state.js';
+import { gridState, segData, masterData, farmMeta, navState } from './state.js';
 import { FAMILIES } from './helpers.js';
 import { dispToISO } from './dialogs.js';
 import { vegIconHtml } from './helpers.js';
 import { buildSegs, getVeg, calcMajorStatus, calcProgress, getTaskState, getHarvestLogs } from './segments.js';
 import { showConfirm } from './dialogs.js';
-import { saveLS, pushUndo, updUndoBtn, updateFarmNameDisplay } from './storage.js';
+import { saveLS, updateFarmNameDisplay } from './storage.js';
 import { permCanEditFarm } from './add-veg.js';
 import { renderGrid } from './grid.js';
 import { openManage } from './manage.js';
@@ -67,7 +67,7 @@ export function renderLegend(){const el=document.getElementById('family-legend')
 export function applyGrid(){const nc=Math.min(20,Math.max(2,parseInt(/** @type {HTMLInputElement} */ (document.getElementById('s-cols')).value)||8));const nr=Math.min(20,Math.max(2,parseInt(/** @type {HTMLInputElement} */ (document.getElementById('s-rows')).value)||6));gridState.cols=nc;gridState.rows=nr;const nc2={};for(const k in gridState.cells){const[ri,ci]=k.split(',').map(Number);if(ri<gridState.rows&&ci<gridState.cols)nc2[k]=gridState.cells[k];}gridState.cells=nc2;renderGrid();saveLS();}
 function parseAisleInput(str,max){return str.split(',').map(s=>parseInt(s.trim())-1).filter(n=>!isNaN(n)&&n>=0&&n<max);}
 export function applyAisles(){
-  pushUndo();
+  
   gridState.aisleRows=parseAisleInput(/** @type {HTMLInputElement} */ (document.getElementById('s-aisle-rows')).value,gridState.rows);
   gridState.aisleCols=parseAisleInput(/** @type {HTMLInputElement} */ (document.getElementById('s-aisle-cols')).value,gridState.cols);
   renderGrid();saveLS();
@@ -90,7 +90,7 @@ export function syncAisleInputs(){
   /** @type {HTMLInputElement} */ (document.getElementById('s-aisle-rows')).value=gridState.aisleRows.map(r=>r+1).join(', ');
   /** @type {HTMLInputElement} */ (document.getElementById('s-aisle-cols')).value=gridState.aisleCols.map(c=>c+1).join(', ');
 }
-export function resetAll(){if(!permCanEditFarm())return;showConfirm('全データをリセットしますか？',()=>{gridState.cells={};segData.segs={};segData.tasks={};segData.actionLogs={};segData.harvestLogs={};segData.summaryMemo={};segData.archived={};segData.linkGroups={};undoStack.length=0;renderGrid();updUndoBtn();saveLS();});}
+export function resetAll(){if(!permCanEditFarm())return;showConfirm('全データをリセットしますか？',()=>{gridState.cells={};segData.segs={};segData.tasks={};segData.actionLogs={};segData.harvestLogs={};segData.summaryMemo={};segData.archived={};segData.linkGroups={};renderGrid();saveLS();});}
 
 export function openMaster(){document.getElementById('screen-register').classList.remove('active');document.getElementById('screen-master').classList.add('active');renderMasterList();if(navState.masterVeg)renderMasterDetail();}
 export function closeMaster(){document.getElementById('screen-master').classList.remove('active');document.getElementById('screen-register').classList.add('active');renderGrid();}

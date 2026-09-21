@@ -26,9 +26,6 @@ export const permState={
   isAdmin:false,
   isSupervisor:false, // youtuber_supervisor以上（supervisor + admin 両方）
 };
-export const MAX_UNDO=30;
-/** @type {string[]} 各要素はスナップショットのJSON文字列。配列全体の差し替えはできないため空にする際は undoStack.length=0 を使う */
-export let undoStack=[];
 // 栽培レシピ・カスタムアイコンのマスタデータ。vegMasterは保存データ内の
 // キー名として互換性のため維持。customIconsは別ストレージキーで丸ごと
 // 保存されるため外部キー名の制約はない。
