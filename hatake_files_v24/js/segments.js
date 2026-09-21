@@ -20,6 +20,13 @@ export function checkRotation(row,cols){
     .filter(a=>ROTATION_FAMILIES.has(a.family)&&a.row===row&&cols.some(c=>a.cols.includes(c)))
     .sort((a,b)=>b.completedDate.localeCompare(a.completedDate));
 }
+/** @param {number} row @param {number[]} cols @param {number} [limit] 同じマスで過去に栽培した作物を完了日の新しい順に返す（科を問わず。連作障害対策の履歴表示用） @returns {any[]} */
+export function getPlotHistory(row,cols,limit=3){
+  return Object.values(segData.archived)
+    .filter(a=>a.row===row&&cols.some(c=>a.cols.includes(c)))
+    .sort((a,b)=>b.completedDate.localeCompare(a.completedDate))
+    .slice(0,limit);
+}
 export function segIsRegistered(sid){return !!(segData.segs[sid]&&segData.segs[sid].crop)}
 // ===== 区画連携（非隣接区画を「同じ野菜」として管理） =====
 // segData.linkGroupsはエイリアスsid→代表sidのマップ。tasks/harvestLogs/actionLogs/

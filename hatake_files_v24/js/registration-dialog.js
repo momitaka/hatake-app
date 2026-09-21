@@ -2,7 +2,7 @@
 // ===== 区画登録ダイアログ =====
 import { dragState, masterData, gridState, segData, addVegState } from './state.js';
 import { K, todayISO, daysBetween } from './date-utils.js';
-import { getVeg, ROTATION_FAMILIES, checkRotation, buildSegs, linkSegs } from './segments.js';
+import { getVeg, ROTATION_FAMILIES, checkRotation, getPlotHistory, buildSegs, linkSegs } from './segments.js';
 import { vegIconHtml } from './helpers.js';
 import { saveLS } from './storage.js';
 import { openMaster } from './grid-settings.js';
@@ -33,6 +33,19 @@ export function showRegDlg(){
   document.getElementById('dlg-save').style.display=noVeg?'none':'';
   document.getElementById('dlg-no-veg').style.display=noVeg?'block':'none';
   buildSegs();
+  const histBox=document.getElementById('dlg-plot-history');
+  const pendingCols=Array.from({length:dragState.pendingEnd-dragState.pendingStart+1},(_,i)=>dragState.pendingStart+i);
+  const history=getPlotHistory(dragState.pendingRow,pendingCols);
+  if(!history.length){
+    histBox.style.display='none';histBox.innerHTML='';
+  }else{
+    const rows=history.map(h=>{
+      const months=Math.round(daysBetween(h.completedDate,todayISO())/30);
+      return `<div style="display:flex;justify-content:space-between;gap:6px"><span>${h.cropName}${h.family?`（${h.family}）`:''}</span><span style="color:var(--color-text-tertiary);white-space:nowrap">${months}ヶ月前</span></div>`;
+    }).join('');
+    histBox.innerHTML=`<div style="font-size:var(--fs-xs);color:var(--color-text-secondary);font-weight:500;margin-bottom:6px"><i class="ti ti-history" style="font-size:var(--fs-xs);margin-right:3px"></i>このエリアの栽培履歴（直近${history.length}回）</div><div style="display:flex;flex-direction:column;gap:4px;font-size:var(--fs-xs);color:var(--color-text-primary)">${rows}</div>`;
+    histBox.style.display='block';
+  }
   regLinkChecked=new Set();
   const candidates=Object.values(segData.segs).filter(s=>s.crop);
   const linkField=document.getElementById('dlg-link-field');
