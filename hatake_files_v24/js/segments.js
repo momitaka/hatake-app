@@ -20,12 +20,30 @@ export function checkRotation(row,cols){
     .filter(a=>ROTATION_FAMILIES.has(a.family)&&a.row===row&&cols.some(c=>a.cols.includes(c)))
     .sort((a,b)=>b.completedDate.localeCompare(a.completedDate));
 }
-/** @param {number} row @param {number[]} cols @param {number} [limit] 同じマスで過去に栽培した作物を完了日の新しい順に返す（科を問わず。連作障害対策の履歴表示用） @returns {any[]} */
-export function getPlotHistory(row,cols,limit=3){
+/** @param {number} row @param {number} col @param {number} [limit] 単一マスで過去に栽培した作物を完了日の新しい順に返す（科を問わず。連作障害対策の履歴表示用） @returns {any[]} */
+export function getColHistory(row,col,limit=3){
   return Object.values(segData.archived)
-    .filter(a=>a.row===row&&cols.some(c=>a.cols.includes(c)))
+    .filter(a=>a.row===row&&a.cols.includes(col))
     .sort((a,b)=>b.completedDate.localeCompare(a.completedDate))
     .slice(0,limit);
+}
+/**
+ * 複数マス選択時、マスごとに履歴が異なりうるため、履歴の並び（segId列）が同じ連続列だけをまとめてグループ化する。
+ * 履歴が無いマスはグループを作らず読み飛ばす（グループの境界にもなる＝隣接していても履歴が途切れれば別グループ）。
+ * @param {number} row @param {number[]} cols @param {number} [limit]
+ * @returns {Array<{colStart:number,colEnd:number,history:any[]}>}
+ */
+export function getPlotHistoryGroups(row,cols,limit=3){
+  const groups=/** @type {Array<{key:string,colStart:number,colEnd:number,history:any[]}>} */([]);
+  cols.forEach(c=>{
+    const history=getColHistory(row,c,limit);
+    if(!history.length)return;
+    const key=history.map(h=>h.segId).join(',');
+    const last=groups[groups.length-1];
+    if(last&&last.key===key&&last.colEnd===c-1)last.colEnd=c;
+    else groups.push({key,colStart:c,colEnd:c,history});
+  });
+  return groups.map(({colStart,colEnd,history})=>({colStart,colEnd,history}));
 }
 export function segIsRegistered(sid){return !!(segData.segs[sid]&&segData.segs[sid].crop)}
 // ===== 区画連携（非隣接区画を「同じ野菜」として管理） =====

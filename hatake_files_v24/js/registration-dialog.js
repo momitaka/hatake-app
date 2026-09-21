@@ -2,7 +2,7 @@
 // ===== 区画登録ダイアログ =====
 import { dragState, masterData, gridState, segData, addVegState } from './state.js';
 import { K, todayISO, daysBetween } from './date-utils.js';
-import { getVeg, ROTATION_FAMILIES, checkRotation, getPlotHistory, buildSegs, linkSegs } from './segments.js';
+import { getVeg, ROTATION_FAMILIES, checkRotation, getPlotHistoryGroups, buildSegs, linkSegs } from './segments.js';
 import { vegIconHtml } from './helpers.js';
 import { saveLS } from './storage.js';
 import { openMaster } from './grid-settings.js';
@@ -35,15 +35,22 @@ export function showRegDlg(){
   buildSegs();
   const histBox=document.getElementById('dlg-plot-history');
   const pendingCols=Array.from({length:dragState.pendingEnd-dragState.pendingStart+1},(_,i)=>dragState.pendingStart+i);
-  const history=getPlotHistory(dragState.pendingRow,pendingCols);
-  if(!history.length){
+  const histGroups=getPlotHistoryGroups(dragState.pendingRow,pendingCols);
+  if(!histGroups.length){
     histBox.style.display='none';histBox.innerHTML='';
   }else{
-    const rows=history.map(h=>{
-      const months=Math.round(daysBetween(h.completedDate,todayISO())/30);
-      return `<div style="display:flex;justify-content:space-between;gap:6px"><span>${h.cropName}${h.family?`（${h.family}）`:''}</span><span style="color:var(--color-text-tertiary);white-space:nowrap">${months}ヶ月前</span></div>`;
+    const rowLetter=String.fromCharCode(65+dragState.pendingRow);
+    // マス全体が1つの履歴グループに収まる場合は「このエリア」、マスごとに履歴が異なる場合は列範囲を明示する
+    const single=histGroups.length===1&&histGroups[0].colStart===pendingCols[0]&&histGroups[0].colEnd===pendingCols[pendingCols.length-1];
+    histBox.innerHTML=histGroups.map((g,gi)=>{
+      const loc=g.colStart===g.colEnd?`${rowLetter}${g.colStart+1}`:`${rowLetter}${g.colStart+1}〜${rowLetter}${g.colEnd+1}`;
+      const label=single?`このエリアの栽培履歴（直近${g.history.length}回）`:`${loc}の栽培履歴（直近${g.history.length}回）`;
+      const rows=g.history.map(h=>{
+        const months=Math.round(daysBetween(h.completedDate,todayISO())/30);
+        return `<div style="display:flex;justify-content:space-between;gap:6px"><span>${h.cropName}${h.family?`（${h.family}）`:''}</span><span style="color:var(--color-text-tertiary);white-space:nowrap">${months}ヶ月前</span></div>`;
+      }).join('');
+      return `<div style="${gi?'margin-top:8px':''}"><div style="font-size:var(--fs-xs);color:var(--color-text-secondary);font-weight:500;margin-bottom:6px"><i class="ti ti-history" style="font-size:var(--fs-xs);margin-right:3px"></i>${label}</div><div style="display:flex;flex-direction:column;gap:4px;font-size:var(--fs-xs);color:var(--color-text-primary)">${rows}</div></div>`;
     }).join('');
-    histBox.innerHTML=`<div style="font-size:var(--fs-xs);color:var(--color-text-secondary);font-weight:500;margin-bottom:6px"><i class="ti ti-history" style="font-size:var(--fs-xs);margin-right:3px"></i>このエリアの栽培履歴（直近${history.length}回）</div><div style="display:flex;flex-direction:column;gap:4px;font-size:var(--fs-xs);color:var(--color-text-primary)">${rows}</div>`;
     histBox.style.display='block';
   }
   regLinkChecked=new Set();
