@@ -67,7 +67,7 @@ function buildSetupHtml(){
 
 /** @returns {Promise<{resolvedLat:number,resolvedLng:number}|null>} */
 export async function renderWeatherBar(){
-  const widget=document.getElementById('weather-widget');
+  const widget=document.getElementById('weather-section');
   const summaryRow=document.getElementById('weather-summary');
   const detail=document.getElementById('weather-detail');
   if(!widget||!summaryRow||!detail)return null;
