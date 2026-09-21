@@ -16,17 +16,20 @@ import { uploadHarvestPhoto, uploadTaskPhoto, deleteHarvestPhoto, deleteHarvestP
 /** @type {Map<string,string>} */
 const harvestPhotoUrlCache=new Map();
 
-/** @param {string} dataUrl @param {() => void} onDelete タップで拡大表示するライトボックスを開く。削除ボタンは誤タップ防止のためここにのみ置き、削除実行前に確認ダイアログを挟む */
-function openHarvestPhotoLightbox(dataUrl,onDelete){
+/** @param {string} dataUrl @param {(() => void)} [onDelete] タップで拡大表示するライトボックスを開く。onDelete省略時は削除ボタンを出さない読み取り専用表示（作業ログ／アーカイブでの表示用）。削除ボタンは誤タップ防止のためここにのみ置き、削除実行前に確認ダイアログを挟む */
+export function openHarvestPhotoLightbox(dataUrl,onDelete){
   const overlay=document.createElement('div');
   overlay.style.cssText='position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:300;background:rgba(0,0,0,0.8);padding:24px;box-sizing:border-box';
   const imgWrap=document.createElement('div');imgWrap.style.cssText='position:relative;max-width:100%;max-height:100%';
   const img=/** @type {HTMLImageElement} */(document.createElement('img'));
   img.src=dataUrl;
   img.style.cssText='display:block;max-width:100%;max-height:calc(100vh - 48px);border-radius:var(--border-radius-md);box-shadow:0 4px 20px rgba(0,0,0,0.4)';
-  const delBtn=document.createElement('button');delBtn.type='button';delBtn.style.cssText='position:absolute;top:-14px;right:-14px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-danger);cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.3)';delBtn.innerHTML='<i class="ti ti-trash"></i>';
-  delBtn.addEventListener('click',e=>{e.stopPropagation();showConfirm('この写真を削除しますか？',()=>{overlay.remove();onDelete();});});
-  imgWrap.append(img,delBtn);
+  imgWrap.appendChild(img);
+  if(onDelete){
+    const delBtn=document.createElement('button');delBtn.type='button';delBtn.style.cssText='position:absolute;top:-14px;right:-14px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-danger);cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.3)';delBtn.innerHTML='<i class="ti ti-trash"></i>';
+    delBtn.addEventListener('click',e=>{e.stopPropagation();showConfirm('この写真を削除しますか？',()=>{overlay.remove();onDelete();});});
+    imgWrap.appendChild(delBtn);
+  }
   overlay.appendChild(imgWrap);
   overlay.addEventListener('click',()=>overlay.remove());
   imgWrap.addEventListener('click',e=>e.stopPropagation());
@@ -298,7 +301,7 @@ export function renderLogTab(el,seg){
   const logTitle=document.createElement('div');logTitle.className='log-section-title';logTitle.innerHTML='<i class="ti ti-clock" style="font-size:var(--fs-base)"></i>作業履歴';el.appendChild(logTitle);
   const byDate=getMergedLogsByDate(navState.seg);const sortedDates=Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
   if(!sortedDates.length){const p=document.createElement('p');p.style.cssText='font-size:var(--fs-xs);color:#9c9a93;padding:4px 0';p.textContent='タスクを完了するか収穫を記録すると表示されます。';el.appendChild(p);}
-  else{sortedDates.forEach(date=>{const group=document.createElement('div');group.className='log-date-group';const hdr=document.createElement('div');hdr.className='log-date-header';hdr.innerHTML=`<span class="log-date-label">${isoFull(date)}</span><div class="log-date-line"></div>`;group.appendChild(hdr);byDate[date].forEach(item=>{const isHarvest=item._type==='harvest';const entry=document.createElement('div');entry.className='log-entry';const icon=document.createElement('div');icon.className=`log-entry-icon ${isHarvest?'harvest':'task'}`;icon.innerHTML=`<i class="ti ${isHarvest?'ti-basket':'ti-check'}" aria-hidden="true"></i>`;const title=document.createElement('div');title.className='log-entry-title';title.textContent=isHarvest?'収穫':item.task;entry.append(icon,title);if(isHarvest){const badge=document.createElement('div');badge.className='log-entry-badge';badge.textContent=`${item.amount} ${item.unit}`;entry.appendChild(badge);}if(item.memo){const memoEl=document.createElement('div');memoEl.className='log-entry-memo';memoEl.textContent=item.memo;entry.appendChild(memoEl);}group.appendChild(entry);});el.appendChild(group);});}
+  else{sortedDates.forEach(date=>{const group=document.createElement('div');group.className='log-date-group';const hdr=document.createElement('div');hdr.className='log-date-header';hdr.innerHTML=`<span class="log-date-label">${isoFull(date)}</span><div class="log-date-line"></div>`;group.appendChild(hdr);byDate[date].forEach(item=>{const isHarvest=item._type==='harvest';const entry=document.createElement('div');entry.className='log-entry';const icon=document.createElement('div');icon.className=`log-entry-icon ${isHarvest?'harvest':'task'}`;icon.innerHTML=`<i class="ti ${isHarvest?'ti-basket':'ti-check'}" aria-hidden="true"></i>`;const title=document.createElement('div');title.className='log-entry-title';title.textContent=isHarvest?'収穫':item.task;entry.append(icon,title);if(isHarvest){const badge=document.createElement('div');badge.className='log-entry-badge';badge.textContent=`${item.amount} ${item.unit}`;entry.appendChild(badge);}if(item.memo){const memoEl=document.createElement('div');memoEl.className='log-entry-memo';memoEl.textContent=item.memo;entry.appendChild(memoEl);}if(item.photos&&item.photos.length){const photosWrap=document.createElement('div');photosWrap.className='log-entry-photos';item.photos.forEach(/** @param {string} path */path=>{const img=/** @type {HTMLImageElement} */(document.createElement('img'));img.className='log-entry-photo-img';const cachedUrl=harvestPhotoUrlCache.get(path);if(cachedUrl)img.src=cachedUrl;else getHarvestPhotoUrl(path).then(url=>{if(url){harvestPhotoUrlCache.set(path,url);img.src=url;}});img.addEventListener('click',()=>openHarvestPhotoLightbox(harvestPhotoUrlCache.get(path)||img.src));photosWrap.appendChild(img);});entry.appendChild(photosWrap);}group.appendChild(entry);});el.appendChild(group);});}
   if(!permCanEditFarm())return;
   const completeBar=document.createElement('div');completeBar.style.cssText='margin-top:20px;padding-top:14px;border-top:0.5px solid var(--color-border-tertiary)';
   const completeBtn=document.createElement('button');completeBtn.className='btn-complete-final';completeBtn.innerHTML='<i class="ti ti-flag-check"></i>この野菜の管理を完了';

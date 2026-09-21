@@ -130,10 +130,11 @@ export function harvestTotalStr(sid){const t=getHarvestSummary(sid);const e=Obje
 export function getMergedLogsByDate(sid){
   const byDate={};
   function add(date,item){if(!date)return;if(!byDate[date])byDate[date]=[];byDate[date].push(item);}
-  // segData.tasks の doneDates からタスクログを生成
-  const seg=segData.segs[sid];if(seg){const veg=getVeg(seg.crop);if(veg&&veg.phases){veg.phases.forEach(ph=>{ph.tasks.forEach(t=>{const state=getTaskState(sid,t.id);(state.doneDates||[]).forEach(d=>{const iso=dispToISO(d.date);add(iso,{_type:'task',date:iso,task:t.name,memo:d.memo||''});});});});}}
+  // segData.tasks の doneDates からタスクログを生成。写真はタスク単位（doneDates単位ではない）なので、
+  // 同じ写真が複数の実施日に重複表示されないよう最新の実施日にのみ添付する
+  const seg=segData.segs[sid];if(seg){const veg=getVeg(seg.crop);if(veg&&veg.phases){veg.phases.forEach(ph=>{ph.tasks.forEach(t=>{const state=getTaskState(sid,t.id);const dates=state.doneDates||[];dates.forEach((d,di)=>{const iso=dispToISO(d.date);const photos=di===dates.length-1?(state.photos||[]).filter(Boolean):[];add(iso,{_type:'task',date:iso,task:t.name,memo:d.memo||'',photos});});});});}}
   // segData.harvestLogs
-  getHarvestLogs(sid).forEach(h=>add(h.date,{...h,_type:'harvest'}));
+  getHarvestLogs(sid).forEach(h=>add(h.date,{...h,_type:'harvest',photos:h.photoPath?[h.photoPath]:[]}));
   Object.keys(byDate).forEach(date=>{byDate[date].sort((a,b)=>a._type===b._type?0:a._type==='task'?-1:1);});
   return byDate;
 }
