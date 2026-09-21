@@ -260,12 +260,12 @@ export function renderArchiveDetail(el,segId){
   stats.innerHTML=`<div class="summary-stat"><div class="summary-stat-label">作業期間</div><div class="summary-stat-val">${workPeriodVal}</div>${workPeriodSub?`<div class="summary-stat-sub">${workPeriodSub}</div>`:''}</div>${archSeedHtml}${archTransplantHtml}<div class="summary-stat"><div class="summary-stat-label">合計収穫量</div><div class="summary-stat-val" style="color:#2e7a28">${arch.harvestTotal||'未記録'}</div></div><div class="summary-stat"><div class="summary-stat-label">完了日</div><div class="summary-stat-val">${isoShort(arch.completedDate)}</div></div>`;
   summary.appendChild(stats);
 
-  // 栽培エリア ミニグリッド
+  // 作物区画 ミニグリッド
   const miniGridWrap=document.createElement('div');
   miniGridWrap.style.cssText='margin-bottom:10px';
   const miniGridLabel=document.createElement('div');
   miniGridLabel.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-bottom:6px';
-  miniGridLabel.textContent='栽培エリア（完了時の畑マップ状態）';
+  miniGridLabel.textContent='作物区画の位置（完了時のマス配置）';
   miniGridWrap.appendChild(miniGridLabel);
   const gs=arch.gridSnapshot||[];
   const gCols=arch.gridCOLS||gridState.cols;const gRows=arch.gridROWS||gridState.rows;

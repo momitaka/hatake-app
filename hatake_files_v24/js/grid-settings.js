@@ -44,7 +44,7 @@ export function applyGridBg(){
 export function renderSegList(){
   buildSegs();const list=document.getElementById('seg-list');list.innerHTML='';
   const arr=Object.values(segData.segs).filter(s=>s.crop).sort((a,b)=>a.row-b.row||(Math.min(...a.cols)-Math.min(...b.cols)));
-  if(!arr.length){list.innerHTML='<p style="font-size:var(--fs-xs);color:#9c9a93;padding:6px 0">まだ登録された栽培エリアがありません</p>';return;}
+  if(!arr.length){list.innerHTML='<p style="font-size:var(--fs-xs);color:#9c9a93;padding:6px 0">まだ登録された作物区画がありません</p>';return;}
   const countEl=document.getElementById('seg-count');if(countEl)countEl.textContent=arr.length+'件';
   arr.forEach(seg=>{const veg=getVeg(seg.crop);const majorSt=calcMajorStatus(seg.id,seg.crop);const{pct}=calcProgress(seg.id,seg.crop);
     // 直近の完了タスクを取得

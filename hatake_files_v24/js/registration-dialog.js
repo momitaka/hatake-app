@@ -10,7 +10,7 @@ import { openMaster } from './grid-settings.js';
 /** 登録ダイアログで選択中の連携先sid（登録と同時に連携する候補） @type {Set<string>} */
 let regLinkChecked=new Set();
 function updateLinkLabel(){
-  document.getElementById('dlg-link-label').textContent=regLinkChecked.size?`他の栽培エリアと連携する（任意）・${regLinkChecked.size}件選択中`:'他の栽培エリアと連携する（任意）';
+  document.getElementById('dlg-link-label').textContent=regLinkChecked.size?`他の作物区画と連携する（任意）・${regLinkChecked.size}件選択中`:'他の作物区画と連携する（任意）';
 }
 // 作物を選ばなくても、連携先を1件以上選んでいれば登録可能（連携先の作物を引き継ぐ）
 function updateSaveEnabled(){
