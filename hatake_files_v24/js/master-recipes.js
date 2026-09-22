@@ -11,6 +11,7 @@ import { closeMaster } from './grid-settings.js';
 
 export function renderMasterList(){
   const el=document.getElementById('master-list-items');el.innerHTML='';
+  const countEl=document.getElementById('master-list-count');if(countEl)countEl.textContent=Object.keys(masterData.vegMaster).length+'件';
   Object.values(masterData.vegMaster).sort((a,b)=>a.name.localeCompare(b.name,'ja')).forEach(veg=>{
     const item=document.createElement('div');item.className='master-list-item';const hasRM=veg.phases&&veg.phases.length>0;
     const famSty=veg.family?(FAMILIES[veg.family]||FAMILIES['その他']):null;
