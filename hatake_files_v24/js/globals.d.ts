@@ -6,6 +6,7 @@ declare global {
   const PRESET_VEGS: Array<{
     id: string;
     name: string;
+    kana: string;
     emoji: string;
     family: string;
     iconFile: string;
