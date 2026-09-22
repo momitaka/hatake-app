@@ -13,8 +13,11 @@ export function renderMasterList(){
   const el=document.getElementById('master-list-items');el.innerHTML='';
   Object.values(masterData.vegMaster).sort((a,b)=>a.name.localeCompare(b.name,'ja')).forEach(veg=>{
     const item=document.createElement('div');item.className='master-list-item'+(navState.masterVeg===veg.id?' active':'');const hasRM=veg.phases&&veg.phases.length>0;
-    const metaParts=[veg.family,optionLabel(GROW_METHOD_OPTIONS,veg.growMethod),optionLabel(SEASON_OPTIONS,veg.season),optionLabel(REGION_OPTIONS,veg.region)].filter(Boolean);
-    item.innerHTML=`<span style="display:inline-flex;align-items:center">${vegIconHtml(veg,20)}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--fs-sm)">${veg.name}${veg.variety?'<br><span style="font-size:var(--fs-xs);color:#9c9a93">'+veg.variety+'</span>':''}${metaParts.length?'<br><span style="font-size:var(--fs-xs);color:#9c9a93">'+metaParts.join('・')+'</span>':''}</span><span class="master-list-item-badge ${hasRM?'':'empty'}">${hasRM?'有':'未'}</span>`;
+    const famSty=veg.family?(FAMILIES[veg.family]||FAMILIES['その他']):null;
+    const famChip=famSty?`<span style="display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;background:${famSty.bg};color:${famSty.border};margin-right:4px">${veg.family}</span>`:'';
+    const metaText=[optionLabel(GROW_METHOD_OPTIONS,veg.growMethod),optionLabel(SEASON_OPTIONS,veg.season),optionLabel(REGION_OPTIONS,veg.region)].filter(Boolean).join(' / ');
+    const metaLine=(famChip||metaText)?'<br><span style="font-size:var(--fs-xs);color:#9c9a93">'+famChip+metaText+'</span>':'';
+    item.innerHTML=`<span style="display:inline-flex;align-items:center">${vegIconHtml(veg,20)}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--fs-sm)">${veg.name}${veg.variety?'<br><span style="font-size:var(--fs-xs);color:#9c9a93">'+veg.variety+'</span>':''}${metaLine}</span><span class="master-list-item-badge ${hasRM?'':'empty'}">${hasRM?'有':'未'}</span>`;
     item.addEventListener('click',()=>{navState.masterVeg=veg.id;renderMasterList();renderMasterDetail();showMasterView('detail');});el.appendChild(item);
   });
 }
