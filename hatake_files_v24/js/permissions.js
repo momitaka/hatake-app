@@ -58,4 +58,5 @@ if(_dataStrategy!=='session'){
 }
 document.getElementById('btn-save-farm-name').addEventListener('click',()=>{farmMeta.name=/** @type {HTMLInputElement} */ (document.getElementById('s-farm-name')).value.trim();saveLS();updateFarmNameDisplay();const btn=document.getElementById('btn-save-farm-name');btn.textContent='保存しました';setTimeout(()=>{btn.textContent='保存';},1200);});
 /** @type {NodeListOf<HTMLInputElement>} */ (document.querySelectorAll('input[name="farm-font"]')).forEach(r=>{r.addEventListener('change',()=>{farmMeta.font=r.value;saveLS();updateFarmNameDisplay();});});
+document.getElementById('s-farm-region').addEventListener('change',()=>{farmMeta.region=/** @type {HTMLSelectElement} */ (document.getElementById('s-farm-region')).value;saveLS();});
 document.getElementById('btn-open-master').addEventListener('click',()=>{closeSettings();openMaster();});

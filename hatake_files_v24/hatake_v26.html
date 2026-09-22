@@ -557,6 +557,17 @@ body{
           <div style="font-size:var(--fs-xs);color:var(--color-text-tertiary)">栽培レシピに登録されているアイコンから選択。もう一度タップで解除。</div>
         </div>
         <hr class="divider farm-settings-only" style="margin:10px 0">
+        <div class="settings-section-label farm-settings-only">栽培地域</div>
+        <div class="settings-row farm-settings-only" style="flex-direction:column;align-items:stretch;gap:6px">
+          <select id="s-farm-region" style="width:100%;font-size:var(--fs-base);padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)">
+            <option value="">— 指定なし —</option>
+            <option value="cool">冷涼地</option>
+            <option value="middle">中間地</option>
+            <option value="warm">暖地</option>
+          </select>
+          <div style="font-size:var(--fs-xs);color:var(--color-text-tertiary)">「野菜を追加」時の地域の初期値になります（栽培レシピごとに変更可）。</div>
+        </div>
+        <hr class="divider farm-settings-only" style="margin:10px 0">
         <div class="settings-section-label farm-settings-only">天気表示（畑の位置）</div>
         <div class="settings-row farm-settings-only" id="weather-loc-settings-row" style="flex-direction:column;align-items:stretch;gap:6px;border-radius:var(--border-radius-md)">
           <div style="display:flex;align-items:center;gap:8px">

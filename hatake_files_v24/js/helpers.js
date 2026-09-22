@@ -16,6 +16,13 @@ export function vegIconHtml(veg, size) {
   return '<span style="font-size:'+(Math.round(size*0.9))+'px;line-height:1">'+(veg.emoji||'')+'</span>';
 }
 
+// 育成方法・作期・地域の選択肢。栽培レシピ詳細の編集セレクト・一覧の表示ラベルの両方で使う。
+export const GROW_METHOD_OPTIONS=[{v:'seedling',l:'苗から'},{v:'seed_pot',l:'種（ポット）から'},{v:'seed_ground',l:'種（地植え）から'}];
+export const SEASON_OPTIONS=[{v:'spring',l:'春まき'},{v:'summer',l:'夏まき'},{v:'autumn',l:'秋まき'},{v:'winter',l:'冬まき'},{v:'year_round',l:'通年'}];
+export const REGION_OPTIONS=[{v:'cool',l:'冷涼地'},{v:'middle',l:'中間地'},{v:'warm',l:'暖地'}];
+/** @param {{v:string,l:string}[]} options @param {string|undefined} value @returns {string} */
+export function optionLabel(options,value){const o=options.find(o=>o.v===value);return o?o.l:'';}
+
 export const FAMILIES={'ナス科':{border:'#D85A30',bg:'#FAECE7'},'ウリ科':{border:'#639922',bg:'#EAF3DE'},'マメ科':{border:'#378ADD',bg:'#E6F1FB'},'アブラナ科':{border:'#EF9F27',bg:'#FAEEDA'},'ヒガンバナ科':{border:'#7F77DD',bg:'#EEEDFE'},'セリ科':{border:'#BA7517',bg:'#F5EAD8'},'キク科':{border:'#D4537E',bg:'#FBEAF0'},'シソ科':{border:'#1A9988',bg:'#E3F4F2'},'アオイ科':{border:'#C0873F',bg:'#F8EFDF'},'その他':{border:'#9C9A93',bg:'#F1EFE8'}};
 export const MAJOR_STATUS=[{id:'ready',name:'準備中',color:'#854F0B',bg:'#FAEEDA'},{id:'growing',name:'生育中',color:'#27500A',bg:'#d4f0b8'},{id:'harvesting',name:'収穫中',color:'#633806',bg:'#fdf5b0'},{id:'done',name:'完了',color:'#444441',bg:'#F1EFE8'}];
 // 工程表のフェーズ帯タイムライン用の配色。フェーズ名やフェーズ数はレシピごとに異なるため、
