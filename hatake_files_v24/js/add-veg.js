@@ -28,7 +28,7 @@ async function _populateAddVegPreset(){
     }catch(e){console.error('user_recipes load error',e);}
     _myPurchasedRecipes.forEach(r=>{const op=document.createElement('option');op.value=r.id;op.textContent=(r.emoji||'')+' '+r.name;sel.appendChild(op);});
   }else{
-    label.textContent='プリセットから選ぶ';
+    label.textContent='プリセットを反映';
     sel.innerHTML='<option value="">— プリセット野菜 —</option>';
     _myPurchasedRecipes=[];
     PRESET_VEGS.forEach(v=>{const op=document.createElement('option');op.value=v.id;op.textContent=`${v.emoji} ${v.name}`;sel.appendChild(op);});
