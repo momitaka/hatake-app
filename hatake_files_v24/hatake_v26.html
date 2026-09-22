@@ -661,14 +661,9 @@ body{
       <div class="master-layout" id="master-layout">
         <div class="master-list-col">
           <div class="master-list-header"><i class="ti ti-plant-2" style="color:#1a5c16;font-size:var(--fs-base)"></i>登録済み野菜<span id="master-list-count" style="font-size:var(--fs-xs);color:#2e7a28;font-weight:400;margin-left:4px"></span>
-            <div style="margin-left:auto;display:flex;align-items:center;gap:3px">
-              <i class="ti ti-arrows-sort" style="font-size:var(--fs-sm);color:#2e7a28"></i>
-              <select id="master-list-sort" style="font-size:var(--fs-xs);padding:3px 6px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-weight:400;letter-spacing:normal">
-                <option value="name">50音</option>
-                <option value="season">作期</option>
-                <option value="family">科</option>
-              </select>
-            </div>
+            <button id="btn-master-sort" style="margin-left:auto;display:flex;align-items:center;gap:3px;font-size:var(--fs-xs);font-weight:400;letter-spacing:normal;padding:3px 8px;border-radius:99px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer">
+              <i class="ti ti-arrows-sort" style="font-size:var(--fs-sm);color:#2e7a28"></i><span id="master-sort-current">50音</span>
+            </button>
           </div>
           <div id="master-list-items"></div>
         </div>
@@ -698,6 +693,12 @@ body{
   </div>
 </div>
 
+<div id="dlg-master-sort" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:200;background:rgba(0,0,0,0.4)">
+  <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1rem;min-width:240px;max-width:300px;width:80%" onclick="event.stopPropagation()">
+    <div style="font-size:var(--fs-sm);font-weight:600;color:var(--color-text-secondary);margin-bottom:10px;text-align:center">並び替え</div>
+    <div id="master-sort-options" style="display:flex;flex-direction:column;gap:6px"></div>
+  </div>
+</div>
 <div id="dlg-register" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:99;background:rgba(0,0,0,0.4)">
   <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.25rem;min-width:260px;max-width:320px;width:90%">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">

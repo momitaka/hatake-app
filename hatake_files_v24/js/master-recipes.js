@@ -11,6 +11,7 @@ import { closeMaster } from './grid-settings.js';
 
 // 一覧の並び順。familyRank/seasonRankは、あいうえお順に加えて科・作期でグループ化する際の
 // グループの並び順（未設定は末尾）を決める。
+const SORT_OPTIONS=[{v:'name',l:'50音'},{v:'season',l:'作期'},{v:'family',l:'科'}];
 const FAMILY_ORDER=Object.keys(FAMILIES);
 const SEASON_ORDER=SEASON_OPTIONS.map(o=>o.v);
 /** @param {string|undefined} fam @returns {number} */
@@ -24,7 +25,25 @@ function sortVegList(list,mode){
   if(mode==='season')return list.sort((a,b)=>seasonRank(a.season)-seasonRank(b.season)||byName(a,b));
   return list.sort(byName);
 }
-document.getElementById('master-list-sort').addEventListener('change',()=>{navState.masterSort=/** @type {HTMLSelectElement} */ (document.getElementById('master-list-sort')).value;renderMasterList();});
+function updateSortBtnLabel(){
+  const el=document.getElementById('master-sort-current');
+  if(el)el.textContent=optionLabel(SORT_OPTIONS,navState.masterSort)||'50音';
+}
+function closeSortDialog(){document.getElementById('dlg-master-sort').style.display='none';}
+function openSortDialog(){
+  const wrap=document.getElementById('master-sort-options');wrap.innerHTML='';
+  SORT_OPTIONS.forEach(opt=>{
+    const active=navState.masterSort===opt.v;
+    const row=document.createElement('div');
+    row.style.cssText=`display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:var(--fs-base);border:1px solid ${active?'#5aad4e':'var(--color-border-secondary)'};background:${active?'#f0f8ea':'var(--color-background-primary)'};color:var(--color-text-primary)`;
+    row.innerHTML=`<span>${opt.l}</span>${active?'<i class="ti ti-check" style="color:#2e7a28;font-size:var(--fs-base)"></i>':''}`;
+    row.addEventListener('click',()=>{navState.masterSort=opt.v;updateSortBtnLabel();renderMasterList();closeSortDialog();});
+    wrap.appendChild(row);
+  });
+  document.getElementById('dlg-master-sort').style.display='flex';
+}
+document.getElementById('btn-master-sort').addEventListener('click',openSortDialog);
+document.getElementById('dlg-master-sort').addEventListener('mousedown',e=>{if(e.target===e.currentTarget)closeSortDialog();});
 
 export function renderMasterList(){
   const el=document.getElementById('master-list-items');el.innerHTML='';
