@@ -660,7 +660,16 @@ body{
     <div id="master-content">
       <div class="master-layout" id="master-layout">
         <div class="master-list-col">
-          <div class="master-list-header"><i class="ti ti-plant-2" style="color:#1a5c16;font-size:var(--fs-base)"></i>登録済み野菜<span id="master-list-count" style="font-size:var(--fs-xs);color:#2e7a28;font-weight:400;margin-left:4px"></span></div>
+          <div class="master-list-header"><i class="ti ti-plant-2" style="color:#1a5c16;font-size:var(--fs-base)"></i>登録済み野菜<span id="master-list-count" style="font-size:var(--fs-xs);color:#2e7a28;font-weight:400;margin-left:4px"></span>
+            <div style="margin-left:auto;display:flex;align-items:center;gap:3px">
+              <i class="ti ti-arrows-sort" style="font-size:var(--fs-sm);color:#2e7a28"></i>
+              <select id="master-list-sort" style="font-size:var(--fs-xs);padding:3px 6px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-weight:400;letter-spacing:normal">
+                <option value="name">野菜名のあいうえお順</option>
+                <option value="family">あいうえお順＋科順</option>
+                <option value="season">あいうえお順＋作期順</option>
+              </select>
+            </div>
+          </div>
           <div id="master-list-items"></div>
         </div>
         <div class="master-detail-col" id="master-detail-col">

@@ -9,10 +9,27 @@ import { permRequireSupervisor } from './permissions.js';
 import { populateCropSelect } from './grid.js';
 import { closeMaster } from './grid-settings.js';
 
+// 一覧の並び順。familyRank/seasonRankは、あいうえお順に加えて科・作期でグループ化する際の
+// グループの並び順（未設定は末尾）を決める。
+const FAMILY_ORDER=Object.keys(FAMILIES);
+const SEASON_ORDER=SEASON_OPTIONS.map(o=>o.v);
+/** @param {string|undefined} fam @returns {number} */
+function familyRank(fam){const i=fam?FAMILY_ORDER.indexOf(fam):-1;return i===-1?FAMILY_ORDER.length:i;}
+/** @param {string|undefined} season @returns {number} */
+function seasonRank(season){const i=season?SEASON_ORDER.indexOf(season):-1;return i===-1?SEASON_ORDER.length:i;}
+/** @param {any[]} list @param {string} mode @returns {any[]} */
+function sortVegList(list,mode){
+  const byName=(a,b)=>a.name.localeCompare(b.name,'ja');
+  if(mode==='family')return list.sort((a,b)=>familyRank(a.family)-familyRank(b.family)||byName(a,b));
+  if(mode==='season')return list.sort((a,b)=>seasonRank(a.season)-seasonRank(b.season)||byName(a,b));
+  return list.sort(byName);
+}
+document.getElementById('master-list-sort').addEventListener('change',()=>{navState.masterSort=/** @type {HTMLSelectElement} */ (document.getElementById('master-list-sort')).value;renderMasterList();});
+
 export function renderMasterList(){
   const el=document.getElementById('master-list-items');el.innerHTML='';
   const countEl=document.getElementById('master-list-count');if(countEl)countEl.textContent=Object.keys(masterData.vegMaster).length+'件';
-  Object.values(masterData.vegMaster).sort((a,b)=>a.name.localeCompare(b.name,'ja')).forEach(veg=>{
+  sortVegList(Object.values(masterData.vegMaster),navState.masterSort).forEach(veg=>{
     const item=document.createElement('div');item.className='master-list-item';const hasRM=veg.phases&&veg.phases.length>0;
     const famSty=veg.family?(FAMILIES[veg.family]||FAMILIES['その他']):null;
     const famChip=famSty?`<span style="display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;background:${famSty.bg};color:${famSty.border};margin-right:4px">${veg.family}</span>`:'';
