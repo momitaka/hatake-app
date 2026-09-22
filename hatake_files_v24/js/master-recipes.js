@@ -28,6 +28,7 @@ export function showMasterView(view){
   navState.masterView=view;
   const layout=document.getElementById('master-layout');
   if(layout)layout.classList.toggle('view-detail',view==='detail');
+  const addBtn=document.getElementById('btn-add-veg');if(addBtn)addBtn.style.display=(view==='list')?'':'none';
   if(view==='list'){const s=document.getElementById('master-toolbar-btns');if(s)s.style.display='none';}
   updateMasterBackBtn();
 }
