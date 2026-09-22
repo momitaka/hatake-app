@@ -12,7 +12,7 @@ import { closeMaster } from './grid-settings.js';
 export function renderMasterList(){
   const el=document.getElementById('master-list-items');el.innerHTML='';
   Object.values(masterData.vegMaster).sort((a,b)=>a.name.localeCompare(b.name,'ja')).forEach(veg=>{
-    const item=document.createElement('div');item.className='master-list-item'+(navState.masterVeg===veg.id?' active':'');const hasRM=veg.phases&&veg.phases.length>0;
+    const item=document.createElement('div');item.className='master-list-item';const hasRM=veg.phases&&veg.phases.length>0;
     const famSty=veg.family?(FAMILIES[veg.family]||FAMILIES['その他']):null;
     const famChip=famSty?`<span style="display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;background:${famSty.bg};color:${famSty.border};margin-right:4px">${veg.family}</span>`:'';
     const metaText=[optionLabel(GROW_METHOD_OPTIONS,veg.growMethod),optionLabel(SEASON_OPTIONS,veg.season),optionLabel(REGION_OPTIONS,veg.region)].filter(Boolean).join(' / ');
