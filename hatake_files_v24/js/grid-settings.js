@@ -10,7 +10,7 @@ import { saveLS, updateFarmNameDisplay } from './storage.js';
 import { permCanEditFarm } from './add-veg.js';
 import { renderGrid } from './grid.js';
 import { openManage } from './manage.js';
-import { renderMasterList, renderMasterDetail } from './master-recipes.js';
+import { renderMasterList, renderMasterDetail, showMasterView } from './master-recipes.js';
 
 const GRID_BG_SRC='images/grid_bg_farmer.png';
 export function applyGridBg(){
@@ -92,5 +92,5 @@ export function syncAisleInputs(){
 }
 export function resetAll(){if(!permCanEditFarm())return;showConfirm('全データをリセットしますか？',()=>{gridState.cells={};segData.segs={};segData.tasks={};segData.actionLogs={};segData.harvestLogs={};segData.summaryMemo={};segData.archived={};segData.linkGroups={};renderGrid();saveLS();});}
 
-export function openMaster(){document.getElementById('screen-register').classList.remove('active');document.getElementById('screen-master').classList.add('active');renderMasterList();if(navState.masterVeg)renderMasterDetail();}
+export function openMaster(){document.getElementById('screen-register').classList.remove('active');document.getElementById('screen-master').classList.add('active');renderMasterList();if(navState.masterVeg)renderMasterDetail();showMasterView('list');}
 export function closeMaster(){document.getElementById('screen-master').classList.remove('active');document.getElementById('screen-register').classList.add('active');renderGrid();}

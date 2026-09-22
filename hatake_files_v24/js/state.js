@@ -55,8 +55,8 @@ export const dragState={
 /** @type {{name: string, font: string, icon: string, lat: number|null, lng: number|null}} */
 export const farmMeta={name:'',font:'Kaisei Opti',icon:'',lat:null,lng:null};
 // 画面遷移状態：今どの区画/タブ/レシピを表示しているか
-/** @type {{seg: string|null, tab: string, masterVeg: string|null, masterTab: string}} */
-export const navState={seg:null,tab:'roadmap',masterVeg:null,masterTab:'roadmap'};
+/** @type {{seg: string|null, tab: string, masterVeg: string|null, masterTab: string, masterView: string}} */
+export const navState={seg:null,tab:'roadmap',masterVeg:null,masterTab:'roadmap',masterView:'list'};
 // 「野菜を追加」ダイアログの一時入力状態。保存時にmasterData.vegMasterへ書き込まれる前の下書き。
 /** @type {{emoji: string, iconFile: string|null, fromReg: boolean}} */
 export const addVegState={emoji:'🌱',iconFile:null,fromReg:false};

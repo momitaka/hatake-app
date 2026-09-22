@@ -9,7 +9,7 @@ import { _dataStrategy, saveLS } from './storage.js';
 import { marketAuth } from './db.js';
 import { ALL_ICONS, FAMILIES } from './helpers.js';
 import { openMarketList } from './marketplace.js';
-import { renderMasterList, renderMasterDetail } from './master-recipes.js';
+import { renderMasterList, renderMasterDetail, showMasterView } from './master-recipes.js';
 
 export function permCanEditFarm(){return permRequireAdmin()||_dataStrategy==='session';}
 (function _populateFamilySelect(){const sel=/** @type {HTMLSelectElement} */ (document.getElementById('av-family'));Object.keys(FAMILIES).forEach(f=>{const op=document.createElement('option');op.value=f;op.textContent=f;sel.appendChild(op);});})();
@@ -104,5 +104,5 @@ document.getElementById('av-next').addEventListener('click',()=>{
   const growMethod=/** @type {HTMLSelectElement} */ (document.getElementById('av-grow-method')).value;const refUrl=/** @type {HTMLInputElement} */ (document.getElementById('av-ref-url')).value.trim();const season=/** @type {HTMLSelectElement} */ (document.getElementById('av-season')).value;const region=/** @type {HTMLSelectElement} */ (document.getElementById('av-region')).value;if(region)localStorage.setItem('hatake_last_region',region);const family=/** @type {HTMLSelectElement} */ (document.getElementById('av-family')).value;
   masterData.vegMaster[id]={id,name,emoji:addVegState.emoji,iconFile:addVegState.iconFile||undefined,family,variety,growMethod,season,region,referenceUrl:refUrl,phases:purchased?JSON.parse(JSON.stringify(purchased.phases||[])):[],basicInfo:purchased?JSON.parse(JSON.stringify(purchased.basic_info||{})):undefined};
   navState.masterVeg=id;saveLS();document.getElementById('dlg-add-veg').style.display='none';
-  renderMasterList();renderMasterDetail();
+  renderMasterList();renderMasterDetail();showMasterView('detail');
 });

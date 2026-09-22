@@ -14,8 +14,29 @@ export function renderMasterList(){
   Object.values(masterData.vegMaster).sort((a,b)=>a.name.localeCompare(b.name,'ja')).forEach(veg=>{
     const item=document.createElement('div');item.className='master-list-item'+(navState.masterVeg===veg.id?' active':'');const hasRM=veg.phases&&veg.phases.length>0;
     item.innerHTML=`<span style="display:inline-flex;align-items:center">${vegIconHtml(veg,20)}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--fs-sm)">${veg.name}${veg.variety?'<br><span style="font-size:var(--fs-xs);color:#9c9a93">'+veg.variety+'</span>':''}</span><span class="master-list-item-badge ${hasRM?'':'empty'}">${hasRM?'有':'未'}</span>`;
-    item.addEventListener('click',()=>{navState.masterVeg=veg.id;renderMasterList();renderMasterDetail();});el.appendChild(item);
+    item.addEventListener('click',()=>{navState.masterVeg=veg.id;renderMasterList();renderMasterDetail();showMasterView('detail');});el.appendChild(item);
   });
+}
+
+// 一覧画面⇄詳細画面の切替（スマホ専用のため左右分割ではなく階層で表示する）
+export function showMasterView(view){
+  navState.masterView=view;
+  const layout=document.getElementById('master-layout');
+  if(layout)layout.classList.toggle('view-detail',view==='detail');
+  if(view==='list'){const s=document.getElementById('master-toolbar-btns');if(s)s.style.display='none';}
+  updateMasterBackBtn();
+}
+
+export function updateMasterBackBtn(){
+  const btn=document.getElementById('btn-master-back');
+  if(!btn)return;
+  if(navState.masterView==='detail'){
+    btn.innerHTML='<i class="ti ti-arrow-left" style="font-size:var(--fs-xs)"></i>一覧に戻る';
+    btn.onclick=()=>showMasterView('list');
+  }else{
+    btn.innerHTML='<i class="ti ti-arrow-left" style="font-size:var(--fs-xs)"></i>畑へ戻る';
+    btn.onclick=()=>closeMaster();
+  }
 }
 
 export function renderMasterDetail(){
@@ -23,7 +44,7 @@ export function renderMasterDetail(){
   col.innerHTML='<div class="master-detail-scroll" id="master-detail-scroll"></div>';
   const scroll=document.getElementById('master-detail-scroll');
   const veg=masterData.vegMaster[navState.masterVeg];
-  if(!veg){scroll.innerHTML='<div class="master-detail-empty"><i class="ti ti-plant-2" style="font-size:24px;color:#9c9a93"></i>左のリストから野菜を選択</div>';const s=document.getElementById('master-toolbar-btns');if(s)s.style.display='none';return;}
+  if(!veg){scroll.innerHTML='<div class="master-detail-empty"><i class="ti ti-plant-2" style="font-size:24px;color:#9c9a93"></i>一覧から野菜を選択</div>';const s=document.getElementById('master-toolbar-btns');if(s)s.style.display='none';return;}
   const hdr=document.createElement('div');hdr.className='master-detail-header';hdr.innerHTML=`<span class="master-detail-icon">${vegIconHtml(veg,30)}</span><div><div class="master-detail-name">${veg.name}</div><div class="master-detail-sub">${veg.variety||'標準'} ／ ${veg.family||'科未設定'}</div></div>`;
   const growBlock=document.createElement('div');growBlock.classList.add('admin-only');growBlock.style.cssText='margin-bottom:12px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary)';const growLabel=document.createElement('div');growLabel.style.cssText='font-size:var(--fs-xs);font-weight:500;color:var(--color-text-secondary);margin-bottom:8px';growLabel.textContent='栽培設定';const growRow=document.createElement('div');growRow.style.cssText='display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end';const growMethodWrap=document.createElement('div');growMethodWrap.style.cssText='display:flex;flex-direction:column;gap:3px;flex:1;min-width:120px';const growMethodLbl=document.createElement('div');growMethodLbl.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary)';growMethodLbl.textContent='育成方法';const growMethodSel=document.createElement('select');growMethodSel.style.cssText='font-size:var(--fs-sm);padding:5px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)';[{v:'seedling',l:'苗から'},{v:'seed_pot',l:'種（ポット）から'},{v:'seed_ground',l:'種（地植え）から'}].forEach(opt=>{const o=document.createElement('option');o.value=opt.v;o.textContent=opt.l;if((veg.growMethod||'seedling')===opt.v)o.selected=true;growMethodSel.appendChild(o);});if(!permCanEditFarm())growMethodSel.disabled=true;else growMethodSel.addEventListener('change',()=>{masterData.vegMaster[veg.id].growMethod=growMethodSel.value;});growMethodWrap.append(growMethodLbl,growMethodSel);const refUrlWrap=document.createElement('div');refUrlWrap.style.cssText='display:flex;flex-direction:column;gap:3px;flex:2;min-width:160px';const refUrlLbl=document.createElement('div');refUrlLbl.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary)';refUrlLbl.innerHTML='<i class="ti ti-link" style="font-size:var(--fs-xs)"></i> 参考URL（AI生成に使用）';const refUrlIn=document.createElement('input');refUrlIn.type='url';refUrlIn.style.cssText='font-size:var(--fs-sm);padding:5px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);width:100%';refUrlIn.placeholder='https://...';refUrlIn.value=veg.referenceUrl||'';if(!permCanEditFarm())refUrlIn.readOnly=true;else refUrlIn.addEventListener('input',()=>{masterData.vegMaster[veg.id].referenceUrl=refUrlIn.value;});refUrlWrap.append(refUrlLbl,refUrlIn);growRow.append(growMethodWrap,refUrlWrap);growBlock.append(growLabel,growRow);scroll.appendChild(growBlock);const familyBlock=document.createElement('div');familyBlock.style.cssText='margin-bottom:12px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary)';const familyBlockLbl=document.createElement('div');familyBlockLbl.style.cssText='font-size:var(--fs-xs);font-weight:500;color:var(--color-text-secondary);margin-bottom:8px';familyBlockLbl.textContent='科';const familySel=document.createElement('select');familySel.style.cssText='font-size:var(--fs-sm);padding:5px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);width:100%;max-width:200px';const familyNone=document.createElement('option');familyNone.value='';familyNone.textContent='— 未設定 —';familySel.appendChild(familyNone);Object.keys(FAMILIES).forEach(f=>{const o=document.createElement('option');o.value=f;o.textContent=f;if((veg.family||'')===f)o.selected=true;familySel.appendChild(o);});if(!permCanEditFarm())familySel.disabled=true;else familySel.addEventListener('change',()=>{masterData.vegMaster[veg.id].family=familySel.value;const sub=hdr.querySelector('.master-detail-sub');if(sub)sub.textContent=`${veg.variety||'標準'} ／ ${familySel.value||'科未設定'}`;});familyBlock.append(familyBlockLbl,familySel);scroll.appendChild(familyBlock);const aiBanner=document.createElement('div');aiBanner.className='ai-banner';aiBanner.style.margin='0 0 12px';const hasRM=veg.phases&&veg.phases.length>0;
   if(permState.isAdmin){aiBanner.innerHTML=`<div class="ai-banner-text">${hasRM?'工程表・基礎情報が生成済みです。再生成で上書きできます。':'工程表と基礎情報がありません。AIで自動生成できます。'}</div><button class="btn-ai" id="btn-ai-gen"><i class="ti ti-sparkles"></i>${hasRM?'再生成':'AIで生成'}</button>`;aiBanner.querySelector('#btn-ai-gen').addEventListener('click',()=>aiGenerate(veg.id));scroll.append(hdr,aiBanner);}else{scroll.appendChild(hdr);}
@@ -172,7 +193,7 @@ export function renderMasterSaveBar(col,veg){
   if(!slot)return;
   slot.innerHTML='';
   if(!permCanEditFarm()){slot.style.display='none';return;}
-  const delBtn=document.createElement('button');delBtn.className='btn-delete-master';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>削除';delBtn.addEventListener('click',()=>{const usedCells=Object.values(gridState.cells).filter(c=>c&&c.crop===veg.id);if(usedCells.length>0){showAlert(`「${veg.name}」は現在${usedCells.length}つの栽培区画で使用中のため削除できません。\n栽培区画の管理画面から野菜を外すか、栽培区画を削除してから再度お試しください。`);return;}showConfirm(`「${veg.name}」をレシピから削除しますか？`,()=>{delete masterData.vegMaster[veg.id];navState.masterVeg=null;saveLS();renderMasterList();renderMasterDetail();});});
+  const delBtn=document.createElement('button');delBtn.className='btn-delete-master';delBtn.innerHTML='<i class="ti ti-trash" style="font-size:var(--fs-sm)"></i>削除';delBtn.addEventListener('click',()=>{const usedCells=Object.values(gridState.cells).filter(c=>c&&c.crop===veg.id);if(usedCells.length>0){showAlert(`「${veg.name}」は現在${usedCells.length}つの栽培区画で使用中のため削除できません。\n栽培区画の管理画面から野菜を外すか、栽培区画を削除してから再度お試しください。`);return;}showConfirm(`「${veg.name}」をレシピから削除しますか？`,()=>{delete masterData.vegMaster[veg.id];navState.masterVeg=null;saveLS();renderMasterList();renderMasterDetail();showMasterView('list');});});
   const saveBtn=document.createElement('button');saveBtn.className='btn-save-master';saveBtn.innerHTML='<i class="ti ti-device-floppy"></i>保存';saveBtn.addEventListener('click',()=>{saveLS();if(addVegState.fromReg){addVegState.fromReg=false;saveBtn.textContent='完了';setTimeout(()=>{closeMaster();populateCropSelect();/** @type {HTMLSelectElement} */ (document.getElementById('dlg-crop')).value=navState.masterVeg||'';/** @type {HTMLButtonElement} */ (document.getElementById('dlg-save')).disabled=!navState.masterVeg;document.getElementById('dlg-register').style.display='flex';},1200);}else{saveBtn.textContent='完了';setTimeout(()=>closeMaster(),1200);}});
   slot.append(delBtn,saveBtn);slot.style.display='flex';
 }
