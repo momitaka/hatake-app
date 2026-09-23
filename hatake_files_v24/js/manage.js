@@ -280,7 +280,7 @@ export function renderLogTab(el,seg){
   const linkedOthers=getLinkedSids(navState.seg).filter(s=>s!==navState.seg&&segData.segs[s]);
   const linkBox=document.createElement('div');linkBox.className='summary-memo-box';
   linkBox.innerHTML='<div class="summary-memo-header"><i class="ti ti-link" style="color:#9c9a93"></i>連携中の栽培区画</div>';
-  const linkBody=document.createElement('div');linkBody.style.cssText='padding:6px 0 2px';
+  const linkBody=document.createElement('div');linkBody.className='summary-memo-body';
   const linkInfo=document.createElement('div');linkInfo.style.cssText='font-size:var(--fs-sm);line-height:1.8;color:'+(linkedOthers.length?'var(--color-text-secondary)':'var(--color-text-tertiary)');
   linkInfo.textContent=linkedOthers.length?linkedOthers.map(s=>{const ss=segData.segs[s];return `${ss.row+1}行 ${Math.min(...ss.cols)+1}〜${Math.max(...ss.cols)+1}列`;}).join('、'):'他の栽培区画とは連携していません。';
   linkBody.appendChild(linkInfo);
