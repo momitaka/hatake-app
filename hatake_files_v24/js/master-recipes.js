@@ -1,6 +1,6 @@
 // @ts-check
 // ===== 栽培レシピ（マスタ）画面 =====
-import { masterData, navState, permState, gridState, addVegState, SUPABASE_ANON_KEY } from './state.js';
+import { masterData, navState, permState, gridState, addVegState, segData, SUPABASE_ANON_KEY } from './state.js';
 import { vegIconHtml, FAMILIES, GROW_METHOD_OPTIONS, SEASON_OPTIONS, REGION_OPTIONS, optionLabel } from './helpers.js';
 import { showAlert, showConfirm } from './dialogs.js';
 import { saveLS } from './storage.js';
@@ -49,12 +49,23 @@ export function renderMasterList(){
   const el=document.getElementById('master-list-items');el.innerHTML='';
   const countEl=document.getElementById('master-list-count');if(countEl)countEl.textContent=Object.keys(masterData.vegMaster).length+'件';
   sortVegList(Object.values(masterData.vegMaster),navState.masterSort).forEach(veg=>{
-    const item=document.createElement('div');item.className='master-list-item';const hasRM=veg.phases&&veg.phases.length>0;
+    const item=document.createElement('div');item.className='master-list-item';item.style.flexDirection='column';item.style.alignItems='stretch';const hasRM=veg.phases&&veg.phases.length>0;
     const famSty=veg.family?(FAMILIES[veg.family]||FAMILIES['その他']):null;
     const famChip=famSty?`<span style="display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;background:${famSty.bg};color:${famSty.border};margin-right:4px">${veg.family}</span>`:'';
     const metaText=[optionLabel(GROW_METHOD_OPTIONS,veg.growMethod),optionLabel(SEASON_OPTIONS,veg.season),optionLabel(REGION_OPTIONS,veg.region)].filter(Boolean).join(' / ');
     const metaLine=(famChip||metaText)?'<br><span style="font-size:var(--fs-xs);color:#9c9a93">'+famChip+metaText+'</span>':'';
-    item.innerHTML=`<span style="display:inline-flex;align-items:center">${vegIconHtml(veg,20)}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--fs-sm)">${veg.name}${veg.variety?'<br><span style="font-size:var(--fs-xs);color:#9c9a93">'+veg.variety+'</span>':''}${metaLine}</span><span class="master-list-item-badge ${hasRM?'':'empty'}">${hasRM?'有':'未'}</span>`;
+    const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:8px';
+    row.innerHTML=`<span style="display:inline-flex;align-items:center">${vegIconHtml(veg,20)}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--fs-sm)">${veg.name}${veg.variety?'<br><span style="font-size:var(--fs-xs);color:#9c9a93">'+veg.variety+'</span>':''}${metaLine}</span><span class="master-list-item-badge ${hasRM?'':'empty'}">${hasRM?'有':'未'}</span>`;
+    item.appendChild(row);
+    const archiveCount=Object.values(segData.archived).filter(a=>a.cropId===veg.id).length;
+    if(archiveCount>0){
+      const archRow=document.createElement('div');
+      archRow.style.cssText='margin-top:6px;padding-top:6px;border-top:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:5px;font-size:var(--fs-xs);color:var(--color-text-success);cursor:pointer';
+      archRow.innerHTML=`<i class="ti ti-archive" style="font-size:13px"></i>過去の栽培記録 ${archiveCount}件<i class="ti ti-chevron-right" style="font-size:var(--fs-xs);margin-left:auto"></i>`;
+      // master-recipes.js→archive.jsは(manage.js→add-veg.js経由で)循環importになるため、既存のwindow.openArchiveブリッジ経由で呼ぶ（循環回避のための恒久設計）
+      archRow.addEventListener('click',e=>{e.stopPropagation();window.openArchive(veg.id);});
+      item.appendChild(archRow);
+    }
     item.addEventListener('click',()=>{navState.masterVeg=veg.id;renderMasterList();renderMasterDetail();showMasterView('detail');});el.appendChild(item);
   });
 }

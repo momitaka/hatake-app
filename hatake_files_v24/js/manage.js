@@ -297,7 +297,16 @@ export function renderLogTab(el,seg){
     linkBody.appendChild(linkBtnRow);
   }
   linkBox.appendChild(linkBody);summary.appendChild(linkBox);
-  const memoBox=document.createElement('div');memoBox.className='summary-memo-box';memoBox.innerHTML='<div class="summary-memo-header"><i class="ti ti-notes" style="color:#9c9a93"></i>全体メモ</div>';const memoBody=document.createElement('div');memoBody.className='summary-memo-body';const memoTa=document.createElement('textarea');memoTa.className='summary-memo-ta';memoTa.placeholder='ここでの栽培を振り返って...';memoTa.value=getSummaryMemo(navState.seg);const memoSave=document.createElement('button');memoSave.className='summary-save-btn';memoSave.innerHTML='<i class="ti ti-device-floppy" style="font-size:var(--fs-xs)"></i>保存';memoSave.addEventListener('click',()=>{setSummaryMemo(navState.seg,memoTa.value);memoSave.textContent='保存しました';setTimeout(()=>{memoSave.innerHTML='<i class="ti ti-device-floppy" style="font-size:var(--fs-xs)"></i>保存';},1200);});memoBody.append(memoTa,memoSave);memoBox.appendChild(memoBody);summary.appendChild(memoBox);el.appendChild(summary);
+  const memoBox=document.createElement('div');memoBox.className='summary-memo-box';memoBox.innerHTML='<div class="summary-memo-header"><i class="ti ti-notes" style="color:#9c9a93"></i>全体メモ</div>';const memoBody=document.createElement('div');memoBody.className='summary-memo-body';const memoTa=document.createElement('textarea');memoTa.className='summary-memo-ta';memoTa.placeholder='ここでの栽培を振り返って...';memoTa.value=getSummaryMemo(navState.seg);const memoSave=document.createElement('button');memoSave.className='summary-save-btn';memoSave.innerHTML='<i class="ti ti-device-floppy" style="font-size:var(--fs-xs)"></i>保存';memoSave.addEventListener('click',()=>{setSummaryMemo(navState.seg,memoTa.value);memoSave.textContent='保存しました';setTimeout(()=>{memoSave.innerHTML='<i class="ti ti-device-floppy" style="font-size:var(--fs-xs)"></i>保存';},1200);});memoBody.append(memoTa,memoSave);memoBox.appendChild(memoBody);summary.appendChild(memoBox);
+  const archiveCount=Object.values(segData.archived).filter(a=>a.cropId===seg.crop).length;
+  if(archiveCount>0){
+    const archBox=document.createElement('div');archBox.className='summary-memo-box';archBox.style.cursor='pointer';
+    archBox.innerHTML=`<div class="summary-memo-header"><i class="ti ti-archive" style="color:#9c9a93"></i>過去の栽培記録<span style="margin-left:auto;color:var(--color-text-success);font-weight:600;display:flex;align-items:center;gap:2px">${archiveCount}件<i class="ti ti-chevron-right" style="font-size:var(--fs-xs)"></i></span></div>`;
+    // manage.js→archive.jsは直接importすると循環になるため、既存のwindow.openArchiveブリッジ経由で呼ぶ（循環回避のための恒久設計）
+    archBox.addEventListener('click',()=>window.openArchive(seg.crop));
+    summary.appendChild(archBox);
+  }
+  el.appendChild(summary);
   const logTitle=document.createElement('div');logTitle.className='log-section-title';logTitle.innerHTML='<i class="ti ti-clock" style="font-size:var(--fs-base)"></i>作業履歴';el.appendChild(logTitle);
   const byDate=getMergedLogsByDate(navState.seg);const sortedDates=Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
   if(!sortedDates.length){const p=document.createElement('p');p.style.cssText='font-size:var(--fs-xs);color:#9c9a93;padding:4px 0';p.textContent='タスクを完了するか収穫を記録すると表示されます。';el.appendChild(p);}

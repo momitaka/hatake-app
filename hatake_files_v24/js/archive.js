@@ -8,13 +8,27 @@ import { getHarvestPhotoUrl } from './photo-utils.js';
 import { openHarvestPhotoLightbox } from './manage.js';
 
 let archiveSortKey='completedDate',archiveSortDir='desc',archiveDetailSeg=null,currentSnapshotIdx=0;
+// 栽培レシピ一覧などから「特定の野菜の過去データだけ見る」導線で開いた際の絞り込み対象cropId
+let archiveFilterCropId=null;
 // 作業履歴の写真表示用署名URLキャッシュ（manage.js側と同じ方式。アーカイブは読み取り専用画面のため独立して持つ）
 /** @type {Map<string,string>} */
 const archivePhotoUrlCache=new Map();
 
-export function openArchive(){archiveDetailSeg=null;currentSnapshotIdx=0;document.getElementById('screen-register').classList.remove('active');document.getElementById('screen-archive').classList.add('active');renderArchive();}
+/** @param {string} [cropId] 指定時はその野菜の過去データのみに絞り込んで開く。1件のみなら詳細画面に直接ジャンプする */
+export function openArchive(cropId){
+  archiveFilterCropId=cropId||null;
+  currentSnapshotIdx=0;
+  if(archiveFilterCropId){
+    const matches=Object.values(segData.archived).filter(a=>a.cropId===archiveFilterCropId);
+    archiveDetailSeg=matches.length===1?matches[0].segId:null;
+  }else{
+    archiveDetailSeg=null;
+  }
+  // 栽培レシピ一覧（screen-master）・管理画面（screen-manage）からも呼ばれるため、遷移元になりうる画面をまとめて非アクティブにする
+  document.getElementById('screen-register').classList.remove('active');document.getElementById('screen-master').classList.remove('active');document.getElementById('screen-manage').classList.remove('active');document.getElementById('screen-archive').classList.add('active');renderArchive();
+}
 // インラインonclick="closeArchive()"から直接呼ばれるため、bootstrap時点でwindow登録済み
-export function closeArchive(){document.getElementById('screen-archive').classList.remove('active');document.getElementById('screen-register').classList.add('active');}
+export function closeArchive(){archiveFilterCropId=null;document.getElementById('screen-archive').classList.remove('active');document.getElementById('screen-register').classList.add('active');}
 
 
 export function getSnapshots(){
@@ -186,8 +200,22 @@ export function renderArchive(){
   const el=document.getElementById('archive-content');el.innerHTML='';
   if(archiveDetailSeg){renderArchiveDetail(el,archiveDetailSeg);return;}
   renderSnapshotViewer(el);
-  const entries=Object.values(segData.archived);
-  if(!entries.length){const emp=document.createElement('div');emp.className='archive-empty';emp.innerHTML='<i class="ti ti-database" style="font-size:24px;display:block;margin-bottom:8px;opacity:0.3"></i>過去データはまだありません';el.appendChild(emp);return;}
+
+  if(archiveFilterCropId){
+    const veg=masterData.vegMaster[archiveFilterCropId];
+    const chip=document.createElement('div');
+    chip.style.cssText='display:flex;align-items:center;gap:6px;margin:0 0 10px;padding:7px 10px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);font-size:var(--fs-xs);color:var(--color-text-secondary)';
+    chip.innerHTML=`<i class="ti ti-filter" style="font-size:var(--fs-xs)"></i><span style="flex:1">${veg?veg.name:''}の記録のみ表示中</span>`;
+    const clearBtn=document.createElement('button');
+    clearBtn.textContent='解除';
+    clearBtn.style.cssText='background:none;border:none;color:var(--color-text-success);font-size:var(--fs-xs);font-weight:500;cursor:pointer;padding:2px 4px';
+    clearBtn.addEventListener('click',()=>{archiveFilterCropId=null;renderArchive();});
+    chip.appendChild(clearBtn);
+    el.appendChild(chip);
+  }
+
+  const entries=archiveFilterCropId?Object.values(segData.archived).filter(a=>a.cropId===archiveFilterCropId):Object.values(segData.archived);
+  if(!entries.length){const emp=document.createElement('div');emp.className='archive-empty';emp.innerHTML=archiveFilterCropId?'<i class="ti ti-database" style="font-size:24px;display:block;margin-bottom:8px;opacity:0.3"></i>この野菜の過去データはありません':'<i class="ti ti-database" style="font-size:24px;display:block;margin-bottom:8px;opacity:0.3"></i>過去データはまだありません';el.appendChild(emp);return;}
 
   // 栽培履歴 見出し
   const secTitle2=document.createElement('div');secTitle2.style.cssText='font-size:var(--fs-xs);font-weight:600;color:var(--color-text-secondary);letter-spacing:0.04em;margin:14px 0 8px;display:flex;align-items:center;gap:5px;padding:0 2px';secTitle2.innerHTML='<i class="ti ti-plant-2" style="font-size:var(--fs-xs)"></i>栽培履歴';el.appendChild(secTitle2);
