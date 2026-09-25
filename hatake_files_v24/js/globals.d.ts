@@ -31,6 +31,8 @@ declare global {
     _taskDateCancel?: (() => void) | null;
     _harvestMemoConfirm?: (memoVal: string) => void;
     _harvestMemoCancel?: (() => void) | null;
+    _textPromptConfirm?: (val: string) => void;
+    _textPromptCancel?: (() => void) | null;
     openAuthModal?: () => void;
     closeAuthModal?: () => void;
     sendMagicLink?: () => Promise<void>;

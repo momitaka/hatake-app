@@ -177,6 +177,68 @@ export function getPivotInfo(sid,cropId){
   const baseDate=pivotDate||(seg&&seg.plantDate)||null;
   return{pivotDay,baseDate};
 }
+/** @param {string} cropId @returns {string} 週別収穫比較の「同じ野菜」判定に使うグループキー。
+ * レシピに`compareGroup`が明示設定されていればそれを使い、無ければ自身のcropIdをそのまま暗黙のグループとする（既存動作を維持） */
+function compareGroupOf(cropId){
+  const v=getVeg(cropId);
+  return (v&&v.compareGroup)||cropId;
+}
+/**
+ * @param {string} sid @param {number} [limit]
+ * @returns {any} 収穫グラフ用データ。今回の栽培区画で最も量の多い単位を基準に、同じ比較グループ（レシピの
+ * compareGroup。未設定ならcropId自身）に属する過去の栽培（アクティブな他区画＋アーカイブ済み。連携グループは
+ * 代表区画のみ）のうち同じ単位で記録があるものを、直近（最新の収穫日または開始日）順にlimit件集計する。
+ * 定植日のズレは正規化せず、暦月内の週（1〜7日=1週、8〜14日=2週…）でそのまま揃えることで
+ * 「去年の7月1週目と今の7月1週目」のように実際のカレンダー上の同じ時期を比較できるようにする
+ */
+export function getWeeklyYieldComparisonData(sid,limit=3){
+  const seg=segData.segs[sid];if(!seg)return null;
+  const cropId=seg.crop;
+  const myGroup=compareGroupOf(cropId);
+  const summary=getHarvestSummary(sid);
+  const units=Object.entries(summary).sort((a,b)=>b[1]-a[1]);
+  if(!units.length)return null;
+  const unit=units[0][0];
+  /** @param {string} dateStr @returns {{key:string,month:number,week:number,label:string}} */
+  const toWeek=dateStr=>{const[,m,d]=dateStr.split('-').map(Number);const w=Math.ceil(d/7);return{key:`${m}-${w}`,month:m,week:w,label:`${m}月${w}週`};};
+  /** @param {any[]} logs @returns {Object<string,number>} */
+  const weeklyTotals=logs=>{
+    /** @type {Object<string,number>} */
+    const totals={};
+    logs.filter(h=>h.unit===unit).forEach(h=>{const k=toWeek(h.date).key;totals[k]=(totals[k]||0)+Number(h.amount);});
+    return totals;
+  };
+  const yearOf=/** @param {string} [d] */d=>d?Number(d.slice(0,4)):null;
+  const currentTotals=weeklyTotals(getHarvestLogs(sid));
+  const seen=new Set([recordKey(sid)]);
+  const candidates=[];
+  Object.values(segData.segs).forEach(s=>{
+    const key=recordKey(s.id);
+    if(compareGroupOf(s.crop)!==myGroup||seen.has(key))return;seen.add(key);
+    const logs=getHarvestLogs(s.id);
+    const lastDate=[...logs].sort((a,b)=>b.date.localeCompare(a.date))[0]?.date||s.plantDate;
+    if(!lastDate)return;
+    candidates.push({sortDate:lastDate,label:`${yearOf(lastDate)}年（栽培中）`,totals:weeklyTotals(logs)});
+  });
+  Object.values(segData.archived).forEach(a=>{
+    const key=recordKey(a.segId);
+    if(compareGroupOf(a.cropId)!==myGroup||seen.has(key))return;seen.add(key);
+    const logs=getHarvestLogs(a.segId);
+    const sortDate=a.completedDate||a.plantDate;
+    if(!sortDate)return;
+    candidates.push({sortDate,label:`${yearOf(a.plantDate||a.completedDate)}年`,totals:weeklyTotals(logs)});
+  });
+  const past=candidates
+    .filter(c=>Object.keys(c.totals).length)
+    .sort((a,b)=>b.sortDate.localeCompare(a.sortDate))
+    .slice(0,limit);
+  if(!Object.keys(currentTotals).length&&!past.length)return null;
+  const series=[{label:`今回（${yearOf(todayISO())}年）`,current:true,totals:currentTotals},...past.map(c=>({label:c.label,current:false,totals:c.totals}))];
+  const weekMap=new Map();
+  series.forEach(s=>Object.keys(s.totals).forEach(k=>{if(!weekMap.has(k)){const[m,w]=k.split('-').map(Number);weekMap.set(k,{key:k,month:m,week:w,label:`${m}月${w}週`});}}));
+  const weeks=[...weekMap.values()].sort((a,b)=>(a.month-b.month)||(a.week-b.week));
+  return{unit,weeks,series:series.map(s=>({label:s.label,current:s.current,values:weeks.map(w=>s.totals[w.key]||0)}))};
+}
 /** @param {string} [period] @returns {number|null} 「15〜30日」「〜14日」「101日〜」等の表記から末尾側の数値を抽出する。数値が無ければnull */
 function parsePeriodEnd(period){
   if(!period)return null;

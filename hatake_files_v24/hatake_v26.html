@@ -264,6 +264,22 @@ body.admin-mode #screen-manage .toolbar,body.admin-mode #screen-master .toolbar,
 .harvest-row-photo-img{width:40px;height:40px;object-fit:cover;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);display:block}
 .harvest-row-photo.empty{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:0.5px dashed var(--color-border-secondary);color:var(--color-text-tertiary);font-size:var(--fs-sm);cursor:pointer}
 .harvest-row-photo.empty:hover{color:var(--color-text-secondary);border-color:var(--color-text-secondary)}
+.yield-section{margin-top:18px}
+.yield-section-title{font-size:var(--fs-sm);font-weight:600;color:var(--color-text-primary);display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.yield-subtitle{font-size:var(--fs-xs);color:var(--color-text-tertiary);margin:-4px 0 10px}
+.yield-week-chart-outer{position:relative;margin:28px 0 6px}
+.yield-week-chart{display:flex;align-items:flex-end;gap:14px;overflow-x:auto;padding:4px 2px 0;height:116px}
+.yield-week-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0;height:100%;justify-content:flex-end}
+.yield-week-bars{display:flex;align-items:flex-end;gap:2px}
+.yield-week-bar{width:9px;border-radius:4px 4px 0 0;min-height:2px}
+.yield-week-label{font-size:9px;color:var(--color-text-tertiary);margin-top:4px;white-space:nowrap}
+.yield-legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin-bottom:4px}
+.yield-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--color-text-tertiary)}
+.yield-legend-item.current{color:var(--color-text-primary);font-weight:600}
+.yield-legend-swatch{width:14px;height:2px;flex-shrink:0}
+.yield-legend-swatch-block{width:10px;height:10px;border-radius:2px}
+.yield-tooltip{position:absolute;background:var(--color-text-primary);color:#fff;font-size:11px;padding:5px 8px;border-radius:var(--border-radius-md);pointer-events:none;white-space:nowrap;transform:translate(-50%,-100%);z-index:5;box-shadow:0 2px 8px rgba(0,0,0,0.25)}
+.yield-tooltip-val{font-weight:600}
 .btn-primary{font-size:var(--fs-sm);padding:5px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-success);background:var(--color-background-success);color:var(--color-text-success);cursor:pointer;font-weight:500}
 .btn-primary:disabled{opacity:0.4;cursor:default}
 .btn-danger-outline{font-size:var(--fs-sm);padding:5px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-danger);background:var(--color-background-primary);color:var(--color-text-danger);cursor:pointer}
@@ -792,6 +808,17 @@ body{
     </div>
     <textarea id="dlg-harvest-memo-input" placeholder="気づいたことを記入..." style="width:100%;box-sizing:border-box;margin-top:12px;padding:8px;border-radius:8px;border:1px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:var(--fs-sm);font-family:inherit;resize:vertical;min-height:64px"></textarea>
     <button class="btn-primary" style="width:100%;margin-top:14px" onclick="document.getElementById('dlg-harvest-memo').style.display='none';if(window._harvestMemoConfirm)window._harvestMemoConfirm(document.getElementById('dlg-harvest-memo-input').value);">記録</button>
+  </div>
+</div>
+
+<div id="dlg-text-prompt" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:110;background:rgba(0,0,0,0.35)" onclick="this.style.display='none';if(window._textPromptCancel)window._textPromptCancel();">
+  <div style="background:var(--color-background-primary);border-radius:12px;padding:16px 16px 18px;width:88%;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,0.18)" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2px">
+      <div style="font-size:var(--fs-base);font-weight:600;color:var(--color-text-primary)" id="dlg-text-prompt-title">入力</div>
+      <button onclick="document.getElementById('dlg-text-prompt').style.display='none';if(window._textPromptCancel)window._textPromptCancel();" style="background:none;border:none;padding:2px 4px;cursor:pointer;color:var(--color-text-tertiary);font-size:18px;line-height:1;flex-shrink:0">✕</button>
+    </div>
+    <input type="text" id="dlg-text-prompt-input" style="width:100%;box-sizing:border-box;margin-top:12px;padding:10px 8px;border-radius:8px;border:1px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:var(--fs-md)">
+    <button class="btn-primary" style="width:100%;margin-top:14px" onclick="document.getElementById('dlg-text-prompt').style.display='none';if(window._textPromptConfirm)window._textPromptConfirm(document.getElementById('dlg-text-prompt-input').value);">OK</button>
   </div>
 </div>
 

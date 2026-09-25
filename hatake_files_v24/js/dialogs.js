@@ -72,3 +72,14 @@ export function showHarvestMemoDialog(subtitle, initialMemo, onConfirm, onCancel
   window._harvestMemoCancel=onCancel||null;
   dlg.style.display='flex';
 }
+/** @param {string} title @param {string} placeholder @param {(val: string) => void} onConfirm @param {(() => void)} [onCancel] 汎用の1行テキスト入力ダイアログ（比較グループの新規作成など）を開く */
+export function showTextPromptDialog(title, placeholder, onConfirm, onCancel){
+  const dlg=document.getElementById('dlg-text-prompt');
+  document.getElementById('dlg-text-prompt-title').textContent=title;
+  const input=/** @type {HTMLInputElement} */ (document.getElementById('dlg-text-prompt-input'));
+  input.value='';input.placeholder=placeholder||'';
+  window._textPromptConfirm=onConfirm;
+  window._textPromptCancel=onCancel||null;
+  dlg.style.display='flex';
+  setTimeout(()=>input.focus(),0);
+}

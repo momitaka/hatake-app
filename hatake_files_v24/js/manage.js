@@ -2,7 +2,7 @@
 // ===== 管理画面（工程表・ログ・収穫） =====
 import { navState, permState, gridState, segData } from './state.js';
 import { vegIconHtml, UNITS, SIZE_LABELS, PHASE_COLORS, stripPhaseSuffix } from './helpers.js';
-import { buildSegs, getVeg, calcMajorStatus, calcProgress, getTaskState, setTaskState, getMilestoneDate, getPhaseTimeline, getMergedLogsByDate, getHarvestSummary, harvestTotalStr, getHarvestLogs, addHarvestLog, removeHarvestLog, getSummaryMemo, setSummaryMemo, getLinkedSids, linkSegs, unlinkOne, detachSegFromGroup, hasAnyRecord, recordKey, setHarvestLogPhoto, setHarvestLogMemo } from './segments.js';
+import { buildSegs, getVeg, calcMajorStatus, calcProgress, getTaskState, setTaskState, getMilestoneDate, getPhaseTimeline, getMergedLogsByDate, getHarvestSummary, harvestTotalStr, getHarvestLogs, addHarvestLog, removeHarvestLog, getSummaryMemo, setSummaryMemo, getLinkedSids, linkSegs, unlinkOne, detachSegFromGroup, hasAnyRecord, recordKey, setHarvestLogPhoto, setHarvestLogMemo, getWeeklyYieldComparisonData } from './segments.js';
 import { dispToISO, showTaskDateDialog, showMilestoneDialog, showConfirm, showAlert, showHarvestMemoDialog } from './dialogs.js';
 import { saveLS, getLastTab, setLastTab } from './storage.js';
 import { isoShort, isoFull, daysBetween, todayISO, addDaysISO, junLabel } from './date-utils.js';
@@ -366,6 +366,73 @@ function openHarvestMemoEditor(h){
   });
 }
 
+const YIELD_PAST_COLORS=['#9c9a93','#c2c0b8','#dedcd3'];
+/** @param {HTMLElement} el @param {any} data getWeeklyYieldComparisonData()の結果 収穫タブ末尾に「週別収穫（同じ野菜の過去比較）」のグループ棒グラフを描画する。
+ * 定植日は揃えず暦月内の週（1〜7日=1週...）でそのまま比較するため、「去年の7月1週目」のような実際の季節感で今回と過去を見比べられる */
+function renderYieldCharts(el,data){
+  const{unit,weeks,series}=data;
+  if(!weeks.length)return;
+  const section=document.createElement('div');section.className='yield-section';
+  section.innerHTML=`<div class="yield-section-title"><i class="ti ti-chart-bar" style="font-size:var(--fs-sm)"></i>週別収穫（${unit}）— 同じ野菜の過去比較</div><div class="yield-subtitle">暦の週（1〜7日/8〜14日…）を揃えて、今回と過去の同じ時期を比較しています。比較対象はレシピの「比較グループ」設定（栽培レシピ画面）に基づきます</div>`;
+  const outer=document.createElement('div');outer.className='yield-week-chart-outer';
+  const wrap=document.createElement('div');wrap.className='yield-week-chart';
+  const maxAmt=Math.max(...series.flatMap(/** @param {any} s */s=>s.values),0.0001);
+  weeks.forEach(/** @param {any} w @param {number} wi */(w,wi)=>{
+    const col=document.createElement('div');col.className='yield-week-col';
+    const bars=document.createElement('div');bars.className='yield-week-bars';
+    let pastIdx=0;
+    series.forEach(/** @param {any} s */s=>{
+      const val=s.values[wi];
+      const color=s.current?'#2e7a28':YIELD_PAST_COLORS[Math.min(pastIdx,YIELD_PAST_COLORS.length-1)];
+      if(!s.current)pastIdx++;
+      if(!val)return;
+      const bar=document.createElement('div');bar.className='yield-week-bar';
+      bar.style.height=Math.max(4,Math.round(val/maxAmt*96))+'px';
+      bar.style.background=color;
+      bar.setAttribute('data-label',s.label);bar.setAttribute('data-val',String(val));bar.setAttribute('data-week',w.label);
+      bars.appendChild(bar);
+    });
+    col.appendChild(bars);
+    const lbl=document.createElement('div');lbl.className='yield-week-label';lbl.textContent=w.label;col.appendChild(lbl);
+    wrap.appendChild(col);
+  });
+  outer.appendChild(wrap);section.appendChild(outer);
+
+  const legend=document.createElement('div');legend.className='yield-legend';
+  let legendPastIdx=0;
+  series.forEach(/** @param {any} s */s=>{
+    const color=s.current?'#2e7a28':YIELD_PAST_COLORS[Math.min(legendPastIdx,YIELD_PAST_COLORS.length-1)];
+    if(!s.current)legendPastIdx++;
+    const item=document.createElement('div');item.className='yield-legend-item'+(s.current?' current':'');
+    const swatch=document.createElement('span');swatch.className='yield-legend-swatch yield-legend-swatch-block';swatch.style.background=color;
+    const labelEl=document.createElement('span');labelEl.textContent=s.label;
+    item.append(swatch,labelEl);
+    legend.appendChild(item);
+  });
+  section.appendChild(legend);
+
+  const tooltip=document.createElement('div');tooltip.className='yield-tooltip';tooltip.style.display='none';
+  outer.appendChild(tooltip);
+  wrap.querySelectorAll('.yield-week-bar').forEach(bar=>{
+    bar.addEventListener('click',e=>{
+      e.stopPropagation();
+      const label=bar.getAttribute('data-label');const val=bar.getAttribute('data-val');const week=bar.getAttribute('data-week');
+      const valEl=document.createElement('span');valEl.className='yield-tooltip-val';valEl.textContent=`${val}${unit}`;
+      tooltip.innerHTML='';tooltip.append(valEl,document.createTextNode(`　${label}・${week}`));
+      tooltip.style.transform='translate(-50%,-100%)';tooltip.style.left='0px';tooltip.style.display='block';
+      const outerRect=outer.getBoundingClientRect();const barRect=bar.getBoundingClientRect();
+      const centerX=barRect.left-outerRect.left+barRect.width/2;
+      const half=tooltip.offsetWidth/2;
+      const clampedX=Math.min(Math.max(centerX,half+2),outerRect.width-half-2);
+      tooltip.style.left=clampedX+'px';
+      tooltip.style.top=(barRect.top-outerRect.top)+'px';
+    });
+  });
+  outer.addEventListener('click',()=>{tooltip.style.display='none';});
+
+  el.appendChild(section);
+}
+
 export function renderHarvestTab(el,seg){
   const logs=getHarvestLogs(navState.seg);const inputRow=document.createElement('div');inputRow.className='harvest-input-row';
   const gDate=document.createElement('div');gDate.className='harvest-input-group';gDate.innerHTML='<label>収穫日</label>';const iDate=document.createElement('input');iDate.type='date';iDate.value=todayISO();gDate.appendChild(iDate);
@@ -448,4 +515,6 @@ export function renderHarvestTab(el,seg){
     listWrap.appendChild(row);});}
   el.appendChild(listWrap);
   Object.entries(getHarvestSummary(navState.seg)).forEach(([unit,amt])=>{const totalEl=document.createElement('div');totalEl.className='harvest-total';totalEl.innerHTML=`<span class="harvest-total-label"><i class="ti ti-calculator" style="font-size:var(--fs-sm);margin-right:4px"></i>合計（${unit}）</span><span class="harvest-total-val">${amt} ${unit}</span>`;el.appendChild(totalEl);});
+  const yieldData=getWeeklyYieldComparisonData(navState.seg);
+  if(yieldData)renderYieldCharts(el,yieldData);
 }
