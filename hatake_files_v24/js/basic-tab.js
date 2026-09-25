@@ -1,11 +1,13 @@
 // @ts-check
 // ===== 基礎知識タブ =====
+import { vegIconHtml } from './helpers.js';
 export function youtubeVideoId(url){
   if(!url)return null;
   const m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{11})/);
   return m?m[1]:null;
 }
 export function renderBasicTab(el,veg){
+  const heading=document.createElement('div');heading.className='progress-wrap';heading.innerHTML=`<div class="progress-label"><div class="progress-title">${veg?vegIconHtml(veg,18):''} ${veg?veg.name:'不明'} 基礎知識</div></div>`;el.appendChild(heading);
   const wrap=document.createElement('div');wrap.style.cssText='padding:12px 10px';
   const ytId=youtubeVideoId(veg&&veg.referenceUrl);
   if(ytId){

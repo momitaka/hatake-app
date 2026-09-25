@@ -241,6 +241,8 @@ export function renderRoadmapTab(el,seg,veg){
 }
 
 export function renderLogTab(el,seg){
+  const veg=getVeg(seg.crop);
+  const heading=document.createElement('div');heading.className='progress-wrap';heading.innerHTML=`<div class="progress-label"><div class="progress-title">${veg?vegIconHtml(veg,18):''} ${veg?veg.name:'不明'} 栽培記録</div></div>`;el.appendChild(heading);
   const notice=document.createElement('div');notice.className='complete-notice';notice.id='complete-notice';notice.innerHTML='<i class="ti ti-info-circle" style="font-size:var(--fs-base);flex-shrink:0;margin-top:1px"></i><span>管理を完了する場合は内容を確認して下部の「この野菜の管理を完了」を押下してください。</span>';el.appendChild(notice);
   const yieldData=getWeeklyYieldComparisonData(navState.seg);
   if(yieldData){renderYieldCharts(el,yieldData);renderYieldCumulativeChart(el,yieldData);renderYieldLegend(el,yieldData.series);}
@@ -250,7 +252,7 @@ export function renderLogTab(el,seg){
   allTaskDates.sort();
   let workPeriodVal='—',workPeriodSub='';
   if(seg.plantDate){const today=new Date().toISOString().slice(0,10);const elapsed=daysBetween(seg.plantDate,today);workPeriodVal=`${isoShort(seg.plantDate)}〜 （${elapsed}日経過）`;}
-  const veg=getVeg(seg.crop);const growMethod=veg?veg.growMethod||'seedling':'seedling';
+  const growMethod=veg?veg.growMethod||'seedling':'seedling';
   const isSeed=growMethod==='seed_pot'||growMethod==='seed_ground';
   const sowingDate=getMilestoneDate(navState.seg,seg.crop,'sowing');
   const germinationDate=getMilestoneDate(navState.seg,seg.crop,'germination');
@@ -542,6 +544,8 @@ function renderYieldLegend(el,series){
 }
 
 export function renderHarvestTab(el,seg){
+  const veg=getVeg(seg.crop);
+  const heading=document.createElement('div');heading.className='progress-wrap';heading.innerHTML=`<div class="progress-label"><div class="progress-title">${veg?vegIconHtml(veg,18):''} ${veg?veg.name:'不明'} 収穫</div></div>`;el.appendChild(heading);
   const logs=getHarvestLogs(navState.seg);const inputRow=document.createElement('div');inputRow.className='harvest-input-row';
   const gDate=document.createElement('div');gDate.className='harvest-input-group';gDate.innerHTML='<label>収穫日</label>';const iDate=document.createElement('input');iDate.type='date';iDate.value=todayISO();gDate.appendChild(iDate);
   const gAmt=document.createElement('div');gAmt.className='harvest-input-group';gAmt.innerHTML='<label>量</label>';const iAmt=document.createElement('input');iAmt.type='number';iAmt.inputMode='decimal';iAmt.min='0';iAmt.step='0.1';gAmt.appendChild(iAmt);
