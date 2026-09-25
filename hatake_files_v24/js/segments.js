@@ -237,6 +237,18 @@ export function getWeeklyYieldComparisonData(sid,limit=3){
   const weekMap=new Map();
   series.forEach(s=>Object.keys(s.totals).forEach(k=>{if(!weekMap.has(k)){const[m,w]=k.split('-').map(Number);weekMap.set(k,{key:k,month:m,week:w,label:`${m}月${w}週`});}}));
   const weeks=[...weekMap.values()].sort((a,b)=>(a.month-b.month)||(a.week-b.week));
+  // グラフが実データ数週分しかなく偏って見えないよう、最後の週から暦週を1つずつ先へ進めて最低MIN_WEEKS週分の空列を補う（値は各系列totalsに存在しないため自動的に0扱いになる）
+  const MIN_WEEKS=8;
+  if(weeks.length&&weeks.length<MIN_WEEKS){
+    const last=weeks[weeks.length-1];
+    let refDate=new Date(2001,last.month-1,(last.week-1)*7+1);
+    while(weeks.length<MIN_WEEKS){
+      refDate=new Date(refDate.getFullYear(),refDate.getMonth(),refDate.getDate()+7);
+      const m=refDate.getMonth()+1,d=refDate.getDate(),w=Math.ceil(d/7);
+      const key=`${m}-${w}`;
+      if(!weekMap.has(key)){const entry={key,month:m,week:w,label:`${m}月${w}週`};weekMap.set(key,entry);weeks.push(entry);}
+    }
+  }
   return{unit,weeks,series:series.map(s=>({label:s.label,current:s.current,values:weeks.map(w=>s.totals[w.key]||0)}))};
 }
 /** @param {string} [period] @returns {number|null} 「15〜30日」「〜14日」「101日〜」等の表記から末尾側の数値を抽出する。数値が無ければnull */

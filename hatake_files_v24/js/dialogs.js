@@ -41,9 +41,11 @@ export function showConfirm(msg, onOk, opts={}){
   cancelBtn.onclick=()=>close();
   dlg.style.display='flex';
 }
-/** @param {string} msg @param {(() => void)} [onOk] */
-export function showAlert(msg, onOk){
-  document.getElementById('dlg-custom-alert-msg').textContent=msg;
+/** @param {string} msg @param {(() => void)} [onOk] @param {{align?:string}} [opts] 長文の説明文など、既定の中央揃えでは読みにくいメッセージ用の表示調整 */
+export function showAlert(msg, onOk, opts={}){
+  const msgEl=document.getElementById('dlg-custom-alert-msg');
+  msgEl.textContent=msg;
+  msgEl.style.textAlign=opts.align||'center';
   const dlg=document.getElementById('dlg-custom-alert');
   const okBtn=document.getElementById('dlg-custom-alert-ok');
   const close=()=>{dlg.style.display='none';okBtn.onclick=null;if(onOk)onOk();};
