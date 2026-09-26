@@ -37,12 +37,12 @@ document.getElementById('btn-admin-login').addEventListener('click',()=>{
     if(_dataStrategy!=='session')localStorage.setItem('hatake_admin','1');
     permApply();
     /** @type {HTMLInputElement} */ (document.getElementById('s-admin-pw')).value='';
-    showAlert('管理者モードになりました');
+    showAlert('管理者モードになりました。');
   }else if(pw===''){
     permState.isAdmin=false;
     localStorage.removeItem('hatake_admin');
     permApply();
-  }else{showAlert('パスワードが違います');}
+  }else{showAlert('パスワードが違います。');}
 });
 // v25シナリオ2: マーケットプレイス版はSupabase Authのroleでのみ権限判定する（後段のAuth処理が確定させる）。
 // 個人版のみ、従来通りlocalStorageのhatake_adminフラグで判定する。

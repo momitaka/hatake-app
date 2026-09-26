@@ -214,7 +214,7 @@ export function renderMasterDetail(){
       }
       diseaseBlock('diseases','病気');
       diseaseBlock('pests','害虫');
-      if(!(bi.diseases&&bi.diseases.length)&&!(bi.pests&&bi.pests.length)){const emp=document.createElement('div');emp.className='disease-card';emp.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary);padding:4px 0 8px';emp.textContent='データがありません';s6.appendChild(emp);}
+      if(!(bi.diseases&&bi.diseases.length)&&!(bi.pests&&bi.pests.length)){const emp=document.createElement('div');emp.className='disease-card';emp.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary);padding:4px 0 8px';emp.textContent='データがありません。';s6.appendChild(emp);}
       if(canEdit){
         const addRow=document.createElement('div');addRow.className='disease-add-row';addRow.style.cssText='display:flex;gap:8px;margin-top:4px';
         ['病気','害虫'].forEach(label=>{
@@ -256,7 +256,7 @@ export function renderMasterDetail(){
           downBtn.addEventListener('click',()=>{const tasks=masterData.vegMaster[veg.id].phases[pi].tasks;if(ti>=tasks.length-1)return;[tasks[ti],tasks[ti+1]]=[tasks[ti+1],tasks[ti]];saveLS();renderMasterDetail();});
           delBtn.addEventListener('click',()=>{
             const doDelete=()=>{masterData.vegMaster[veg.id].phases[pi].tasks.splice(ti,1);saveLS();renderMasterDetail();};
-            if(inUse){showConfirm(`このタスクを削除すると、この野菜を使用中の栽培区画の記録が参照できなくなる場合があります。\n削除しますか？`,doDelete);return;}
+            if(inUse){showConfirm(`このタスクを削除すると、この野菜を使用中の栽培区画の記録が参照できなくなる場合があります。\n削除してよろしいですか？`,doDelete);return;}
             doDelete();
           });
         }
@@ -316,11 +316,11 @@ export async function aiGenerate(vegId){
         :`基礎知識は「${veg.name}」として新規生成し、この品種の初期値として保存しました。`;
       showAlert(`「${veg.name}」の工程表をAIで生成しました！\n${basicInfoMsg}`);
     }catch(e){
-      showAlert(`生成エラー：${e.message}`);
+      showAlert(`工程表の生成に失敗しました。（${e.message}）`);
     }finally{
       if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-sparkles"></i>再生成';}
     }
   };
-  if(inUse){showConfirm(`「${veg.name}」は栽培区画に登録されています。\n工程表を再生成するとタスクの記録（チェック済み）がリセットされます。続けますか？`,doGenerate);return;}
+  if(inUse){showConfirm(`「${veg.name}」は栽培区画に登録されています。\n工程表を再生成するとタスクの記録（チェック済み）がリセットされます。\n再生成してよろしいですか？`,doGenerate);return;}
   doGenerate();
 }

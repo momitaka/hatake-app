@@ -144,14 +144,14 @@ document.getElementById('weather-summary')?.addEventListener('click',()=>{
 // ===== 設定：畑の位置（緯度経度）入力 =====
 document.getElementById('btn-weather-geolocate')?.addEventListener('click',()=>{
   const status=document.getElementById('weather-loc-status');
-  if(!navigator.geolocation){if(status)status.textContent='この端末では位置情報を取得できません';return;}
+  if(!navigator.geolocation){if(status)status.textContent='この端末では位置情報を取得できません。';return;}
   if(status)status.textContent='取得中…';
   navigator.geolocation.getCurrentPosition(pos=>{
     /** @type {HTMLInputElement} */ (document.getElementById('s-weather-lat')).value=pos.coords.latitude.toFixed(4);
     /** @type {HTMLInputElement} */ (document.getElementById('s-weather-lng')).value=pos.coords.longitude.toFixed(4);
-    if(status)status.textContent='取得しました。「保存」を押してください';
+    if(status)status.textContent='取得しました。「保存」を押してください。';
   },()=>{
-    if(status)status.textContent='取得できませんでした（位置情報の利用許可をご確認ください）';
+    if(status)status.textContent='取得できませんでした（位置情報の利用許可をご確認ください）。';
   },{timeout:10000});
 });
 
@@ -165,6 +165,6 @@ document.getElementById('btn-save-weather-loc')?.addEventListener('click',async(
   if(status)status.textContent='保存しました。天気を取得中…';
   const result=await renderWeatherBar();
   if(status){
-    status.textContent=result?`保存しました（取得地点: 緯度${result.resolvedLat.toFixed(2)} / 経度${result.resolvedLng.toFixed(2)}。入力値に最も近いデータ地点です）`:'保存しました';
+    status.textContent=result?`保存しました（取得地点: 緯度${result.resolvedLat.toFixed(2)} / 経度${result.resolvedLng.toFixed(2)}。入力値に最も近いデータ地点です）。`:'保存しました。';
   }
 });

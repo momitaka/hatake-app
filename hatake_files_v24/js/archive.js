@@ -48,12 +48,12 @@ function renderSnapshotViewer(el){
   const snaps=getSnapshots();
   const wrap=document.createElement('div');
   wrap.style.cssText='background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);padding:12px 14px';
-  const secTitle1=document.createElement('div');secTitle1.style.cssText='font-size:var(--fs-xs);font-weight:600;color:var(--color-text-secondary);letter-spacing:0.04em;margin-bottom:10px;display:flex;align-items:center;gap:5px';secTitle1.innerHTML='<i class="ti ti-layout-grid" style="font-size:var(--fs-xs)"></i>畑レイアウト履歴';wrap.appendChild(secTitle1);
+  const secTitle1=document.createElement('div');secTitle1.style.cssText='font-size:var(--fs-xs);font-weight:600;color:var(--color-text-secondary);letter-spacing:0.04em;margin-bottom:10px;display:flex;align-items:center;gap:5px';secTitle1.innerHTML='<i class="ti ti-layout-grid" style="font-size:var(--fs-xs)"></i>畑のマップ履歴';wrap.appendChild(secTitle1);
 
   if(!snaps.length){
     const note=document.createElement('div');
     note.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary);text-align:center;padding:8px 0';
-    note.textContent='スナップショットはまだありません（作物完了時に自動記録されます）';
+    note.textContent='スナップショットはまだありません（野菜の管理完了時に自動記録されます）。';
     wrap.appendChild(note);el.appendChild(wrap);return;
   }
 
@@ -215,7 +215,7 @@ export function renderArchive(){
   }
 
   const entries=archiveFilterCropId?Object.values(segData.archived).filter(a=>a.cropId===archiveFilterCropId):Object.values(segData.archived);
-  if(!entries.length){const emp=document.createElement('div');emp.className='archive-empty';emp.innerHTML=archiveFilterCropId?'<i class="ti ti-database" style="font-size:24px;display:block;margin-bottom:8px;opacity:0.3"></i>この野菜の過去データはありません':'<i class="ti ti-database" style="font-size:24px;display:block;margin-bottom:8px;opacity:0.3"></i>過去データはまだありません';el.appendChild(emp);return;}
+  if(!entries.length){const emp=document.createElement('div');emp.className='archive-empty';emp.innerHTML=archiveFilterCropId?'<i class="ti ti-database" style="font-size:24px;display:block;margin-bottom:8px;opacity:0.3"></i>この野菜の過去データはありません。':'<i class="ti ti-database" style="font-size:24px;display:block;margin-bottom:8px;opacity:0.3"></i>過去データはまだありません。';el.appendChild(emp);return;}
 
   // 栽培履歴 見出し
   const secTitle2=document.createElement('div');secTitle2.style.cssText='font-size:var(--fs-xs);font-weight:600;color:var(--color-text-secondary);letter-spacing:0.04em;margin:14px 0 8px;display:flex;align-items:center;gap:5px;padding:0 2px';secTitle2.innerHTML='<i class="ti ti-plant-2" style="font-size:var(--fs-xs)"></i>栽培履歴';el.appendChild(secTitle2);
@@ -223,7 +223,7 @@ export function renderArchive(){
   // ソートバー
   const sortBar=document.createElement('div');sortBar.className='archive-sort-bar';
   sortBar.innerHTML='<span class="archive-sort-label">並び替え：</span>';
-  const sortDefs=[{key:'cropName',label:'作物名'},{key:'plantDate',label:'作業開始日'},{key:'completedDate',label:'完了日'}];
+  const sortDefs=[{key:'cropName',label:'野菜名'},{key:'plantDate',label:'作業開始日'},{key:'completedDate',label:'完了日'}];
   sortDefs.forEach(def=>{
     const btn=document.createElement('button');btn.className='archive-sort-btn'+(archiveSortKey===def.key?' active':'');
     const arrow=archiveSortKey===def.key?(archiveSortDir==='asc'?' ↑':' ↓'):'';

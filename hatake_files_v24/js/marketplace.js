@@ -72,7 +72,7 @@ export async function renderMarketList(){
 
     el.innerHTML='';
     if(!Array.isArray(rows)||rows.length===0){
-      el.innerHTML='<div style="text-align:center;color:var(--color-text-tertiary);font-size:var(--fs-sm);padding:20px 0">まだ公開されているレシピがありません</div>';
+      el.innerHTML='<div style="text-align:center;color:var(--color-text-tertiary);font-size:var(--fs-sm);padding:20px 0">まだ公開されているレシピがありません。</div>';
       return;
     }
     rows.forEach(r=>{
