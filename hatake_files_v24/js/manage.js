@@ -44,8 +44,9 @@ export function renderManage(){
   const st=document.getElementById('manage-static');
   const tb=document.getElementById('manage-tabs');
   const el=document.getElementById('manage-content');
+  const hf=document.getElementById('manage-harvest-total');
   const existingIframe=el.querySelector('iframe');if(existingIframe)existingIframe.src='';
-  st.innerHTML='';tb.innerHTML='';el.innerHTML='';
+  st.innerHTML='';tb.innerHTML='';el.innerHTML='';hf.innerHTML='';hf.style.display='none';
   const hdr=document.createElement('div');hdr.className='manage-header';
   const plantDisp=seg.plantDate?seg.plantDate.slice(5).replace('-','/'):null;
   hdr.innerHTML=`<span style="display:inline-flex;align-items:center;font-size:22px">${veg?vegIconHtml(veg,28):''}</span><div style="flex:1"><div class="manage-title">${veg?veg.name+(veg.variety?' ('+veg.variety+')':''):'不明'}</div><div class="manage-meta" style="display:flex;align-items:center;flex-wrap:wrap;gap:2px">${seg.row+1}行 ${Math.min(...seg.cols)+1}〜${Math.max(...seg.cols)+1}列 ${seg.cols.length}マス</div></div><div class="status-pill" style="background:${majorSt.bg};color:${majorSt.color}">${majorSt.name}</div>`;
@@ -56,7 +57,7 @@ export function renderManage(){
   tb.appendChild(tabBar);
   if(navState.tab==='roadmap')renderRoadmapTab(el,seg,veg);
   else if(navState.tab==='log')renderLogTab(el,seg);
-  else if(navState.tab==='harvest')renderHarvestTab(el,seg);
+  else if(navState.tab==='harvest'){renderHarvestTab(el,seg);renderHarvestTotalFooter(hf,seg);}
   else if(navState.tab==='basic')renderBasicTab(el,veg);
   else{navState.tab='roadmap';renderRoadmapTab(el,seg,veg);}
 }
@@ -634,5 +635,12 @@ export function renderHarvestTab(el,seg){
     if(h.memo){const memoLine=document.createElement('div');memoLine.className='harvest-row-memo';memoLine.textContent=h.memo;memoLine.addEventListener('click',()=>openHarvestMemoEditor(h));row.appendChild(memoLine);}
     listWrap.appendChild(row);});}
   el.appendChild(listWrap);
-  Object.entries(getHarvestSummary(navState.seg)).forEach(([unit,amt])=>{const totalEl=document.createElement('div');totalEl.className='harvest-total';totalEl.innerHTML=`<span class="harvest-total-label"><i class="ti ti-calculator" style="font-size:var(--fs-sm);margin-right:4px"></i>合計（${unit}）</span><span class="harvest-total-val">${amt} ${unit}</span>`;el.appendChild(totalEl);});
+}
+
+/** @param {HTMLElement} el @param {any} seg 収穫タブ下部に固定表示する合計カセットを描画する */
+function renderHarvestTotalFooter(el,seg){
+  const summary=getHarvestSummary(navState.seg);
+  const units=Object.entries(summary);
+  el.style.display=units.length?'block':'none';
+  units.forEach(([unit,amt])=>{const totalEl=document.createElement('div');totalEl.className='harvest-total';totalEl.innerHTML=`<span class="harvest-total-label"><i class="ti ti-calculator" style="font-size:var(--fs-sm);margin-right:4px"></i>合計（${unit}）</span><span class="harvest-total-val">${amt} ${unit}</span>`;el.appendChild(totalEl);});
 }
