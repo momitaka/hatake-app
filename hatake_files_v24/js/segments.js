@@ -249,7 +249,7 @@ export function getWeeklyYieldComparisonData(sid,limit=3){
       if(!weekMap.has(key)){const entry={key,month:m,week:w,label:`${m}月${w}週`};weekMap.set(key,entry);weeks.push(entry);}
     }
   }
-  return{unit,weeks,series:series.map(s=>({label:s.label,current:s.current,values:weeks.map(w=>s.totals[w.key]||0)}))};
+  return{unit,weeks,currentWeekKey:toWeek(todayISO()).key,series:series.map(s=>({label:s.label,current:s.current,values:weeks.map(w=>s.totals[w.key]||0)}))};
 }
 /** @param {string} [period] @returns {number|null} 「15〜30日」「〜14日」「101日〜」等の表記から末尾側の数値を抽出する。数値が無ければnull */
 function parsePeriodEnd(period){

@@ -246,9 +246,14 @@ export function renderLogTab(el,seg){
   const notice=document.createElement('div');notice.className='complete-notice';notice.id='complete-notice';notice.innerHTML='<i class="ti ti-info-circle" style="font-size:var(--fs-base);flex-shrink:0;margin-top:1px"></i><span>管理を完了する場合は内容を確認して下部の「この野菜の管理を完了」を押下してください。</span>';el.appendChild(notice);
   const yieldData=getWeeklyYieldComparisonData(navState.seg);
   if(yieldData){
+    const yieldTitle=document.createElement('div');yieldTitle.className='yield-main-title';
+    yieldTitle.innerHTML='<i class="ti ti-basket" style="font-size:var(--fs-base)"></i><span>収穫量の比較グラフ</span>';
+    el.appendChild(yieldTitle);
+    renderYieldLegend(el,yieldData.series); // 2つのグラフより先に置き、どちらにも共通の凡例であることを示す
+    renderYieldSubheading(el,'週別','ti-chart-bar','暦の週（1〜7日/8〜14日…）を揃えて、今回と過去の同じ時期の収穫量を比較しています。比較対象はレシピの「比較グループ」設定（栽培レシピ画面）に基づきます');
     renderYieldCharts(el,yieldData);
-    const cumOuter=renderYieldCumulativeChart(el,yieldData);
-    renderYieldLegend(cumOuter||el,yieldData.series); // 凡例は累計比較グラフのカード内に置き、上のグラフ群に属することを視覚的に明確にする
+    renderYieldSubheading(el,'累積','ti-chart-line','各系列の累計収穫量の推移だけを並べて、今回と過去のペース（進み具合）を比較できるグラフです。暦の週（1〜7日/8〜14日…）を揃えて、今回と過去の同じ時期を比較しています。比較対象はレシピの「比較グループ」設定（栽培レシピ画面）に基づきます');
+    renderYieldCumulativeChart(el,yieldData);
   }
   const summary=document.createElement('div');summary.className='summary-section';
   // doneDates から全日付を収集して作業期間を計算
@@ -392,25 +397,27 @@ function niceCeil(v){
 }
 /** @param {number} v */
 const fmtTick=v=>Number.isInteger(v)?String(v):String(Math.round(v*10)/10);
+/** @param {HTMLElement} el @param {string} text @param {string} iconClass @param {string} infoText 週別比較・累積比較グラフの小見出し（アイコン＋テキスト＋説明ダイアログ用の？ボタン）を描画する共通ヘルパー */
+function renderYieldSubheading(el,text,iconClass,infoText){
+  const heading=document.createElement('div');heading.className='yield-section-title';
+  heading.innerHTML=`<i class="ti ${iconClass}" style="font-size:var(--fs-sm)"></i><span>${text}</span><button type="button" class="yield-info-btn" aria-label="このグラフについて">？</button>`;
+  const infoBtn=/** @type {HTMLButtonElement} */(heading.querySelector('.yield-info-btn'));
+  infoBtn.addEventListener('click',()=>{showAlert(infoText,undefined,{align:'left'});});
+  el.appendChild(heading);
+}
 /** @param {HTMLElement} el @param {any} data getWeeklyYieldComparisonData()の結果 収穫タブ末尾に「週別収穫（同じ野菜の過去比較）」のグループ棒グラフを描画する。
  * 定植日は揃えず暦月内の週（1〜7日=1週...）でそのまま比較するため、「去年の7月1週目」のような実際の季節感で今回と過去を見比べられる。
- * 累計比較は別グラフ（renderYieldCumulativeChart）に分離しているため、ここでは棒グラフのみを描画する */
+ * 累計比較は別グラフ（renderYieldCumulativeChart）に分離しているため、ここでは棒グラフのみを描画する。見出しは呼び出し側（renderYieldSubheading）が担当する */
 function renderYieldCharts(el,data){
-  const{unit,weeks,series}=data;
+  const{unit,weeks,series,currentWeekKey}=data;
   if(!weeks.length)return;
-  const section=document.createElement('div');section.className='yield-section';
-  section.innerHTML=`<div class="yield-section-title"><i class="ti ti-chart-bar" style="font-size:var(--fs-sm)"></i><span>収量の比較（週）</span><button type="button" class="yield-info-btn" aria-label="この比較グラフについて">？</button></div>`;
-  const infoBtn=/** @type {HTMLButtonElement} */(section.querySelector('.yield-info-btn'));
-  infoBtn.addEventListener('click',()=>{
-    showAlert('暦の週（1〜7日/8〜14日…）を揃えて、今回と過去の同じ時期の収穫量を比較しています。比較対象はレシピの「比較グループ」設定（栽培レシピ画面）に基づきます',undefined,{align:'left'});
-  });
   const outer=document.createElement('div');outer.className='yield-week-chart-outer';
   const chartRow=document.createElement('div');chartRow.className='yield-chart-row';
   const wrap=document.createElement('div');wrap.className='yield-week-chart';
   const maxAmt=Math.max(...series.flatMap(/** @param {any} s */s=>s.values),0.0001);
   const tickMax=niceCeil(maxAmt);
   weeks.forEach(/** @param {any} w @param {number} wi */(w,wi)=>{
-    const col=document.createElement('div');col.className='yield-week-col';
+    const col=document.createElement('div');col.className='yield-week-col'+(w.key===currentWeekKey?' current-week':'');
     const bars=document.createElement('div');bars.className='yield-week-bars';
     let pastIdx=0;
     series.forEach(/** @param {any} s */s=>{
@@ -431,8 +438,7 @@ function renderYieldCharts(el,data){
   chartRow.appendChild(wrap);
   const axis=document.createElement('div');axis.className='yield-cum-axis';chartRow.appendChild(axis);
   outer.appendChild(chartRow);
-  section.appendChild(outer);
-  el.appendChild(section); // ここでDOMに接続。以降のグリッド線描画にはレイアウト確定後の実測幅が必要
+  el.appendChild(outer); // ここでDOMに接続。以降のグリッド線描画にはレイアウト確定後の実測幅が必要
 
   [tickMax,tickMax/2,0].forEach(v=>{const t=document.createElement('div');t.textContent=fmtTick(v)+unit;axis.appendChild(t);});
   const svgNS='http://www.w3.org/2000/svg';
@@ -471,42 +477,31 @@ function renderYieldCharts(el,data){
 }
 
 const YIELD_CUM_COL_W=36; // 「12月5週」等、最大4〜5文字になる週ラベルがgap:0でも重ならない幅
-const YIELD_CUM_FIRST_VIEW_WEEKS=8; // ファーストビューで見せる週数。getWeeklyYieldComparisonData側のMIN_WEEKSと揃える
 /** @param {HTMLElement} el @param {any} data getWeeklyYieldComparisonData()の結果。週別比較グラフとは別に、各系列の累計収穫量の折れ線だけを並べてペース（進み具合）を比較する専用グラフを描画する。
- * 列幅を固定ピッチにすることで、週別比較グラフのようなレイアウト確定後の実測なしにx座標を計算できる
- * @returns {HTMLElement|undefined} 凡例を中に差し込むためのグラフカード要素（outer） */
+ * 列は週数が少ない時は表示幅いっぱいに均等に伸び、最低幅を下回るほど週数が多い時だけ横スクロールになる（flex-growで自然に両立） */
 function renderYieldCumulativeChart(el,data){
-  const{unit,weeks,series}=data;
+  const{unit,weeks,series,currentWeekKey}=data;
   if(!weeks.length)return;
-  const section=document.createElement('div');section.className='yield-section';
-  section.innerHTML=`<div class="yield-section-title"><i class="ti ti-chart-line" style="font-size:var(--fs-sm)"></i><span>収量の累積比較（週）</span><button type="button" class="yield-info-btn" aria-label="この累積グラフについて">？</button></div>`;
-  const infoBtn=/** @type {HTMLButtonElement} */(section.querySelector('.yield-info-btn'));
-  infoBtn.addEventListener('click',()=>{
-    showAlert('各系列の累計収穫量の推移だけを並べて、今回と過去のペース（進み具合）を比較できるグラフです。暦の週（1〜7日/8〜14日…）を揃えて、今回と過去の同じ時期を比較しています。比較対象はレシピの「比較グループ」設定（栽培レシピ画面）に基づきます',undefined,{align:'left'});
-  });
   const outer=document.createElement('div');outer.className='yield-week-chart-outer';
   const chartRow=document.createElement('div');chartRow.className='yield-chart-row';
   const wrap=document.createElement('div');wrap.className='yield-week-chart';
-  wrap.style.gap='0'; // .yield-week-chartのgap:14pxは棒グラフ用。固定ピッチのx座標計算とズレるためここでは無効化する
-  wrap.style.flex='0 1 auto'; // 継承元のflex:1だと週数が少ない時に余白が伸び、右側の軸との間に不要な空白ができるため、内容幅に合わせて縮める
-  wrap.style.maxWidth=(YIELD_CUM_COL_W*YIELD_CUM_FIRST_VIEW_WEEKS)+'px'; // 8週分でファーストビューの幅を固定。週データはMIN_WEEKSで最低8週分埋められているため、9週目以降は横スクロールで見る
-  const xs=weeks.map((w,i)=>i*YIELD_CUM_COL_W+YIELD_CUM_COL_W/2);
   weeks.forEach(/** @param {any} w */w=>{
-    const col=document.createElement('div');col.className='yield-week-col';col.style.width=YIELD_CUM_COL_W+'px';
+    const col=document.createElement('div');col.className='yield-week-col'+(w.key===currentWeekKey?' current-week':'');
+    col.style.cssText=`flex:1 1 ${YIELD_CUM_COL_W}px;min-width:${YIELD_CUM_COL_W}px`;
     const lbl=document.createElement('div');lbl.className='yield-week-label';lbl.style.marginTop='auto';lbl.textContent=w.label;col.appendChild(lbl);
     wrap.appendChild(col);
   });
   chartRow.appendChild(wrap);
   const axis=document.createElement('div');axis.className='yield-cum-axis';chartRow.appendChild(axis);
   outer.appendChild(chartRow);
-  section.appendChild(outer);
-  el.appendChild(section);
+  el.appendChild(outer); // ここでDOMに接続。以降の列位置の実測にはレイアウト確定後の値が必要
 
   const cumSeries=series.map(/** @param {any} s */s=>{let running=0;return s.values.map(/** @param {number} v */v=>running+=v);});
   const maxCumRaw=Math.max(...cumSeries.map(c=>c[c.length-1]||0),0.0001);
   const tickMax=niceCeil(maxCumRaw);
   [tickMax,tickMax/2,0].forEach(v=>{const t=document.createElement('div');t.textContent=fmtTick(v)+unit;axis.appendChild(t);});
-  const svgW=weeks.length*YIELD_CUM_COL_W;
+  const xs=[...wrap.querySelectorAll('.yield-week-col')].map(/** @param {Element} c */c=>/** @type {HTMLElement} */(c).offsetLeft+/** @type {HTMLElement} */(c).offsetWidth/2);
+  const svgW=wrap.scrollWidth;
   const svgNS='http://www.w3.org/2000/svg';
   const svg=document.createElementNS(svgNS,'svg');
   svg.setAttribute('width',String(svgW));svg.setAttribute('height','116');
@@ -538,7 +533,6 @@ function renderYieldCumulativeChart(el,data){
     });
   });
   wrap.appendChild(svg);
-  return outer;
 }
 
 /** @param {HTMLElement} el @param {any[]} series 週別比較・累積比較の2グラフで共通の凡例（系列名と色）を1つだけ表示する */
