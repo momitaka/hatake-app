@@ -60,7 +60,16 @@ export const SIZE_LABELS=['小','中','大','過大','不良'];
 export const ALL_ICONS=PRESET_VEGS.map(p=>({emoji:p.emoji,iconFile:p.iconFile||null})).concat([{emoji:'🌱',iconFile:null},{emoji:'🍀',iconFile:null},{emoji:'🌾',iconFile:null},{emoji:'🥜',iconFile:null},{emoji:'🍄',iconFile:null},{emoji:'🌰',iconFile:null}]);
 
 export const TOMATO_SAMPLE={
-  id:'tomato',name:'トマト',emoji:'🍅',family:'ナス科',variety:'',
+  id:'tomato',name:'トマト',emoji:'🍅',family:'ナス科',variety:'',growMethod:'seedling',
+  regionalSchedule:{
+    cool:{soil_prep:{before:{month:4,part:'early'}},planting:{from:{month:5,part:'mid'},to:{month:6,part:'early'}},harvest:{from:{month:7,part:'late'},to:{month:9,part:'late'}}},
+    middle:{soil_prep:{before:{month:3,part:'mid'}},planting:{from:{month:4,part:'mid'},to:{month:5,part:'early'}},harvest:{from:{month:6,part:'late'},to:{month:9,part:'mid'}}},
+    warm:{soil_prep:{before:{month:3,part:'early'}},planting:{from:{month:4,part:'early'},to:{month:4,part:'mid'}},harvest:{from:{month:6,part:'mid'},to:{month:9,part:'early'}}},
+    constraints:[
+      {applies_to:'planting',type:'min_soil_temp',value:15,note:'地温15℃以上を確認してから定植する'},
+      {applies_to:'harvest',type:'max_air_temp',value:35,note:'35℃を超えると着果不良になりやすい'},
+    ],
+  },
   phases:[
     {id:'p0',majorStatus:'ready',name:'準備期',period:'〜14日',tasks:[
       {id:'t1',name:'土づくり・堆肥投入',desc:'植付け2週間前',day:0,memo:'完熟堆肥を20L/㎡程度投入し深く耕す',url:''},
