@@ -45,13 +45,21 @@ hatake_app/
 │   ├── functions/generate-roadmap/  ← AI生成 Edge Function
 │   ├── functions/purchase-recipe/   ← レシピ購入処理 Edge Function（Stripe未連携・即時成立の暫定版）
 │   └── migrations/
-│       ├── 20260702_v25_scenario2_marketplace.sql ← 実行済み（creators/users/recipes/recipe_purchases/user_recipes/user_records）
-│       ├── 20260703_v25_scenario2_rls.sql         ← 実行済み（RLS最小構成）
-│       ├── 20260703_v25_user_recipes_veg_key.sql  ← 実行済み
-│       ├── 20260703_v25_veg_basic_info_defaults.sql ← 実行済み
+│       ├── 20260702_v25_scenario2_marketplace.sql        ← 実行済み（creators/users/recipes/recipe_purchases/user_recipes/user_records）
+│       ├── 20260703000000_v25_scenario2_rls.sql          ← 実行済み（RLS最小構成）
+│       ├── 20260703010000_v25_user_recipes_veg_key.sql   ← 実行済み
+│       ├── 20260703020000_v25_veg_basic_info_defaults.sql ← 実行済み
 │       └── archived/                              ← 廃止済み旧設計（channel_id方式）。実行しないこと
 └── CLAUDE.md                   ← このファイル
 ```
+
+### Supabaseマイグレーションのファイル命名ルール（重要）
+
+**同じ日付(YYYYMMDD)で複数のマイグレーションファイルを作る場合は、必ずファイル名の先頭を時刻まで含めた14桁のタイムスタンプ(`YYYYMMDDHHMMSS`)にすること。** `20260703_foo.sql`のような8桁の日付のみのファイル名を、同日の別ファイルと重複させてはいけない。
+
+- **理由**: Supabase CLIはファイル名の先頭の数字列をそのままマイグレーションのバージョン番号として使う。同日に8桁ファイルと14桁ファイルが混在すると、ローカルの並び替え（ファイル名の文字列全体を比較するため`_`が数字より後にソートされる）と、リモートの並び替え（バージョン文字列同士の前方一致比較）がズレて、`supabase db push`や`migration list`が正しく対応関係を認識できなくなる（2026-09-27, TSK-68で発覚）。バージョン文字列は数字のみが必須で、`20260703b`のような文字サフィックスも受け付けられない。
+- **やり方**: `supabase migration new <name>`で自動生成される`YYYYMMDDHHMMSS`形式に従うか、手動作成時は時刻部分を適当にずらして（例: `010000`, `020000`）ユニークにする。
+- 既存の適用済みマイグレーションのバージョン番号を変更する場合は、SQLを再実行せず`supabase migration repair --status reverted <旧バージョン>` → `--status applied <新バージョン>`で履歴テーブルの記録だけを付け替える。
 
 ## アーキテクチャ（2026-07-06 時点の最新仕様）
 
