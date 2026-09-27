@@ -107,6 +107,7 @@ Deno.serve(async (req) => {
         season: recipe.season,
         phases: recipe.phases,
         basic_info: recipe.basic_info,
+        regional_schedule: recipe.regional_schedule,
         reference_video_url: recipe.reference_video_url,
       })
       .select()

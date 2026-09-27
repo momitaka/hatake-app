@@ -11,6 +11,7 @@ import { openCompleteConfirm } from './complete.js';
 import { renderGrid } from './grid.js';
 import { renderBasicTab } from './basic-tab.js';
 import { uploadHarvestPhoto, uploadTaskPhoto, deleteHarvestPhoto, deleteHarvestPhotosForSeg, getHarvestPhotoUrl } from './photo-utils.js';
+import { renderRegionalScheduleSummary } from './regional-schedule.js';
 
 // 収穫ログ・工程実施ログ共通の写真表示用署名URLキャッシュ（1時間有効。再描画のたびに毎回サインさせないための簡易キャッシュ）
 /** @type {Map<string,string>} */
@@ -221,6 +222,7 @@ export function renderRoadmapTab(el,seg,veg){
   const wrap=document.createElement('div');wrap.className='progress-wrap';wrap.innerHTML=`<div class="progress-label"><div class="progress-title">${vegIconHtml(veg,18)} ${veg.name} 工程表</div><div class="progress-pct">${pct}%</div></div>`;el.appendChild(wrap);
   const timeline=getPhaseTimeline(navState.seg,seg.crop);
   renderPhaseTimeline(el,timeline,phaseIdx);
+  renderRegionalScheduleSummary(el,veg);
   const _baseDate=timeline?timeline.baseDate:null;
   veg.phases.forEach((phase,pi)=>{
     const isCurrent=pi===phaseIdx,isDone=pi<phaseIdx;

@@ -1,0 +1,31 @@
+-- ================================================================
+-- TSK-65: 栽培レシピの地域別見通しスケジュール実装(regional_schedule)
+-- 2026-09-27
+--
+-- 【背景】
+-- 既存の工程表(phases)は栽培区画の登録日からの相対日数を追う「実施記録
+-- ベース」の仕組み。これとは別枠で、地域区分(cool/middle/warm)ごとの
+-- 「土づくり〜収穫の絶対的な時期の見通し」を示す新機能を追加する。
+-- 詳細はNotion技術設計「栽培レシピ 地域別見通しスケジュール設計メモ
+-- （工程表拡張）」参照。
+--
+-- 【データ構造】regional_schedule(JSONB)
+-- {
+--   "cool":   {"soil_prep":{"before":{"month":4,"part":"early"}},
+--              "sowing":   {"from":{"month":4,"part":"mid"},"to":{"month":5,"part":"early"}},
+--              "planting": {"from":{...},"to":{...}},
+--              "harvest":  {"from":{...},"to":{...}}},
+--   "middle": {...}, "warm": {...},
+--   "constraints": [{"applies_to":"sowing","type":"min_soil_temp","value":15,"note":"..."}]
+-- }
+-- soil_prepはレシピ単位で任意（キー省略で「なし」）。sowing/plantingの
+-- 有無はveg.growMethodに連動（クライアント側のscheduleEventVisibility()
+-- 参照）。harvestは全レシピ必須。今回は表示のみで自動判定は行わない（A案）。
+--
+-- recipes（監修者が管理する共有マスターレシピ）・user_recipes（購入時に
+-- コピーしたユーザー編集可能レシピ）の両方に同じ形で列を追加する
+-- （grow_method/season/phases/basic_info等、既存の他フィールドと同じ構成）。
+-- ================================================================
+
+ALTER TABLE recipes ADD COLUMN IF NOT EXISTS regional_schedule JSONB;
+ALTER TABLE user_recipes ADD COLUMN IF NOT EXISTS regional_schedule JSONB;

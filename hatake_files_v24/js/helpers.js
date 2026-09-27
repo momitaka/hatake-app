@@ -23,6 +23,28 @@ export const REGION_OPTIONS=[{v:'cool',l:'冷涼地'},{v:'middle',l:'中間地'}
 /** @param {{v:string,l:string}[]} options @param {string|undefined} value @returns {string} */
 export function optionLabel(options,value){const o=options.find(o=>o.v===value);return o?o.l:'';}
 
+// 地域別見通しスケジュール（regional_schedule）関連の定数・ヘルパー。
+// TSK-65: 工程表(phases)とは別枠で、地域区分ごとの絶対的な時期の見通しを示す機能。
+export const SCHEDULE_EVENT_OPTIONS=[{v:'soil_prep',l:'土づくり'},{v:'sowing',l:'種まき'},{v:'planting',l:'定植'},{v:'harvest',l:'収穫'}];
+export const MONTH_PART_OPTIONS=[{v:'early',l:'上旬'},{v:'mid',l:'中旬'},{v:'late',l:'下旬'}];
+export const SCHEDULE_CONSTRAINT_TYPE_OPTIONS=[{v:'min_soil_temp',l:'発芽最低地温(℃)'},{v:'max_air_temp',l:'高温阻害(℃以上)'},{v:'min_air_temp',l:'低温注意(℃以下)'},{v:'frost_end',l:'初霜で収穫終了'}];
+/** @param {{month?:number,part?:string}|undefined} mp @returns {string} 「4月中旬」のように月+旬を表示用に整形する。month未設定なら空文字 */
+export function monthPartLabel(mp){if(!mp||!mp.month)return '';return mp.month+'月'+(mp.part?optionLabel(MONTH_PART_OPTIONS,mp.part):'');}
+/** @param {{before?:{month?:number,part?:string},from?:{month?:number,part?:string},to?:{month?:number,part?:string}}|undefined} ev @returns {string} 期限型「◯月上旬までに」・期間型「◯月中旬〜◯月上旬」を整形する。未設定イベントは空文字 */
+export function formatScheduleEvent(ev){
+  if(!ev)return '';
+  if(ev.before)return monthPartLabel(ev.before)?monthPartLabel(ev.before)+'までに':'';
+  const fromLabel=monthPartLabel(ev.from),toLabel=monthPartLabel(ev.to);
+  if(!fromLabel&&!toLabel)return '';
+  return fromLabel+(toLabel?'〜'+toLabel:'');
+}
+/** @param {string} growMethod @returns {{sowing:boolean,planting:boolean}} 育成方法（直まき/苗定植/育苗定植）に応じた種まき・定植イベントの出し分け。soil_prep/harvestは常に対象（harvestは必須、soil_prepはレシピ単位の任意） */
+export function scheduleEventVisibility(growMethod){
+  if(growMethod==='seed_ground')return{sowing:true,planting:false}; // 直まき：種まき＝定植なので定植は出さない
+  if(growMethod==='seed_pot')return{sowing:true,planting:true}; // 育苗して定植：両方出す
+  return{sowing:false,planting:true}; // seedling（苗から）：種まきは出さない
+}
+
 export const FAMILIES={'ナス科':{border:'#D85A30',bg:'#FAECE7'},'ウリ科':{border:'#639922',bg:'#EAF3DE'},'マメ科':{border:'#378ADD',bg:'#E6F1FB'},'アブラナ科':{border:'#EF9F27',bg:'#FAEEDA'},'ヒガンバナ科':{border:'#7F77DD',bg:'#EEEDFE'},'セリ科':{border:'#BA7517',bg:'#F5EAD8'},'キク科':{border:'#D4537E',bg:'#FBEAF0'},'シソ科':{border:'#1A9988',bg:'#E3F4F2'},'アオイ科':{border:'#C0873F',bg:'#F8EFDF'},'その他':{border:'#9C9A93',bg:'#F1EFE8'}};
 export const MAJOR_STATUS=[{id:'ready',name:'準備中',color:'#854F0B',bg:'#FAEEDA'},{id:'growing',name:'生育中',color:'#27500A',bg:'#d4f0b8'},{id:'harvesting',name:'収穫中',color:'#633806',bg:'#fdf5b0'},{id:'done',name:'完了',color:'#444441',bg:'#F1EFE8'}];
 // 工程表のフェーズ帯タイムライン用の配色。フェーズ名やフェーズ数はレシピごとに異なるため、

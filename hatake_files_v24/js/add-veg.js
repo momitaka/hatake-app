@@ -21,7 +21,7 @@ async function _populateAddVegPreset(){
     sel.innerHTML='<option value="">— 購入したレシピ —</option>';
     _myPurchasedRecipes=[];
     try{
-      const res=await fetch(SUPABASE_URL+'/rest/v1/user_recipes?user_id=eq.'+marketAuth.userId+'&select=id,name,emoji,veg_key,family,grow_method,season,phases,basic_info,reference_video_url',{
+      const res=await fetch(SUPABASE_URL+'/rest/v1/user_recipes?user_id=eq.'+marketAuth.userId+'&select=id,name,emoji,veg_key,family,grow_method,season,phases,basic_info,regional_schedule,reference_video_url',{
         headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+marketAuth.accessToken}
       });
       if(res.ok)_myPurchasedRecipes=await res.json();
@@ -102,7 +102,7 @@ document.getElementById('av-next').addEventListener('click',()=>{
   const name=/** @type {HTMLInputElement} */ (document.getElementById('av-name')).value.trim();const variety=/** @type {HTMLInputElement} */ (document.getElementById('av-variety')).value.trim();const presetId=/** @type {HTMLSelectElement} */ (document.getElementById('av-preset')).value;const preset=PRESET_VEGS.find(v=>v.id===presetId);const purchased=_myPurchasedRecipes.find(r=>r.id===presetId);if(!name)return;
   const id=purchased?`veg_${Date.now()}`:(presetId&&!masterData.vegMaster[presetId]?presetId:`veg_${Date.now()}`);
   const growMethod=/** @type {HTMLSelectElement} */ (document.getElementById('av-grow-method')).value;const refUrl=/** @type {HTMLInputElement} */ (document.getElementById('av-ref-url')).value.trim();const season=/** @type {HTMLSelectElement} */ (document.getElementById('av-season')).value;const region=/** @type {HTMLSelectElement} */ (document.getElementById('av-region')).value;const family=/** @type {HTMLSelectElement} */ (document.getElementById('av-family')).value;
-  masterData.vegMaster[id]={id,name,emoji:addVegState.emoji,iconFile:addVegState.iconFile||undefined,family,variety,growMethod,season,region,referenceUrl:refUrl,phases:purchased?JSON.parse(JSON.stringify(purchased.phases||[])):[],basicInfo:purchased?JSON.parse(JSON.stringify(purchased.basic_info||{})):undefined};
+  masterData.vegMaster[id]={id,name,emoji:addVegState.emoji,iconFile:addVegState.iconFile||undefined,family,variety,growMethod,season,region,referenceUrl:refUrl,phases:purchased?JSON.parse(JSON.stringify(purchased.phases||[])):[],basicInfo:purchased?JSON.parse(JSON.stringify(purchased.basic_info||{})):undefined,regionalSchedule:purchased?JSON.parse(JSON.stringify(purchased.regional_schedule||{})):undefined};
   navState.masterVeg=id;saveLS();document.getElementById('dlg-add-veg').style.display='none';
   renderMasterList();renderMasterDetail();showMasterView('detail');
 });
