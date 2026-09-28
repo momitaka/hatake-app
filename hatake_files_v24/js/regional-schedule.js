@@ -72,10 +72,11 @@ function addPoint(track,kind,units,growMethod){
 }
 
 /** @param {HTMLElement} track @param {'soil_prep'|'sowing'|'planting'|'harvest'} kind @param {number} fromUnits @param {number} toUnits @param {string} [growMethod]
- * バッジ（アイコン付きの丸）をそのまま引き伸ばして角丸長方形のバーにする。期間が短い場合はバッジの最小サイズ（22px）を保ち、区間の中央に配置する */
+ * バッジ（アイコン付きの角丸長方形）をそのまま引き伸ばしたバーにする。期間が短い場合は最小幅（16px）を保ち、区間の中央に配置する。
+ * 点マーカー（土づくり）とはborder-radiusを変えて見分けられるようにしているため、幅が最小幅に潰れても「点」には見えない */
 function addPill(track,kind,fromUnits,toUnits,growMethod){
   const fromPx=fromUnits*MONTH_WIDTH_PX,toPx=toUnits*MONTH_WIDTH_PX;
-  const minSize=22;
+  const minSize=16;
   let leftPx,widthPx;
   if(toPx-fromPx<minSize){const midPx=(fromPx+toPx)/2;leftPx=midPx-minSize/2;widthPx=minSize;}
   else{leftPx=fromPx;widthPx=toPx-fromPx;}

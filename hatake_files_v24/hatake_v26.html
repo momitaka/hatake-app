@@ -226,13 +226,13 @@ body.admin-mode #screen-manage .toolbar,body.admin-mode #screen-master .toolbar,
 .sched-cal-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;background:var(--color-background-primary);border-radius:var(--border-radius-md);padding:8px 8px 4px;margin-bottom:10px}
 .sched-cal-body{position:relative;z-index:0}
 .sched-cal-axis{display:flex;flex-shrink:0;margin:0 0 4px;position:relative;z-index:1}
-.sched-cal-axis span{flex:0 0 auto;font-size:9px;color:var(--color-text-tertiary);text-align:left}
+.sched-cal-axis span{flex:0 0 auto;box-sizing:border-box;padding-left:4px;font-size:9px;color:var(--color-text-tertiary);text-align:left}
 .sched-cal-row{display:flex;align-items:center;gap:8px;position:relative;z-index:1;margin-bottom:6px}
 .sched-cal-row:last-child{margin-bottom:0}
 .sched-cal-label{width:44px;flex:0 0 44px;font-size:var(--fs-xs);color:var(--color-text-secondary)}
 .sched-cal-track{position:relative;flex-shrink:0;height:24px}
 .sched-cal-point{position:absolute;top:1px;width:22px;height:22px;border-radius:50%;transform:translateX(-50%);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;z-index:2}
-.sched-cal-pill{position:absolute;top:1px;height:22px;border-radius:11px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;z-index:2}
+.sched-cal-pill{position:absolute;top:1px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;z-index:2}
 .sched-cal-grid-line{position:absolute;top:0;bottom:0;border-left:1px solid var(--color-border-tertiary);z-index:-2;pointer-events:none}
 .sched-cal-today-line{position:absolute;top:0;bottom:0;border-left:1.5px dashed var(--color-text-tertiary);pointer-events:none;z-index:-1}
 .sched-cal-today-tri{position:absolute;top:-6px;width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid var(--color-text-tertiary);transform:translateX(-50%);pointer-events:none;z-index:-1}
