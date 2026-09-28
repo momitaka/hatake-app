@@ -3,6 +3,7 @@
 import { masterData, navState, permState, gridState, addVegState, segData, SUPABASE_ANON_KEY } from './state.js';
 import { vegIconHtml, FAMILIES, GROW_METHOD_OPTIONS, SEASON_OPTIONS, REGION_OPTIONS, optionLabel, SCHEDULE_EVENT_OPTIONS, MONTH_PART_OPTIONS, SCHEDULE_CONSTRAINT_TYPE_OPTIONS, scheduleEventVisibility } from './helpers.js';
 import { showAlert, showConfirm, showTextPromptDialog } from './dialogs.js';
+import { createScheduleAxis, createScheduleTrack, populateScheduleTrack, addScheduleGrid, addScheduleToday } from './regional-schedule.js';
 import { saveLS } from './storage.js';
 import { permCanEditFarm } from './add-veg.js';
 import { permRequireSupervisor } from './permissions.js';
@@ -46,7 +47,8 @@ document.getElementById('btn-master-sort').addEventListener('click',openSortDial
 document.getElementById('dlg-master-sort').addEventListener('mousedown',e=>{if(e.target===e.currentTarget)closeSortDialog();});
 
 /** @param {{month?:number,part?:string}} mp @returns {HTMLElement} 月+旬の2連セレクト。mpを直接書き換える */
-function monthPartSelect(mp,canEdit){
+/** @param {{month?:number,part?:string}} mp @param {boolean} canEdit @param {()=>void} [onChange] 値変更時に呼ぶコールバック（地域別見通しスケジュールのカレンダープレビュー再描画に使う） */
+function monthPartSelect(mp,canEdit,onChange){
   const wrap=document.createElement('span');wrap.style.cssText='display:inline-flex;gap:2px';
   const monthSel=document.createElement('select');monthSel.style.cssText='font-size:var(--fs-xs);padding:3px 4px;border-radius:4px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)';
   const monthNone=document.createElement('option');monthNone.value='';monthNone.textContent='—';monthSel.appendChild(monthNone);
@@ -56,8 +58,8 @@ function monthPartSelect(mp,canEdit){
   MONTH_PART_OPTIONS.forEach(opt=>{const o=document.createElement('option');o.value=opt.v;o.textContent=opt.l;if(mp.part===opt.v)o.selected=true;partSel.appendChild(o);});
   if(!canEdit){monthSel.disabled=true;partSel.disabled=true;}
   else{
-    monthSel.addEventListener('change',()=>{mp.month=monthSel.value?parseInt(monthSel.value):undefined;});
-    partSel.addEventListener('change',()=>{mp.part=partSel.value||undefined;});
+    monthSel.addEventListener('change',()=>{mp.month=monthSel.value?parseInt(monthSel.value):undefined;if(onChange)onChange();});
+    partSel.addEventListener('change',()=>{mp.part=partSel.value||undefined;if(onChange)onChange();});
   }
   wrap.append(monthSel,partSel);
   return wrap;
@@ -79,6 +81,26 @@ function buildRegionalScheduleBlock(veg){
   const label=document.createElement('div');label.style.cssText='font-size:var(--fs-xs);font-weight:500;color:var(--color-text-secondary);margin-bottom:4px';label.textContent='地域別見通しスケジュール';
   const desc=document.createElement('div');desc.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-bottom:8px';desc.textContent='土づくり〜収穫の絶対的な時期の目安です。利用者には農園設定の栽培地域に合う1地域分のみが表示されます。';
   block.append(label,desc);
+
+  // 3地域を1つのカレンダーに重ねて比較するプレビュー。下の月+旬セレクトを編集すると再描画される
+  const previewBody=document.createElement('div');previewBody.className='sched-cal-body';previewBody.style.marginBottom='12px';
+  const growMethod=veg.growMethod||'seedling';
+  const refreshPreview=()=>{
+    previewBody.innerHTML='';
+    previewBody.appendChild(createScheduleAxis());
+    REGION_OPTIONS.forEach(regionOpt=>{
+      const row=document.createElement('div');row.className='sched-cal-row';
+      const rowLabel=document.createElement('div');rowLabel.className='sched-cal-label';rowLabel.textContent=regionOpt.l;
+      const track=createScheduleTrack();
+      row.append(rowLabel,track);
+      previewBody.appendChild(row);
+      populateScheduleTrack(track,rs[regionOpt.v],growMethod);
+    });
+    addScheduleGrid(previewBody);
+    addScheduleToday(previewBody);
+  };
+  block.appendChild(previewBody);
+
   REGION_OPTIONS.forEach(regionOpt=>{
     if(canEdit&&!rs[regionOpt.v])rs[regionOpt.v]={};
     const regionData=rs[regionOpt.v]||{};
@@ -97,24 +119,26 @@ function buildRegionalScheduleBlock(veg){
           const sp=regionData.soil_prep;
           if(!sp)return;
           if(canEdit&&!sp.before)sp.before={};
-          fieldWrap.appendChild(monthPartSelect(sp.before||{},canEdit));
+          fieldWrap.appendChild(monthPartSelect(sp.before||{},canEdit,refreshPreview));
           const untilLbl=document.createElement('span');untilLbl.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary)';untilLbl.textContent='までに';fieldWrap.appendChild(untilLbl);
         };
         renderField();
-        if(canEdit)chk.addEventListener('change',()=>{if(chk.checked)regionData.soil_prep={before:{}};else delete regionData.soil_prep;renderField();});
+        if(canEdit)chk.addEventListener('change',()=>{if(chk.checked)regionData.soil_prep={before:{}};else delete regionData.soil_prep;renderField();refreshPreview();});
         row.appendChild(fieldWrap);
       }else{
         if(canEdit&&!regionData[evOpt.v])regionData[evOpt.v]={};
         const ev=regionData[evOpt.v]||{};
         if(canEdit){if(!ev.from)ev.from={};if(!ev.to)ev.to={};}
-        row.appendChild(monthPartSelect(ev.from||{},canEdit));
+        row.appendChild(monthPartSelect(ev.from||{},canEdit,refreshPreview));
         const tilde=document.createElement('span');tilde.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary)';tilde.textContent='〜';row.appendChild(tilde);
-        row.appendChild(monthPartSelect(ev.to||{},canEdit));
+        row.appendChild(monthPartSelect(ev.to||{},canEdit,refreshPreview));
       }
       regionBox.appendChild(row);
     });
     block.appendChild(regionBox);
   });
+  // 初回はblockがまだscrollへappendされておらずtrack幅を測れないため、DOM接続後の次フレームまで待つ
+  requestAnimationFrame(refreshPreview);
   const constraintsWrap=document.createElement('div');constraintsWrap.style.cssText='margin-top:10px;padding-top:8px;border-top:0.5px dashed var(--color-border-tertiary)';
   const constraintsLbl=document.createElement('div');constraintsLbl.style.cssText='font-size:var(--fs-xs);font-weight:500;color:var(--color-text-secondary);margin-bottom:6px';constraintsLbl.textContent='生育条件・制約';
   constraintsWrap.appendChild(constraintsLbl);
@@ -211,7 +235,7 @@ export function renderMasterDetail(){
   const veg=masterData.vegMaster[navState.masterVeg];
   if(!veg){scroll.innerHTML='<div class="master-detail-empty"><i class="ti ti-plant-2" style="font-size:24px;color:#9c9a93"></i>一覧から野菜を選択</div>';const s=document.getElementById('master-toolbar-btns');if(s)s.style.display='none';return;}
   const hdr=document.createElement('div');hdr.className='master-detail-header';hdr.innerHTML=`<span class="master-detail-icon">${vegIconHtml(veg,30)}</span><div><div class="master-detail-name">${veg.name}</div><div class="master-detail-sub">${veg.variety||'標準'} ／ ${veg.family||'科未設定'}</div></div>`;
-  const growBlock=document.createElement('div');growBlock.classList.add('admin-only');growBlock.style.cssText='margin-bottom:12px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary)';const growLabel=document.createElement('div');growLabel.style.cssText='font-size:var(--fs-xs);font-weight:500;color:var(--color-text-secondary);margin-bottom:8px';growLabel.textContent='栽培設定';const growRow=document.createElement('div');growRow.style.cssText='display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end';const growMethodWrap=document.createElement('div');growMethodWrap.style.cssText='display:flex;flex-direction:column;gap:3px;flex:1;min-width:120px';const growMethodLbl=document.createElement('div');growMethodLbl.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary)';growMethodLbl.textContent='育成方法';const growMethodSel=document.createElement('select');growMethodSel.style.cssText='font-size:var(--fs-sm);padding:5px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)';GROW_METHOD_OPTIONS.forEach(opt=>{const o=document.createElement('option');o.value=opt.v;o.textContent=opt.l;if((veg.growMethod||'seedling')===opt.v)o.selected=true;growMethodSel.appendChild(o);});if(!permCanEditFarm())growMethodSel.disabled=true;else growMethodSel.addEventListener('change',()=>{masterData.vegMaster[veg.id].growMethod=growMethodSel.value;});growMethodWrap.append(growMethodLbl,growMethodSel);
+  const growBlock=document.createElement('div');growBlock.classList.add('admin-only');growBlock.style.cssText='margin-bottom:12px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary)';const growLabel=document.createElement('div');growLabel.style.cssText='font-size:var(--fs-xs);font-weight:500;color:var(--color-text-secondary);margin-bottom:8px';growLabel.textContent='栽培設定';const growRow=document.createElement('div');growRow.style.cssText='display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end';const growMethodWrap=document.createElement('div');growMethodWrap.style.cssText='display:flex;flex-direction:column;gap:3px;flex:1;min-width:120px';const growMethodLbl=document.createElement('div');growMethodLbl.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary)';growMethodLbl.textContent='育成方法';const growMethodSel=document.createElement('select');growMethodSel.style.cssText='font-size:var(--fs-sm);padding:5px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)';GROW_METHOD_OPTIONS.forEach(opt=>{const o=document.createElement('option');o.value=opt.v;o.textContent=opt.l;if((veg.growMethod||'seedling')===opt.v)o.selected=true;growMethodSel.appendChild(o);});if(!permCanEditFarm())growMethodSel.disabled=true;else growMethodSel.addEventListener('change',()=>{masterData.vegMaster[veg.id].growMethod=growMethodSel.value;renderMasterDetail();});growMethodWrap.append(growMethodLbl,growMethodSel);
   const seasonWrap=document.createElement('div');seasonWrap.style.cssText='display:flex;flex-direction:column;gap:3px;flex:1;min-width:120px';const seasonLbl=document.createElement('div');seasonLbl.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary)';seasonLbl.textContent='作期';const seasonSel=document.createElement('select');seasonSel.style.cssText='font-size:var(--fs-sm);padding:5px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)';const seasonNone=document.createElement('option');seasonNone.value='';seasonNone.textContent='— 指定なし —';seasonSel.appendChild(seasonNone);SEASON_OPTIONS.forEach(opt=>{const o=document.createElement('option');o.value=opt.v;o.textContent=opt.l;if((veg.season||'')===opt.v)o.selected=true;seasonSel.appendChild(o);});if(!permCanEditFarm())seasonSel.disabled=true;else seasonSel.addEventListener('change',()=>{masterData.vegMaster[veg.id].season=seasonSel.value;});seasonWrap.append(seasonLbl,seasonSel);
   const regionWrap=document.createElement('div');regionWrap.style.cssText='display:flex;flex-direction:column;gap:3px;flex:1;min-width:120px';const regionLbl=document.createElement('div');regionLbl.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary)';regionLbl.textContent='地域';const regionSel=document.createElement('select');regionSel.style.cssText='font-size:var(--fs-sm);padding:5px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)';const regionNone=document.createElement('option');regionNone.value='';regionNone.textContent='— 指定なし —';regionSel.appendChild(regionNone);REGION_OPTIONS.forEach(opt=>{const o=document.createElement('option');o.value=opt.v;o.textContent=opt.l;if((veg.region||'')===opt.v)o.selected=true;regionSel.appendChild(o);});if(!permCanEditFarm())regionSel.disabled=true;else regionSel.addEventListener('change',()=>{masterData.vegMaster[veg.id].region=regionSel.value;});regionWrap.append(regionLbl,regionSel);
   const refUrlWrap=document.createElement('div');refUrlWrap.style.cssText='display:flex;flex-direction:column;gap:3px;flex:2;min-width:160px';const refUrlLbl=document.createElement('div');refUrlLbl.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary)';refUrlLbl.innerHTML='<i class="ti ti-link" style="font-size:var(--fs-xs)"></i> 参考URL（AI生成に使用）';const refUrlIn=document.createElement('input');refUrlIn.type='url';refUrlIn.style.cssText='font-size:var(--fs-sm);padding:5px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);width:100%';refUrlIn.placeholder='https://...';refUrlIn.value=veg.referenceUrl||'';if(!permCanEditFarm())refUrlIn.readOnly=true;else refUrlIn.addEventListener('input',()=>{masterData.vegMaster[veg.id].referenceUrl=refUrlIn.value;});refUrlWrap.append(refUrlLbl,refUrlIn);growRow.append(growMethodWrap,seasonWrap,regionWrap,refUrlWrap);growBlock.append(growLabel,growRow);scroll.appendChild(growBlock);scroll.appendChild(buildRegionalScheduleBlock(veg));const familyBlock=document.createElement('div');familyBlock.style.cssText='margin-bottom:12px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary)';const familyBlockLbl=document.createElement('div');familyBlockLbl.style.cssText='font-size:var(--fs-xs);font-weight:500;color:var(--color-text-secondary);margin-bottom:8px';familyBlockLbl.textContent='科';const familySel=document.createElement('select');familySel.style.cssText='font-size:var(--fs-sm);padding:5px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);width:100%;max-width:200px';const familyNone=document.createElement('option');familyNone.value='';familyNone.textContent='— 未設定 —';familySel.appendChild(familyNone);Object.keys(FAMILIES).forEach(f=>{const o=document.createElement('option');o.value=f;o.textContent=f;if((veg.family||'')===f)o.selected=true;familySel.appendChild(o);});if(!permCanEditFarm())familySel.disabled=true;else familySel.addEventListener('change',()=>{masterData.vegMaster[veg.id].family=familySel.value;const sub=hdr.querySelector('.master-detail-sub');if(sub)sub.textContent=`${veg.variety||'標準'} ／ ${familySel.value||'科未設定'}`;});familyBlock.append(familyBlockLbl,familySel);scroll.appendChild(familyBlock);

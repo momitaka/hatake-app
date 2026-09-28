@@ -45,6 +45,35 @@ export function scheduleEventVisibility(growMethod){
   return{sowing:false,planting:true}; // seedling（苗から）：種まきは出さない
 }
 
+// 地域別見通しスケジュールのカレンダー表示（TSK-65拡張）で使う配色・アイコン・位置計算。
+// 色は工程表フェーズタイムライン(PHASE_COLORS)の準備期/定植・活着期/着果・収穫期と揃えている（視覚的な地続き感のため。cssColor
+// を返さずカレンダー用の固定値として独立させているのは、PHASE_COLORSがレシピごとの配列インデックスで循環割当される値のため）。
+export const SCHEDULE_EVENT_COLORS={soil_prep:'#B98A4A',sowing:'#7CAE45',planting:'#9CC168',harvest:'#E8973D'};
+/** @param {'soil_prep'|'sowing'|'planting'|'harvest'} kind @param {string} [growMethod] sowingのみgrowMethodでアイコンを出し分ける（seed_pot=ポット、それ以外=直まき）。Tablerフォントに無いためsowingはインラインSVGを自作
+ * @returns {string} currentColorで塗られるアイコンのHTML（色は呼び出し側の親要素のcolorに従う） */
+export function scheduleEventIconHtml(kind,growMethod){
+  if(kind==='soil_prep')return '<i class="ti ti-shovel" aria-hidden="true"></i>';
+  if(kind==='planting')return '<i class="ti ti-seeding" aria-hidden="true"></i>';
+  if(kind==='harvest')return '<i class="ti ti-basket" aria-hidden="true"></i>';
+  if(growMethod==='seed_pot'){
+    return '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6 L19 6"/><path d="M6.5 6 L8 18 L16 18 L17.5 6"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg>';
+  }
+  return '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 8 L12 4 L16 8"/><circle cx="12" cy="4" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="11" r="1.1" fill="currentColor" stroke="none"/><circle cx="12" cy="16" r="1" fill="currentColor" stroke="none"/><path d="M6 20 L18 20"/></svg>';
+}
+/** @param {{month?:number,part?:string}|undefined} mp @returns {number|null} 年間カレンダー上の0〜100%位置。month未設定ならnull */
+export function monthPartPct(mp){
+  if(!mp||!mp.month)return null;
+  const off=mp.part==='early'?0.05:mp.part==='late'?0.7:0.35;
+  return ((mp.month-1+off)/12)*100;
+}
+/** @returns {number} 実際の今日の日付から算出した年間カレンダー上の0〜100%位置 */
+export function todayMonthPct(){
+  const d=new Date();
+  const month=d.getMonth()+1,day=d.getDate();
+  const daysInMonth=new Date(d.getFullYear(),month,0).getDate();
+  return ((month-1+(day-1)/daysInMonth)/12)*100;
+}
+
 export const FAMILIES={'ナス科':{border:'#D85A30',bg:'#FAECE7'},'ウリ科':{border:'#639922',bg:'#EAF3DE'},'マメ科':{border:'#378ADD',bg:'#E6F1FB'},'アブラナ科':{border:'#EF9F27',bg:'#FAEEDA'},'ヒガンバナ科':{border:'#7F77DD',bg:'#EEEDFE'},'セリ科':{border:'#BA7517',bg:'#F5EAD8'},'キク科':{border:'#D4537E',bg:'#FBEAF0'},'シソ科':{border:'#1A9988',bg:'#E3F4F2'},'アオイ科':{border:'#C0873F',bg:'#F8EFDF'},'その他':{border:'#9C9A93',bg:'#F1EFE8'}};
 export const MAJOR_STATUS=[{id:'ready',name:'準備中',color:'#854F0B',bg:'#FAEEDA'},{id:'growing',name:'生育中',color:'#27500A',bg:'#d4f0b8'},{id:'harvesting',name:'収穫中',color:'#633806',bg:'#fdf5b0'},{id:'done',name:'完了',color:'#444441',bg:'#F1EFE8'}];
 // 工程表のフェーズ帯タイムライン用の配色。フェーズ名やフェーズ数はレシピごとに異なるため、
