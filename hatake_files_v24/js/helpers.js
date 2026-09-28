@@ -60,18 +60,25 @@ export function scheduleEventIconHtml(kind,growMethod){
   }
   return '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 8 L12 4 L16 8"/><circle cx="12" cy="4" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="11" r="1.1" fill="currentColor" stroke="none"/><circle cx="12" cy="16" r="1" fill="currentColor" stroke="none"/><path d="M6 20 L18 20"/></svg>';
 }
-/** @param {{month?:number,part?:string}|undefined} mp @returns {number|null} 年間カレンダー上の0〜100%位置。month未設定ならnull */
-export function monthPartPct(mp){
+// カレンダーは1月始まり固定ではなく、今日の月を中心に前後6ヶ月ぶん回転させた窓（12ヶ月分、ラベルは月をまたいで循環する）で表示する。
+// 「月単位」の連続値（0〜12、1.0=1ヶ月分の幅）で位置を持ち、呼び出し側でpx幅を掛けて実際の座標にする。
+/** @returns {number} 窓の開始月（今日の月の6ヶ月前、1〜12） */
+export function scheduleWindowStartMonth(){
+  const todayMonth=new Date().getMonth()+1;
+  return ((todayMonth-6-1+12*10)%12)+1;
+}
+/** @param {{month?:number,part?:string}|undefined} mp @param {number} startMonth scheduleWindowStartMonth()の値 @returns {number|null} 窓内の0〜12の連続位置。month未設定ならnull */
+export function monthPartWindowUnits(mp,startMonth){
   if(!mp||!mp.month)return null;
   const off=mp.part==='early'?0.05:mp.part==='late'?0.7:0.35;
-  return ((mp.month-1+off)/12)*100;
+  return ((mp.month-startMonth+12)%12)+off;
 }
-/** @returns {number} 実際の今日の日付から算出した年間カレンダー上の0〜100%位置 */
-export function todayMonthPct(){
+/** @returns {number} 実際の今日の日付の、窓内での0〜12の連続位置（窓は今日の月を中心に組むため常に6+月内の経過割合になる） */
+export function todayWindowUnits(){
   const d=new Date();
-  const month=d.getMonth()+1,day=d.getDate();
-  const daysInMonth=new Date(d.getFullYear(),month,0).getDate();
-  return ((month-1+(day-1)/daysInMonth)/12)*100;
+  const day=d.getDate();
+  const daysInMonth=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+  return 6+(day-1)/daysInMonth;
 }
 
 export const FAMILIES={'ナス科':{border:'#D85A30',bg:'#FAECE7'},'ウリ科':{border:'#639922',bg:'#EAF3DE'},'マメ科':{border:'#378ADD',bg:'#E6F1FB'},'アブラナ科':{border:'#EF9F27',bg:'#FAEEDA'},'ヒガンバナ科':{border:'#7F77DD',bg:'#EEEDFE'},'セリ科':{border:'#BA7517',bg:'#F5EAD8'},'キク科':{border:'#D4537E',bg:'#FBEAF0'},'シソ科':{border:'#1A9988',bg:'#E3F4F2'},'アオイ科':{border:'#C0873F',bg:'#F8EFDF'},'その他':{border:'#9C9A93',bg:'#F1EFE8'}};

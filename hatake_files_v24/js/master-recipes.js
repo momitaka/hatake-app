@@ -3,7 +3,7 @@
 import { masterData, navState, permState, gridState, addVegState, segData, SUPABASE_ANON_KEY } from './state.js';
 import { vegIconHtml, FAMILIES, GROW_METHOD_OPTIONS, SEASON_OPTIONS, REGION_OPTIONS, optionLabel, SCHEDULE_EVENT_OPTIONS, MONTH_PART_OPTIONS, SCHEDULE_CONSTRAINT_TYPE_OPTIONS, scheduleEventVisibility } from './helpers.js';
 import { showAlert, showConfirm, showTextPromptDialog } from './dialogs.js';
-import { createScheduleAxis, createScheduleTrack, populateScheduleTrack, addScheduleGrid, addScheduleToday } from './regional-schedule.js';
+import { createScheduleAxis, createScheduleTrack, populateScheduleTrack, addScheduleGrid, addScheduleToday, scrollScheduleToToday } from './regional-schedule.js';
 import { saveLS } from './storage.js';
 import { permCanEditFarm } from './add-veg.js';
 import { permRequireSupervisor } from './permissions.js';
@@ -83,11 +83,15 @@ function buildRegionalScheduleBlock(veg){
   block.append(label,desc);
 
   // 3地域を1つのカレンダーに重ねて比較するプレビュー。下の月+旬セレクトを編集すると再描画される
-  const previewBody=document.createElement('div');previewBody.className='sched-cal-body';previewBody.style.marginBottom='12px';
+  const previewScroll=document.createElement('div');previewScroll.className='sched-cal-scroll';previewScroll.style.marginBottom='12px';
+  const previewBody=document.createElement('div');previewBody.className='sched-cal-body';
+  previewScroll.appendChild(previewBody);
   const growMethod=veg.growMethod||'seedling';
   const refreshPreview=()=>{
     previewBody.innerHTML='';
-    previewBody.appendChild(createScheduleAxis());
+    // 地域名ラベル分の幅を軸にも確保し、軸とトラックの横位置を揃える（withLabelSpacer=true）
+    previewBody.appendChild(createScheduleAxis(true));
+    let firstTrack=null;
     REGION_OPTIONS.forEach(regionOpt=>{
       const row=document.createElement('div');row.className='sched-cal-row';
       const rowLabel=document.createElement('div');rowLabel.className='sched-cal-label';rowLabel.textContent=regionOpt.l;
@@ -95,11 +99,13 @@ function buildRegionalScheduleBlock(veg){
       row.append(rowLabel,track);
       previewBody.appendChild(row);
       populateScheduleTrack(track,rs[regionOpt.v],growMethod);
+      if(!firstTrack)firstTrack=track;
     });
-    addScheduleGrid(previewBody);
-    addScheduleToday(previewBody);
+    addScheduleGrid(previewBody,firstTrack);
+    addScheduleToday(previewBody,firstTrack);
+    scrollScheduleToToday(previewScroll,firstTrack);
   };
-  block.appendChild(previewBody);
+  block.appendChild(previewScroll);
 
   REGION_OPTIONS.forEach(regionOpt=>{
     if(canEdit&&!rs[regionOpt.v])rs[regionOpt.v]={};

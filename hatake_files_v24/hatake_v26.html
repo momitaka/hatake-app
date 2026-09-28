@@ -218,17 +218,19 @@ body.admin-mode #screen-manage .toolbar,body.admin-mode #screen-master .toolbar,
 .summary-stat-sub{font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-top:2px}
 .summary-memo-box{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);overflow:hidden;margin-bottom:10px}
 .summary-memo-box:last-child{margin-bottom:0}
+.sched-cal-summary-box .summary-memo-body{background:var(--color-background-primary)}
 .summary-memo-header{padding:8px 12px;background:var(--color-background-secondary);font-size:var(--fs-xs);font-weight:500;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:5px}
 .summary-memo-body{padding:10px 12px}
 .summary-memo-ta{width:100%;font-size:var(--fs-sm);padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);resize:vertical;min-height:64px;line-height:1.6}
 /* 地域別見通しスケジュールのカレンダー表示（TSK-65拡張）。renderRegionalScheduleSummaryとbuildRegionalScheduleBlockの両方から使う */
-.sched-cal-body{position:relative;z-index:0;margin-bottom:10px}
-.sched-cal-axis{display:grid;grid-template-columns:repeat(12,1fr);margin:0 0 4px;position:relative;z-index:1}
-.sched-cal-axis span{font-size:9px;color:var(--color-text-tertiary);text-align:left}
+.sched-cal-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;background:var(--color-background-primary);border-radius:var(--border-radius-md);padding:8px 8px 4px;margin-bottom:10px}
+.sched-cal-body{position:relative;z-index:0}
+.sched-cal-axis{display:flex;flex-shrink:0;margin:0 0 4px;position:relative;z-index:1}
+.sched-cal-axis span{flex:0 0 auto;font-size:9px;color:var(--color-text-tertiary);text-align:left}
 .sched-cal-row{display:flex;align-items:center;gap:8px;position:relative;z-index:1;margin-bottom:6px}
 .sched-cal-row:last-child{margin-bottom:0}
 .sched-cal-label{width:44px;flex:0 0 44px;font-size:var(--fs-xs);color:var(--color-text-secondary)}
-.sched-cal-track{position:relative;flex:1;height:24px}
+.sched-cal-track{position:relative;flex-shrink:0;height:24px}
 .sched-cal-point{position:absolute;top:1px;width:22px;height:22px;border-radius:50%;transform:translateX(-50%);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;z-index:2}
 .sched-cal-pill{position:absolute;top:1px;height:22px;border-radius:11px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;z-index:2}
 .sched-cal-grid-line{position:absolute;top:0;bottom:0;border-left:1px solid var(--color-border-tertiary);z-index:-2;pointer-events:none}
