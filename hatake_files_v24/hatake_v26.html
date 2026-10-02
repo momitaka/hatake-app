@@ -146,7 +146,8 @@ body.admin-mode #screen-manage .toolbar,body.admin-mode #screen-master .toolbar,
 .phase-timeline-marker{position:absolute;top:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center}
 .phase-timeline-marker-label{font-size:var(--fs-xs);font-weight:600;color:var(--color-text-primary);white-space:nowrap;line-height:1}
 .phase-timeline-marker-flag{width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid var(--color-text-primary);margin-top:2px}
-.phase-timeline-bar{display:flex;height:22px;border-radius:8px;overflow:hidden;border:0.5px solid var(--color-border-tertiary)}
+.phase-timeline-bar{position:relative;display:flex;height:22px;border-radius:8px;overflow:hidden;border:0.5px solid var(--color-border-tertiary)}
+.phase-timeline-rest{position:absolute;top:0;bottom:0;right:0;background:rgba(245,250,237,.62);pointer-events:none}
 .phase-timeline-seg{display:flex;align-items:center;justify-content:center;overflow:hidden}
 .phase-timeline-seg-label{font-size:10px;color:#fff;font-weight:600;white-space:nowrap}
 .phase-timeline-ticks{position:relative;height:16px;margin-top:2px}

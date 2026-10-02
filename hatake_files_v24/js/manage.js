@@ -235,6 +235,8 @@ function renderPhaseTimeline(el,data,phaseIdx){
     if(s.widthPct>=18)segEl.innerHTML=`<span class="phase-timeline-seg-label">${s.name}</span>`;
     bar.appendChild(segEl);
   });
+  // 未達成部分を白っぽく覆い、チェック済みの工程までが濃い色の「進捗バー」に見えるようにする
+  const rest=document.createElement('div');rest.className='phase-timeline-rest';rest.style.left=data.progressPct+'%';bar.appendChild(rest);
   barWrap.appendChild(bar);wrap.appendChild(barWrap);
   if(data.ticks.length){
     const ticksEl=document.createElement('div');ticksEl.className='phase-timeline-ticks';

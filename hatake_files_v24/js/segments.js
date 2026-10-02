@@ -269,7 +269,7 @@ const DEFAULT_PHASE_SPAN=14;
  * 最終フェーズの想定終了日を超えている場合は、最終フェーズの帯を今日まで伸ばす（伸ばさないと
  * 「今日」マーカーが範囲外の右端に張り付き、あたかも栽培が終了したかのように見えてしまうため）。
  * @param {string} sid @param {string} cropId
- * @returns {{segments:Array<{phaseIdx:number,name:string,color:string,start:number,end:number,widthPct:number}>,markerPct:number|null,ticks:Array<{pct:number,label:string}>,taskRelDay:Object<string,number>,baseDate:string|null}|null}
+ * @returns {{segments:Array<{phaseIdx:number,name:string,color:string,start:number,end:number,widthPct:number}>,markerPct:number|null,progressPct:number,ticks:Array<{pct:number,label:string}>,taskRelDay:Object<string,number>,baseDate:string|null}|null}
  */
 export function getPhaseTimeline(sid,cropId){
   const v=getVeg(cropId);if(!v||!v.phases.length)return null;
@@ -314,6 +314,10 @@ export function getPhaseTimeline(sid,cropId){
     todayDay=pivotCumDay+daysBetween(baseDate,todayISO());
     if(todayDay>=last.end){last.end=todayDay+Math.max(7,(todayDay-firstStart)*0.08);total=last.end-firstStart;}
   }
+  // チェック済みの最後のタスク（calcProgressと同じ基準）の帯上の位置＝進捗。未チェックなら0
+  let lastDoneIdx=-1;
+  all.forEach((t,i)=>{if(getTaskState(sid,t.id).done)lastDoneIdx=i;});
+  const progressPct=lastDoneIdx>=0&&total>0?Math.max(0,Math.min(100,(taskCumulativeDay[all[lastDoneIdx].id]-firstStart)/total*100)):0;
   const segments=raw.map(r=>({...r,widthPct:total>0?(r.end-r.start)/total*100:100/raw.length}));
 
   let markerPct=null;
@@ -328,5 +332,5 @@ export function getPhaseTimeline(sid,cropId){
       if(label){ticks.push({pct,label});lastPct=pct;}
     }
   }
-  return{segments,markerPct,ticks,taskRelDay,baseDate};
+  return{segments,markerPct,progressPct,ticks,taskRelDay,baseDate};
 }
