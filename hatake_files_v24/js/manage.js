@@ -37,7 +37,47 @@ export function openHarvestPhotoLightbox(dataUrl,onDelete){
   document.body.appendChild(overlay);
 }
 
-export function openManage(sid){navState.seg=sid;navState.tab=getLastTab(sid)||'roadmap';document.getElementById('screen-register').classList.remove('active');document.getElementById('screen-manage').classList.add('active');renderManage();}
+// 工程表タブの次の一手へ自動スクロールするかどうか（画面を開いた時・タブ切替・チェック/スキップ操作の直後だけ true にする。写真やメモ編集などの再描画ではスクロール位置を動かさない）
+let pendingNextScroll=false;
+function requestScrollToNextTask(){pendingNextScroll=true;}
+
+/** @param {HTMLElement} el 工程表タブの描画先（#manage-content）。次の一手のカードを、固定されたフェーズ帯の下に見えるようスクロールする */
+function scrollToNextTask(el){
+  const card=/** @type {HTMLElement|null} */(el.querySelector('.task-card.next'));if(!card)return;
+  const sticky=/** @type {HTMLElement|null} */(el.querySelector('.phase-timeline-sticky'));
+  const stickyH=sticky?sticky.getBoundingClientRect().height:0;
+  const cardTop=card.getBoundingClientRect().top-el.getBoundingClientRect().top+el.scrollTop;
+  el.scrollTop=Math.max(0,cardTop-stickyH-8);
+}
+
+/** @param {any} state @param {boolean} isNext @returns {HTMLElement|null} タスク名の下に出す状態ラベル（次の一手／スキップ） */
+function buildTaskStateTag(state,isNext){
+  if(state.skip){
+    const tag=document.createElement('div');tag.className='task-state-tag skip';tag.textContent='スキップ（やらない）';return tag;
+  }
+  if(isNext){const tag=document.createElement('div');tag.className='task-state-tag next';tag.textContent='次の一手';return tag;}
+  return null;
+}
+
+/** @param {any} task @param {any} state @returns {HTMLElement|null} 展開部に出すスキップ操作行。実施済みタスクには出さない */
+function buildSkipRow(task,state){
+  if(state.done)return null;
+  const row=document.createElement('div');row.className='task-skip-row';
+  /** @param {string} label @param {boolean} value */
+  const mkBtn=(label,value)=>{
+    const b=document.createElement('button');b.type='button';b.className='task-skip-btn';b.textContent=label;
+    b.addEventListener('click',e=>{e.stopPropagation();setTaskState(navState.seg,task.id,{skip:value});requestScrollToNextTask();renderManage();renderGrid();});
+    return b;
+  };
+  if(state.skip){
+    const lbl=document.createElement('span');lbl.className='task-skip-label';lbl.textContent='スキップ中';row.append(lbl,mkBtn('スキップを解除',false));
+  }else{
+    const lbl=document.createElement('span');lbl.className='task-skip-label';lbl.textContent='スキップ：';row.append(lbl,mkBtn('やらない',true));
+  }
+  return row;
+}
+
+export function openManage(sid){navState.seg=sid;navState.tab=getLastTab(sid)||'roadmap';requestScrollToNextTask();document.getElementById('screen-register').classList.remove('active');document.getElementById('screen-manage').classList.add('active');renderManage();}
 export function goBack(){document.getElementById('screen-manage').classList.remove('active');document.getElementById('screen-register').classList.add('active');navState.seg=null;renderGrid();}
 
 export function renderManage(){
@@ -54,7 +94,7 @@ export function renderManage(){
   st.appendChild(hdr);
   const tabs=[{id:'basic',icon:'ti-plant',label:'基礎知識'},{id:'roadmap',icon:'ti-road',label:'工程表'},{id:'harvest',icon:'ti-basket',label:'収穫'},{id:'log',icon:'ti-clipboard-list',label:'栽培記録'}];
   const tabBar=document.createElement('div');tabBar.className='tab-bar';tabBar.style.margin='0 0 0';
-  tabs.forEach(tab=>{const btn=document.createElement('div');btn.className='tab-btn'+(navState.tab===tab.id?' active':'');btn.innerHTML=`<i class="ti ${tab.icon}" style="font-size:var(--fs-sm)"></i>${tab.label}`;btn.addEventListener('click',()=>{navState.tab=tab.id;setLastTab(navState.seg,tab.id);renderManage();});tabBar.appendChild(btn);});
+  tabs.forEach(tab=>{const btn=document.createElement('div');btn.className='tab-btn'+(navState.tab===tab.id?' active':'');btn.innerHTML=`<i class="ti ${tab.icon}" style="font-size:var(--fs-sm)"></i>${tab.label}`;btn.addEventListener('click',()=>{navState.tab=tab.id;setLastTab(navState.seg,tab.id);requestScrollToNextTask();renderManage();});tabBar.appendChild(btn);});
   tb.appendChild(tabBar);
   if(navState.tab==='roadmap')renderRoadmapTab(el,seg,veg);
   else if(navState.tab==='log')renderLogTab(el,seg);
@@ -182,7 +222,7 @@ function buildTaskPhotoBox(task,state,pi){
 /** @param {HTMLElement} el @param {any} data getPhaseTimeline()の結果 @param {number} phaseIdx 工程表タブ上部のフェーズ帯タイムライン（色分け・現在地マーカー・旬メモリ・凡例）を描画する */
 function renderPhaseTimeline(el,data,phaseIdx){
   if(!data)return;
-  const wrap=document.createElement('div');wrap.className='phase-timeline';
+  const wrap=document.createElement('div');wrap.className='phase-timeline-sticky';
   const barWrap=document.createElement('div');barWrap.className='phase-timeline-barwrap';
   if(data.markerPct!=null){
     const marker=document.createElement('div');marker.className='phase-timeline-marker';marker.style.left=data.markerPct+'%';
@@ -205,6 +245,7 @@ function renderPhaseTimeline(el,data,phaseIdx){
     });
     wrap.appendChild(ticksEl);
   }
+  el.appendChild(wrap);
   const legend=document.createElement('div');legend.className='phase-timeline-legend';
   data.segments.forEach(s=>{
     const isCurrent=s.phaseIdx===phaseIdx;
@@ -212,8 +253,7 @@ function renderPhaseTimeline(el,data,phaseIdx){
     item.innerHTML=`<span class="phase-timeline-legend-dot" style="background:${s.color}"></span><span class="phase-timeline-legend-label${isCurrent?' current':''}">${s.name}</span>`;
     legend.appendChild(item);
   });
-  wrap.appendChild(legend);
-  el.appendChild(wrap);
+  el.appendChild(legend);
 }
 
 export function renderRoadmapTab(el,seg,veg){
@@ -224,23 +264,26 @@ export function renderRoadmapTab(el,seg,veg){
   renderPhaseTimeline(el,timeline,phaseIdx);
   renderRegionalScheduleSummary(el,veg);
   const _baseDate=timeline?timeline.baseDate:null;
+  // 次の一手＝全工程のうち最初の「未チェックかつスキップでない」タスク（前出しで先に済ませたタスクは飛ばして判定）
+  const _nextTask=veg.phases.flatMap(p=>p.tasks).find(t=>{const s=getTaskState(navState.seg,t.id);return !s.done&&!s.skip;});
   veg.phases.forEach((phase,pi)=>{
     const isCurrent=pi===phaseIdx,isDone=pi<phaseIdx;
     const block=document.createElement('div');block.className='phase-block';block.style.borderLeftColor=PHASE_COLORS[pi%PHASE_COLORS.length];
     block.innerHTML=`<div class="phase-heading"><div class="phase-radio ${isDone?'done':isCurrent?'active':''}"></div><span class="phase-name" style="color:${isCurrent?'#1a1915':'#5f5e5a'}">${stripPhaseSuffix(phase.name)}</span>${phase.period?'<span class="phase-period">（'+phase.period+'）</span>':''}</div>`;
     phase.tasks.forEach(task=>{
-      const state=getTaskState(navState.seg,task.id);const isPest=task.type==='pest';const card=document.createElement('div');card.className='task-card'+(isPest?' pest':'');
+      const state=getTaskState(navState.seg,task.id);const isPest=task.type==='pest';const card=document.createElement('div');card.className='task-card'+(isPest?' pest':'')+(_nextTask&&_nextTask.id===task.id?' next':'')+(state.skip?' skipped':'');
       const _relDay=timeline&&timeline.taskRelDay[task.id]!=null?timeline.taskRelDay[task.id]:0;
       const _relLabel=_relDay===0?'0日':(_relDay>0?'+'+_relDay+'日':_relDay+'日');
       const _dueJun=_baseDate?junLabel(addDaysISO(_baseDate,_relDay)):null;
       const main=document.createElement('div');main.className='task-main';const cbWrap=document.createElement('div');cbWrap.className='task-cb-wrap';const cb=document.createElement('input');cb.type='checkbox';cb.className='task-cb';cb.checked=state.done;cbWrap.appendChild(cb);
-      const clickable=document.createElement('div');clickable.className='task-clickable';const body=document.createElement('div');body.className='task-body';if(isPest){const lbl=document.createElement('div');lbl.className='task-pest-label';lbl.innerHTML='<i class="ti ti-bug" style="font-size:10px"></i>病害虫チェック';body.appendChild(lbl);}const nameEl=document.createElement('div');nameEl.className='task-name'+(state.done?' done-text':'');nameEl.textContent=task.name;const descEl=document.createElement('div');descEl.className='task-desc';descEl.textContent=task.desc;const textCol=document.createElement('div');textCol.className='task-header-text';textCol.append(nameEl,descEl);const dayBadge=document.createElement('div');dayBadge.className='task-day-badge';if(_dueJun)dayBadge.innerHTML=`〜${_dueJun}<span class="task-day-badge-sub">(${_relLabel})</span>`;else dayBadge.textContent=_relLabel;if(_relDay===0)dayBadge.style.fontWeight='600';const headerRow=document.createElement('div');headerRow.className='task-header-row';headerRow.append(textCol,dayBadge);const datesWrap=document.createElement('div');datesWrap.className='task-dates';renderTaskDates(datesWrap,task,state);const divider=document.createElement('div');divider.className='task-dates-divider';datesWrap.appendChild(divider);renderTaskPhotos(datesWrap,task,state);const memoPreviewWrap=document.createElement('div');memoPreviewWrap.className='task-memo-preview';renderTaskMemoPreview(memoPreviewWrap,task,state);body.append(headerRow,datesWrap,memoPreviewWrap);const expandIcon=document.createElement('div');expandIcon.className='task-expand-icon';expandIcon.innerHTML='<i class="ti ti-chevron-down"></i>';clickable.append(body,expandIcon);main.append(cbWrap,clickable);
-      const detail=document.createElement('div');detail.className='task-detail';if(task.memo){const m=document.createElement('div');m.className='task-detail-memo';m.textContent=task.memo;detail.appendChild(m);}if(task.url){const a=document.createElement('a');a.className='task-detail-url';a.href=task.url;a.target='_blank';a.innerHTML='<i class="ti ti-brand-youtube" style="font-size:var(--fs-base)"></i>参考動画を見る';detail.appendChild(a);}card.append(main,detail);block.appendChild(card);
+      const clickable=document.createElement('div');clickable.className='task-clickable';const body=document.createElement('div');body.className='task-body';if(isPest){const lbl=document.createElement('div');lbl.className='task-pest-label';lbl.innerHTML='<i class="ti ti-bug" style="font-size:10px"></i>病害虫チェック';body.appendChild(lbl);}const nameEl=document.createElement('div');nameEl.className='task-name'+(state.done?' done-text':'');nameEl.textContent=task.name;const descEl=document.createElement('div');descEl.className='task-desc';descEl.textContent=task.desc;const textCol=document.createElement('div');textCol.className='task-header-text';const tagEl=buildTaskStateTag(state,!!(_nextTask&&_nextTask.id===task.id));if(tagEl)textCol.append(nameEl,tagEl,descEl);else textCol.append(nameEl,descEl);const dayBadge=document.createElement('div');dayBadge.className='task-day-badge';if(_dueJun)dayBadge.innerHTML=`〜${_dueJun}<span class="task-day-badge-sub">(${_relLabel})</span>`;else dayBadge.textContent=_relLabel;if(_relDay===0)dayBadge.style.fontWeight='600';const headerRow=document.createElement('div');headerRow.className='task-header-row';headerRow.append(textCol,dayBadge);const datesWrap=document.createElement('div');datesWrap.className='task-dates';renderTaskDates(datesWrap,task,state);const divider=document.createElement('div');divider.className='task-dates-divider';datesWrap.appendChild(divider);renderTaskPhotos(datesWrap,task,state);const memoPreviewWrap=document.createElement('div');memoPreviewWrap.className='task-memo-preview';renderTaskMemoPreview(memoPreviewWrap,task,state);body.append(headerRow,datesWrap,memoPreviewWrap);const expandIcon=document.createElement('div');expandIcon.className='task-expand-icon';expandIcon.innerHTML='<i class="ti ti-chevron-down"></i>';clickable.append(body,expandIcon);main.append(cbWrap,clickable);
+      const detail=document.createElement('div');detail.className='task-detail';if(task.memo){const m=document.createElement('div');m.className='task-detail-memo';m.textContent=task.memo;detail.appendChild(m);}if(task.url){const a=document.createElement('a');a.className='task-detail-url';a.href=task.url;a.target='_blank';a.innerHTML='<i class="ti ti-brand-youtube" style="font-size:var(--fs-base)"></i>参考動画を見る';detail.appendChild(a);}const skipRow=buildSkipRow(task,state);if(skipRow)detail.appendChild(skipRow);card.append(main,detail);block.appendChild(card);
       clickable.addEventListener('click',()=>{const isOpen=detail.classList.contains('open');detail.classList.toggle('open',!isOpen);expandIcon.querySelector('i').className=`ti ${isOpen?'ti-chevron-down':'ti-chevron-up'}`;});
-      cb.addEventListener('change',e=>{e.stopPropagation();if(cb.checked){showTaskDateDialog('実施日を選択',task.name,(dateVal,memoVal)=>{if(!dateVal)return;const disp=dateVal.slice(5).replace('-','/');const dates=[...(state.doneDates||[]),{date:disp,memo:memoVal||''}];setTaskState(navState.seg,task.id,{done:true,skip:false,doneDates:dates});renderManage();renderGrid();if(task.milestone==='firstHarvest')setLastTab(navState.seg,'harvest');if(task.milestone==='germination'||task.milestone==='firstHarvest')setTimeout(()=>showMilestoneDialog(task.milestone),300);},()=>{cb.checked=false;},{showMemo:true});}else{const dates=[...(state.doneDates||[])];dates.pop();setTaskState(navState.seg,task.id,{done:dates.length>0,skip:false,doneDates:dates});renderManage();renderGrid();}});
+      cb.addEventListener('change',e=>{e.stopPropagation();if(cb.checked){showTaskDateDialog('実施日を選択',task.name,(dateVal,memoVal)=>{if(!dateVal)return;const disp=dateVal.slice(5).replace('-','/');const dates=[...(state.doneDates||[]),{date:disp,memo:memoVal||''}];setTaskState(navState.seg,task.id,{done:true,skip:false,doneDates:dates});requestScrollToNextTask();renderManage();renderGrid();if(task.milestone==='firstHarvest')setLastTab(navState.seg,'harvest');if(task.milestone==='germination'||task.milestone==='firstHarvest')setTimeout(()=>showMilestoneDialog(task.milestone),300);},()=>{cb.checked=false;},{showMemo:true});}else{const dates=[...(state.doneDates||[])];dates.pop();setTaskState(navState.seg,task.id,{done:dates.length>0,skip:false,doneDates:dates});requestScrollToNextTask();renderManage();renderGrid();}});
     });
     el.appendChild(block);
   });
+  if(pendingNextScroll){pendingNextScroll=false;requestAnimationFrame(()=>scrollToNextTask(el));}
 }
 
 export function renderLogTab(el,seg){
