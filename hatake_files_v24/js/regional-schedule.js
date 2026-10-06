@@ -1,6 +1,6 @@
 // @ts-check
 // ===== 地域別見通しスケジュール表示（TSK-65） =====
-// 工程表タブに、実施記録ベースの工程表（phases）とは別枠で、農園設定の
+// 基礎知識タブの「育成時期の目安」に、農園設定の
 // 栽培地域(farmMeta.region)に対応する1地域分の絶対的な時期の見通しを、
 // 今日の月を中心に前後6ヶ月ぶん回転させた12ヶ月カレンダー（横スクロール可能な
 // 横棒タイムライン）として表示する。1ヶ月あたりの幅を固定pxにすることで、
@@ -113,23 +113,22 @@ export function scheduleBadgeHtml(kind,growMethod){
   return '<span class="sched-cal-badge" style="background:'+SCHEDULE_EVENT_COLORS[kind]+'">'+scheduleEventIconHtml(kind,growMethod)+'</span>';
 }
 
-/** @param {HTMLElement} el @param {any} veg 地域・データいずれかが未設定の場合は何も描画しない */
-export function renderRegionalScheduleSummary(el,veg){
-  if(!veg||!veg.regionalSchedule||!farmMeta.region)return;
+/** @param {HTMLElement} container @param {any} veg @returns {boolean} 描画したらtrue。地域・データいずれかが未設定の場合は何も描画せずfalse
+ * containerはDOMに接続済みであること（populateScheduleTrackが幅を測るため、基礎知識タブでは組み立て後に呼ぶ） */
+export function renderRegionalSchedule(container,veg){
+  if(!veg||!veg.regionalSchedule||!farmMeta.region)return false;
   const regionData=veg.regionalSchedule[farmMeta.region];
-  if(!regionData)return;
+  if(!regionData)return false;
   const growMethod=veg.growMethod||'seedling';
   const vis=scheduleEventVisibility(growMethod);
   const constraints=veg.regionalSchedule.constraints||[];
 
-  const box=document.createElement('div');box.className='summary-memo-box sched-cal-summary-box';
-  box.innerHTML=`<div class="summary-memo-header"><i class="ti ti-calendar-event" style="color:#9c9a93"></i>栽培カレンダー（${optionLabel(REGION_OPTIONS,farmMeta.region)}）</div>`;
-  const body=document.createElement('div');body.className='summary-memo-body';
-  box.appendChild(body);
-  el.appendChild(box); // populateScheduleTrackが幅を測れるよう、トラックを組み立てる前にDOMへ接続しておく
+  const region=document.createElement('div');region.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-bottom:6px';
+  region.textContent=optionLabel(REGION_OPTIONS,farmMeta.region)+'の目安';
+  container.appendChild(region);
 
   const scrollWrap=document.createElement('div');scrollWrap.className='sched-cal-scroll';
-  body.appendChild(scrollWrap);
+  container.appendChild(scrollWrap);
   const calBody=document.createElement('div');calBody.className='sched-cal-body';
   calBody.appendChild(createScheduleAxis());
   const row=document.createElement('div');row.className='sched-cal-row';
@@ -150,11 +149,15 @@ export function renderRegionalScheduleSummary(el,veg){
     rows.forEach(ev=>{
       const notes=constraints.filter(c=>c.applies_to===ev.v&&c.note);
       const detailRow=document.createElement('div');detailRow.className='sched-cal-detail-row';
+      const period=formatScheduleEvent(regionData[ev.v]);
       detailRow.innerHTML=scheduleBadgeHtml(/** @type {any} */(ev.v),growMethod)+
-        '<span class="sched-cal-detail-label">'+ev.l+'</span>'+
-        (notes.length?'<span class="sched-cal-detail-note">※'+notes.map(n=>n.note).join('／')+'</span>':'');
+        '<div class="sched-cal-detail-text">'+
+          '<div class="sched-cal-detail-head"><span class="sched-cal-detail-label">'+ev.l+'</span>'+(period?'<span class="sched-cal-detail-period">'+period+'</span>':'')+'</div>'+
+          (notes.length?'<div class="sched-cal-detail-note">※'+notes.map(n=>n.note).join('／')+'</div>':'')+
+        '</div>';
       detail.appendChild(detailRow);
     });
-    body.appendChild(detail);
+    container.appendChild(detail);
   }
+  return true;
 }

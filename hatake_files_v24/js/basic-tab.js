@@ -1,6 +1,8 @@
 // @ts-check
 // ===== 基礎知識タブ =====
 import { vegIconHtml } from './helpers.js';
+import { renderRegionalSchedule } from './regional-schedule.js';
+import { farmMeta } from './state.js';
 export function youtubeVideoId(url){
   if(!url)return null;
   const m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{11})/);
@@ -44,8 +46,17 @@ export function renderBasicTab(el,veg){
   if(bi.rootDepth)s1.appendChild(row('根の深さ',bi.rootDepth));
   wrap.appendChild(s1);
 
-  // 育成時期
-  if(bi.seasons){
+  // 育成時期：地域別の栽培カレンダー（regionalSchedule）があればそれを、無ければ従来の自由文(seasons)を表示する。
+  // カレンダーは幅の計測にDOM接続が要るため、ホストだけ用意してel.appendChild(wrap)の後で描画する
+  let calHost=null;
+  if(veg&&veg.regionalSchedule&&veg.regionalSchedule[farmMeta.region]){
+    const s2=section('育成時期の目安','ti-calendar');
+    calHost=document.createElement('div');s2.appendChild(calHost);
+    if(bi.seasons&&bi.seasons.firstFlower){ // カレンダーに無い項目だけ補う。上の詳細リストとの間は見出し下と同じ8pxを空ける
+      const ff=row('第一花',bi.seasons.firstFlower);ff.style.marginTop='8px';s2.appendChild(ff);
+    }
+    wrap.appendChild(s2);
+  }else if(bi.seasons){
     const s2=section('育成時期の目安','ti-calendar');
     const seas=[['土づくり','soilPrep'],['蒔きどき','sowing'],['定植時期','planting'],['第一花','firstFlower'],['収穫時期','harvest']];
     seas.forEach(([label,key])=>{if(bi.seasons[key])s2.appendChild(row(label,bi.seasons[key]));});
@@ -129,4 +140,5 @@ export function renderBasicTab(el,veg){
   }
 
   el.appendChild(wrap);
+  if(calHost)renderRegionalSchedule(calHost,veg);
 }

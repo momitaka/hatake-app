@@ -228,11 +228,10 @@ body.admin-mode #screen-manage .toolbar,body.admin-mode #screen-master .toolbar,
 .summary-stat-sub{font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-top:2px}
 .summary-memo-box{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);overflow:hidden;margin-bottom:10px}
 .summary-memo-box:last-child{margin-bottom:0}
-.sched-cal-summary-box .summary-memo-body{background:var(--color-background-primary)}
 .summary-memo-header{padding:8px 12px;background:var(--color-background-secondary);font-size:var(--fs-xs);font-weight:500;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:5px}
 .summary-memo-body{padding:10px 12px}
 .summary-memo-ta{width:100%;font-size:var(--fs-sm);padding:6px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);resize:vertical;min-height:64px;line-height:1.6}
-/* 地域別見通しスケジュールのカレンダー表示（TSK-65拡張）。renderRegionalScheduleSummaryとbuildRegionalScheduleBlockの両方から使う */
+/* 地域別見通しスケジュールのカレンダー表示（TSK-65拡張）。renderRegionalSchedule（基礎知識タブ）とbuildRegionalScheduleBlock（監修者向け）の両方から使う */
 .sched-cal-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;background:var(--color-background-primary);border-radius:var(--border-radius-md);padding:8px 8px 4px;margin-bottom:10px}
 .sched-cal-body{position:relative;z-index:0}
 .sched-cal-axis{display:flex;flex-shrink:0;margin:0 0 4px;position:relative;z-index:1}
@@ -247,10 +246,12 @@ body.admin-mode #screen-manage .toolbar,body.admin-mode #screen-master .toolbar,
 .sched-cal-today-line{position:absolute;top:0;bottom:0;border-left:1.5px dashed var(--color-text-tertiary);pointer-events:none;z-index:-1}
 .sched-cal-today-tri{position:absolute;top:-6px;width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid var(--color-text-tertiary);transform:translateX(-50%);pointer-events:none;z-index:-1}
 .sched-cal-detail{display:flex;flex-direction:column}
-.sched-cal-detail-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
-.sched-cal-detail-row:last-child{border-bottom:none}
+.sched-cal-detail-row{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
 .sched-cal-detail-label{font-size:var(--fs-sm);color:var(--color-text-primary);font-weight:500}
-.sched-cal-detail-note{font-size:var(--fs-xs);color:var(--color-text-tertiary)}
+.sched-cal-detail-text{flex:1;min-width:0}
+.sched-cal-detail-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;min-height:22px;align-content:center}
+.sched-cal-detail-period{font-size:var(--fs-sm);color:var(--color-text-secondary)}
+.sched-cal-detail-note{font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-top:2px}
 .sched-cal-badge{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 22px;color:#fff;font-size:12px}
 .summary-save-btn{font-size:var(--fs-xs);padding:4px 12px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-success);background:var(--color-background-success);color:var(--color-text-success);cursor:pointer;margin-top:6px;font-weight:500;display:inline-flex;align-items:center;gap:4px}
 .log-section-title{font-size:var(--fs-sm);font-weight:500;color:var(--color-text-secondary);margin-bottom:10px;display:flex;align-items:center;gap:5px}
