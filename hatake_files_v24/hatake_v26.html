@@ -617,7 +617,7 @@ body{
             <option value="middle">中間地</option>
             <option value="warm">暖地</option>
           </select>
-          <div style="font-size:var(--fs-xs);color:var(--color-text-tertiary)">「野菜を追加」時の地域の初期値になります（栽培レシピごとに変更可）。</div>
+          <div style="font-size:var(--fs-xs);color:var(--color-text-tertiary)">「栽培レシピを追加」時の地域の初期値になります（栽培レシピごとに変更可）。</div>
         </div>
         <hr class="divider farm-settings-only" style="margin:10px 0">
         <div class="settings-section-label farm-settings-only">天気表示（畑の位置）</div>
@@ -707,7 +707,7 @@ body{
       <button class="btn-grid-chip btn-master" id="btn-master-back" style="justify-self:start"><i class="ti ti-arrow-left" style="font-size:var(--fs-xs)"></i>畑へ戻る</button>
       <span style="font-size:var(--fs-base);font-weight:600;color:#fff;text-align:center">栽培レシピ</span>
       <div style="display:flex;gap:6px;align-items:center;justify-self:end">
-        <button class="btn-grid-chip diy-add-btn" id="btn-add-veg"><i class="ti ti-plus" style="font-size:var(--fs-xs)"></i>野菜を追加</button>
+        <button class="btn-grid-chip diy-add-btn" id="btn-add-veg"><i class="ti ti-plus" style="font-size:var(--fs-xs)"></i>栽培レシピを追加</button>
         <div id="master-toolbar-btns" style="display:none;gap:6px;align-items:center"></div>
       </div>
     </div>
@@ -761,8 +761,8 @@ body{
     </div>
     <div id="dlg-preview" style="font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-bottom:12px"></div>
     <div id="dlg-plot-history" style="display:none;margin-bottom:12px;padding:9px 11px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary)"></div>
-    <div id="dlg-no-veg" style="display:none;margin-bottom:14px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);font-size:var(--fs-sm);color:var(--color-text-secondary);line-height:1.6">登録できる野菜がありません。<br>先に栽培レシピに野菜を追加してください。<br><button id="dlg-go-master" class="btn-primary" style="margin-top:8px;font-size:var(--fs-sm);padding:5px 14px">栽培レシピに追加する</button></div>
-    <div id="dlg-crop-field" class="dlg-field"><label>野菜</label><select id="dlg-crop"><option value="">— 選択してください —</option></select><div style="margin-top:11px"><button id="dlg-add-new-veg" style="font-size:var(--fs-xs);color:var(--color-text-secondary);background:none;border:none;cursor:pointer;padding:8px 0;display:inline-flex;align-items:center;gap:3px"><i class="ti ti-plus" style="font-size:var(--fs-xs)"></i>新しい野菜を追加する</button></div></div>
+    <div id="dlg-no-veg" style="display:none;margin-bottom:14px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);font-size:var(--fs-sm);color:var(--color-text-secondary);line-height:1.6">登録できる栽培レシピがありません。<br>先に栽培レシピを追加してください。<br><button id="dlg-go-master" class="btn-primary" style="margin-top:8px;font-size:var(--fs-sm);padding:5px 14px">栽培レシピに追加する</button></div>
+    <div id="dlg-crop-field" class="dlg-field"><label>栽培レシピ</label><select id="dlg-crop"><option value="">— 選択してください —</option></select><div style="margin-top:11px"><button id="dlg-add-new-veg" style="font-size:var(--fs-xs);color:var(--color-text-secondary);background:none;border:none;cursor:pointer;padding:8px 0;display:inline-flex;align-items:center;gap:3px"><i class="ti ti-plus" style="font-size:var(--fs-xs)"></i>オリジナル栽培レシピを登録する</button></div></div>
     <div id="dlg-link-field" style="display:none;margin-bottom:14px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);overflow:hidden">
       <button type="button" id="dlg-link-toggle" style="width:100%;padding:7px 10px;background:var(--color-background-secondary);border:none;font-size:var(--fs-xs);color:var(--color-text-secondary);display:flex;align-items:center;gap:5px;cursor:pointer;text-align:left"><i class="ti ti-link" style="font-size:var(--fs-xs)"></i><span id="dlg-link-label" style="flex:1">他の栽培区画と連携する（任意）</span><i class="ti ti-chevron-down" id="dlg-link-chevron" style="font-size:var(--fs-xs)"></i></button>
       <div id="dlg-link-body" style="display:none;border-top:0.5px solid var(--color-border-tertiary)">
@@ -776,7 +776,7 @@ body{
 
 <div id="dlg-add-veg" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:99;background:rgba(0,0,0,0.4)">
   <div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.25rem;min-width:260px;max-width:340px;width:90%;max-height:90vh;overflow-y:auto">
-    <div style="font-size:var(--fs-base);font-weight:500;margin-bottom:14px;display:flex;align-items:center;gap:6px"><i class="ti ti-plant" style="color:#5aad4e"></i>野菜を追加</div>
+    <div style="font-size:var(--fs-base);font-weight:500;margin-bottom:14px;display:flex;align-items:center;gap:6px"><i class="ti ti-plant" style="color:#5aad4e"></i>栽培レシピを追加</div>
     <div class="dlg-field market-only" style="margin-bottom:2px"><button type="button" class="btn" id="btn-open-market" style="width:100%"><i class="ti ti-shopping-cart"></i>レシピを探す（購入する）</button></div>
     <div class="market-only" style="font-size:var(--fs-xs);color:var(--color-text-tertiary);text-align:center;margin:2px 0 6px">または</div>
     <div class="dlg-field"><label id="av-preset-label">プリセットを反映</label><select id="av-preset"><option value="">— プリセット野菜 —</option></select></div>
