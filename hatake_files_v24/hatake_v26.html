@@ -1039,6 +1039,7 @@ import { applyGridBg, renderSegList, renderLegend, applyGrid, applyAisles, rende
 import { openMarketList, closeMarketList, openMarketDetail, backToMarketList, renderMarketList, renderMarketDetail } from './js/marketplace.js';
 import { renderMasterList, renderMasterDetail, renderMasterSaveBar, aiGenerate } from './js/master-recipes.js';
 import { renderBasicTab } from './js/basic-tab.js';
+import { loadVegMaster } from './js/veg-master.js';
 
 // ===== モジュール化ブリッジ =====
 // type="module"化により関数宣言が自動でwindowグローバルにならなくなったため、
@@ -1084,6 +1085,8 @@ loadLS();renderLegend();renderGrid();
 // マーケットプレイス版はログイン（会員確認）が済むまでmarketAuth.userIdが無いため、
 // ここでは何もせずfalseが返る。ログイン後にAuth処理側から改めて呼び出す。
 loadFromDB().then(_applyLoadedData);
+// 野菜マスタ(確定済みの基礎知識)を取得。表示側はまだ使っていない(TSK-76第1段階)。失敗しても何もしない
+loadVegMaster();
 
 
 </script>
