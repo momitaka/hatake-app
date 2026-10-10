@@ -16,6 +16,8 @@ export function permCanEditFarm(){return permRequireAdmin()||_dataStrategy==='se
 let _myPurchasedRecipes=[];
 async function _populateAddVegPreset(){
   const sel=document.getElementById('av-preset');const label=document.getElementById('av-preset-label');
+  const kindSel=/** @type {HTMLSelectElement} */ (document.getElementById('av-kind'));const kindField=document.getElementById('av-kind-field');
+  kindField.style.display='none';kindSel.innerHTML='';
   if(_dataStrategy==='session'&&!permState.isAdmin&&!permState.isSupervisor&&marketAuth.userId){
     label.textContent='購入したレシピから選ぶ';
     sel.innerHTML='<option value="">— 購入したレシピ —</option>';
@@ -27,6 +29,10 @@ async function _populateAddVegPreset(){
       if(res.ok)_myPurchasedRecipes=await res.json();
     }catch(e){console.error('user_recipes load error',e);}
     _myPurchasedRecipes.forEach(r=>{const op=document.createElement('option');op.value=r.id;op.textContent=(r.emoji||'')+' '+r.name;sel.appendChild(op);});
+    // 購入レシピ一覧に置き換わっている間も、自作(DIY)で種別を選べる入口を出す
+    kindSel.innerHTML='<option value="">— 種別 —</option>';
+    PRESET_VEGS.forEach(v=>{const op=document.createElement('option');op.value=v.id;op.textContent=`${v.emoji} ${v.name}`;kindSel.appendChild(op);});
+    kindField.style.display='';
   }else{
     label.textContent='プリセットを反映';
     sel.innerHTML='<option value="">— プリセット野菜 —</option>';
@@ -52,8 +58,21 @@ document.getElementById('btn-add-veg-cancel').addEventListener('click',()=>{docu
 document.getElementById('dlg-add-veg').addEventListener('mousedown',e=>{if(e.target===e.currentTarget)document.getElementById('dlg-add-veg').style.display='none';});
 // openMarketListはjs/marketplace.js抽出までのwindow経由の一時ブリッジ
 document.getElementById('btn-open-market').addEventListener('click',()=>openMarketList());
+/** プリセット(種別)を選んだときの名前・アイコン・科の自動入力 @param {string} val プリセットID */
+function _applyPresetFields(val){
+  const preset=PRESET_VEGS.find(v=>v.id===val);
+  if(preset){/** @type {HTMLInputElement} */ (document.getElementById('av-name')).value=preset.name;addVegState.emoji=preset.emoji;addVegState.iconFile=preset.iconFile||null;renderEmojiGrid();/** @type {HTMLSelectElement} */ (document.getElementById('av-family')).value=preset.family||'';}
+}
+// 購入レシピ選択と種別選択は排他。片方を選んだらもう片方は空に戻す
+document.getElementById('av-kind').addEventListener('change',()=>{
+  const val=/** @type {HTMLSelectElement} */ (document.getElementById('av-kind')).value;
+  if(val)/** @type {HTMLSelectElement} */ (document.getElementById('av-preset')).value='';
+  _applyPresetFields(val);
+  checkAddVegValid();
+});
 document.getElementById('av-preset').addEventListener('change',()=>{
   const val=/** @type {HTMLSelectElement} */ (document.getElementById('av-preset')).value;
+  if(val)/** @type {HTMLSelectElement} */ (document.getElementById('av-kind')).value='';
   const purchased=_myPurchasedRecipes.find(r=>r.id===val);
   if(purchased){
     /** @type {HTMLInputElement} */ (document.getElementById('av-name')).value=purchased.name;
@@ -66,8 +85,7 @@ document.getElementById('av-preset').addEventListener('change',()=>{
     /** @type {HTMLInputElement} */ (document.getElementById('av-ref-url')).value=purchased.reference_video_url||'';
     /** @type {HTMLSelectElement} */ (document.getElementById('av-family')).value=purchased.family||'';
   }else{
-    const preset=PRESET_VEGS.find(v=>v.id===val);
-    if(preset){/** @type {HTMLInputElement} */ (document.getElementById('av-name')).value=preset.name;addVegState.emoji=preset.emoji;addVegState.iconFile=preset.iconFile||null;renderEmojiGrid();/** @type {HTMLSelectElement} */ (document.getElementById('av-family')).value=preset.family||'';}
+    _applyPresetFields(val);
   }
   checkAddVegValid();
 });
@@ -99,10 +117,13 @@ document.getElementById('av-icon-upload').addEventListener('change',e=>{
 export function renderEmojiGrid(){const grid=document.getElementById('av-emoji-grid');grid.innerHTML='';const customEntries=Object.keys(masterData.customIcons).map(k=>({emoji:'',iconFile:k,isCustom:true}));[...ALL_ICONS,...customEntries].forEach(icon=>{const isSelected=icon.iconFile?icon.iconFile===addVegState.iconFile:(!addVegState.iconFile&&icon.emoji===addVegState.emoji);const opt=document.createElement('div');opt.className='emoji-opt'+(isSelected?' selected':'');opt.style.position='relative';const src=icon.iconFile?(ICON_B64[icon.iconFile]||masterData.customIcons[icon.iconFile]||null):null;if(src){opt.innerHTML=`<img src="${src}" width="24" height="24" style="object-fit:contain">`;}else{opt.textContent=icon.emoji;}if(icon.isCustom){const del=document.createElement('div');del.innerHTML='<i class="ti ti-x"></i>';del.style.cssText='position:absolute;top:-5px;right:-5px;width:14px;height:14px;border-radius:50%;background:#e53;color:#fff;font-size:8px;display:flex;align-items:center;justify-content:center;cursor:pointer';del.addEventListener('click',e=>{e.stopPropagation();delete masterData.customIcons[icon.iconFile];if(addVegState.iconFile===icon.iconFile){addVegState.iconFile=null;addVegState.emoji='🌱';}saveLS();renderEmojiGrid();});opt.appendChild(del);}opt.addEventListener('click',()=>{addVegState.emoji=icon.emoji;addVegState.iconFile=icon.iconFile||null;renderEmojiGrid();});grid.appendChild(opt);});}
 document.getElementById('av-next').addEventListener('click',()=>{
   if(!permCanEditFarm())return;
-  const name=/** @type {HTMLInputElement} */ (document.getElementById('av-name')).value.trim();const variety=/** @type {HTMLInputElement} */ (document.getElementById('av-variety')).value.trim();const presetId=/** @type {HTMLSelectElement} */ (document.getElementById('av-preset')).value;const preset=PRESET_VEGS.find(v=>v.id===presetId);const purchased=_myPurchasedRecipes.find(r=>r.id===presetId);if(!name)return;
+  const name=/** @type {HTMLInputElement} */ (document.getElementById('av-name')).value.trim();const variety=/** @type {HTMLInputElement} */ (document.getElementById('av-variety')).value.trim();const kindId=/** @type {HTMLSelectElement} */ (document.getElementById('av-kind')).value;const presetId=/** @type {HTMLSelectElement} */ (document.getElementById('av-preset')).value||kindId;const purchased=_myPurchasedRecipes.find(r=>r.id===presetId);if(!name)return;
   const id=purchased?`veg_${Date.now()}`:(presetId&&!masterData.vegMaster[presetId]?presetId:`veg_${Date.now()}`);
+  // 種別(野菜キー)。idは区画・アーカイブが参照するので変えず、別に持つ。
+  // プリセット=プリセットID(2回目以降の登録でも同じ)/購入レシピ=recipes.veg_keyを引き継ぐ/自由入力=なし
+  const vegKey=purchased?(purchased.veg_key||undefined):(presetId||undefined);
   const growMethod=/** @type {HTMLSelectElement} */ (document.getElementById('av-grow-method')).value;const refUrl=/** @type {HTMLInputElement} */ (document.getElementById('av-ref-url')).value.trim();const season=/** @type {HTMLSelectElement} */ (document.getElementById('av-season')).value;const region=/** @type {HTMLSelectElement} */ (document.getElementById('av-region')).value;const family=/** @type {HTMLSelectElement} */ (document.getElementById('av-family')).value;
-  masterData.vegMaster[id]={id,name,emoji:addVegState.emoji,iconFile:addVegState.iconFile||undefined,family,variety,growMethod,season,region,referenceUrl:refUrl,phases:purchased?JSON.parse(JSON.stringify(purchased.phases||[])):[],basicInfo:purchased?JSON.parse(JSON.stringify(purchased.basic_info||{})):undefined,regionalSchedule:purchased?JSON.parse(JSON.stringify(purchased.regional_schedule||{})):undefined};
+  masterData.vegMaster[id]={id,vegKey,name,emoji:addVegState.emoji,iconFile:addVegState.iconFile||undefined,family,variety,growMethod,season,region,referenceUrl:refUrl,phases:purchased?JSON.parse(JSON.stringify(purchased.phases||[])):[],basicInfo:purchased?JSON.parse(JSON.stringify(purchased.basic_info||{})):undefined,regionalSchedule:purchased?JSON.parse(JSON.stringify(purchased.regional_schedule||{})):undefined};
   navState.masterVeg=id;saveLS();document.getElementById('dlg-add-veg').style.display='none';
   renderMasterList();renderMasterDetail();showMasterView('detail');
 });

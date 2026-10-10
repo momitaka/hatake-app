@@ -91,6 +91,20 @@ export function stripPhaseSuffix(name){return name&&name.endsWith('フェーズ'
 export const UNITS=['個','g','kg','袋','束','本'];
 export const SIZE_LABELS=['小','中','大','過大','不良'];
 
+/**
+ * 栽培レシピの「種別(野菜キー)」を返す。基礎知識マスタ(veg_basic_info_defaults)を引く鍵。
+ * veg.vegKeyがあればそれを使う。無い場合も、veg.idがプリセットIDと一致する既存の野菜
+ * (プリセットを初回登録したもの)はそのIDを種別とみなす。それ以外(自由入力など)はnull。
+ * 保存データは書き換えない。
+ * @param {{id?:string,vegKey?:string}|null|undefined} veg
+ * @returns {string|null}
+ */
+export function getVegKey(veg){
+  if(!veg)return null;
+  if(veg.vegKey)return veg.vegKey;
+  return veg.id&&PRESET_VEGS.some(p=>p.id===veg.id)?veg.id:null;
+}
+
 
 /** @type {Array<{emoji:string,iconFile:string|null,isCustom?:boolean}>} */
 export const ALL_ICONS=PRESET_VEGS.map(p=>({emoji:p.emoji,iconFile:p.iconFile||null})).concat([{emoji:'🌱',iconFile:null},{emoji:'🍀',iconFile:null},{emoji:'🌾',iconFile:null},{emoji:'🥜',iconFile:null},{emoji:'🍄',iconFile:null},{emoji:'🌰',iconFile:null}]);

@@ -1,7 +1,7 @@
 // @ts-check
 // ===== 栽培レシピ（マスタ）画面 =====
 import { masterData, navState, permState, gridState, addVegState, segData, SUPABASE_ANON_KEY } from './state.js';
-import { vegIconHtml, FAMILIES, GROW_METHOD_OPTIONS, SEASON_OPTIONS, REGION_OPTIONS, optionLabel, SCHEDULE_EVENT_OPTIONS, MONTH_PART_OPTIONS, SCHEDULE_CONSTRAINT_TYPE_OPTIONS, scheduleEventVisibility } from './helpers.js';
+import { getVegKey, vegIconHtml, FAMILIES, GROW_METHOD_OPTIONS, SEASON_OPTIONS, REGION_OPTIONS, optionLabel, SCHEDULE_EVENT_OPTIONS, MONTH_PART_OPTIONS, SCHEDULE_CONSTRAINT_TYPE_OPTIONS, scheduleEventVisibility } from './helpers.js';
 import { showAlert, showConfirm, showTextPromptDialog } from './dialogs.js';
 import { createScheduleAxis, createScheduleTrack, populateScheduleTrack, addScheduleGrid, addScheduleToday, scrollScheduleToToday } from './regional-schedule.js';
 import { saveLS } from './storage.js';
@@ -425,6 +425,7 @@ const SUPABASE_FUNCTION_URL='https://rkubnugczjlsxskomknm.supabase.co/functions/
 
 export async function aiGenerate(vegId){
   const veg=masterData.vegMaster[vegId];if(!veg)return;
+  const vegKey=getVegKey(veg);
   const inUse=Object.values(gridState.cells).some(c=>c.crop===vegId);
   const doGenerate=async()=>{
     const btn=/** @type {HTMLButtonElement|null} */ (document.getElementById('btn-ai-gen'));
@@ -440,7 +441,7 @@ export async function aiGenerate(vegId){
           season:veg.season||'',
           region:veg.region||'',
           referenceUrl:veg.referenceUrl||'',
-          vegKey:vegId
+          vegKey:vegKey||undefined
         })
       });
       if(!res.ok){const e=await res.json();throw new Error(e.error||'生成に失敗しました');}
@@ -455,7 +456,9 @@ export async function aiGenerate(vegId){
       saveLS();renderMasterDetail();
       const basicInfoMsg=data.basicInfoSource==='existing'
         ?`基礎知識は「${veg.name}」の既存の初期値を使用しました（このレシピ内で自由に編集できます）。`
-        :`基礎知識は「${veg.name}」として新規生成し、この品種の初期値として保存しました。`;
+        :vegKey
+          ?`基礎知識は「${veg.name}」として新規生成し、この品種の初期値として保存しました。`
+          :`基礎知識は「${veg.name}」として新規生成しました（種別が無いため初期値としては保存していません）。`;
       showAlert(`「${veg.name}」の工程表をAIで生成しました！\n${basicInfoMsg}`);
     }catch(e){
       showAlert(`工程表の生成に失敗しました。（${e.message}）`);

@@ -29,7 +29,12 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { vegName, family, growMethod, season, region, referenceUrl, vegKey } = await req.json();
+    const { vegName, family, growMethod, season, region, referenceUrl, vegKey: rawVegKey } = await req.json();
+
+    // 種別(野菜キー)が無い自由入力は、基礎知識の既定値表(veg_basic_info_defaults)を読み書きしない。
+    // 旧クライアントがveg.id(veg_+タイムスタンプ)を送ってくる場合も種別ではないので無視する。
+    const vegKey: string | null =
+      typeof rawVegKey === 'string' && rawVegKey && !/^veg_\d+$/.test(rawVegKey) ? rawVegKey : null;
 
     // 品種（veg_key）単位の基礎知識デフォルト値を確認。
     // 既にあれば使い回し、無ければAI生成後に登録する（先勝ち）。
