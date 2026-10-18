@@ -88,9 +88,12 @@ export function renderBasicTab(el,veg){
   // 栽培ポイント
   const s5=section('栽培ポイント','ti-tool');
   if(bi.seedTuberPreparation)s5.appendChild(row('種いもの準備',bi.seedTuberPreparation));
+  if(bi.seedlingQuality)s5.appendChild(row('定植する苗',bi.seedlingQuality));
+  if(bi.plantingTiming)s5.appendChild(row('定植時期',bi.plantingTiming));
   if(bi.plantingDepthAndSpacing)s5.appendChild(row('植え付け',bi.plantingDepthAndSpacing));
   if(bi.hillingAndSprouting)s5.appendChild(row('芽かき・土寄せ',bi.hillingAndSprouting));
   if(bi.continuousCropping)s5.appendChild(row('連作障害',bi.continuousCropping));
+  if(bi.harvestSigns)s5.appendChild(row('収穫の目安',bi.harvestSigns));
   if(bi.pollination)s5.appendChild(row('受粉',bi.pollination));
   if(bi.methods&&bi.methods.length){
     const mv=document.createElement('div');mv.style.cssText='display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px';
