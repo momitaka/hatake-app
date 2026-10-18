@@ -44,7 +44,7 @@ export function renderBasicTab(el,veg){
   if(bi.yieldPerPlant)s1.appendChild(row('収穫目安',bi.yieldPerPlant));
   if(bi.soilPH)s1.appendChild(row('適正pH',bi.soilPH));
   if(bi.rootDepth)s1.appendChild(row('根の深さ',bi.rootDepth));
-  wrap.appendChild(s1);
+  if(s1.children.length>1)wrap.appendChild(s1);
 
   // 育成時期：地域別の栽培カレンダー（regionalSchedule）があればそれを、無ければ従来の自由文(seasons)を表示する。
   // カレンダーは幅の計測にDOM接続が要るため、ホストだけ用意してel.appendChild(wrap)の後で描画する
@@ -66,12 +66,15 @@ export function renderBasicTab(el,veg){
   // 発芽・生育特性
   const s3=section('発芽・生育特性','ti-seedling');
   if(bi.germinationTemp)s3.appendChild(row('発芽適温',bi.germinationTemp));
+  if(bi.sproutingTemp)s3.appendChild(row('萌芽・生育適温',bi.sproutingTemp));
   if(bi.germinationAccumulatedTemp)s3.appendChild(row('積算気温',bi.germinationAccumulatedTemp));
   if(bi.lightPreference)s3.appendChild(row('光への反応',bi.lightPreference));
+  if(bi.greening)s3.appendChild(row('緑化',bi.greening));
   if(bi.oxygenNeeds)s3.appendChild(row('酸素の好み',bi.oxygenNeeds));
+  if(bi.seedTuberDormancy)s3.appendChild(row('種いもの休眠',bi.seedTuberDormancy));
   if(bi.dormancy)s3.appendChild(row('休眠',bi.dormancy));
   if(bi.photoperiod)s3.appendChild(row('光周性',bi.photoperiod));
-  wrap.appendChild(s3);
+  if(s3.children.length>1)wrap.appendChild(s3);
 
   // 耐性
   const s4=section('環境への耐性','ti-thermometer');
@@ -80,10 +83,13 @@ export function renderBasicTab(el,veg){
   if(bi.droughtTolerance)s4.appendChild(row('耐乾性',bi.droughtTolerance));
   if(bi.wetTolerance)s4.appendChild(row('耐湿性',bi.wetTolerance));
   if(bi.pestResistance)s4.appendChild(row('耐病虫性',bi.pestResistance));
-  wrap.appendChild(s4);
+  if(s4.children.length>1)wrap.appendChild(s4);
 
   // 栽培ポイント
   const s5=section('栽培ポイント','ti-tool');
+  if(bi.seedTuberPreparation)s5.appendChild(row('種いもの準備',bi.seedTuberPreparation));
+  if(bi.plantingDepthAndSpacing)s5.appendChild(row('植え付け',bi.plantingDepthAndSpacing));
+  if(bi.hillingAndSprouting)s5.appendChild(row('芽かき・土寄せ',bi.hillingAndSprouting));
   if(bi.continuousCropping)s5.appendChild(row('連作障害',bi.continuousCropping));
   if(bi.pollination)s5.appendChild(row('受粉',bi.pollination));
   if(bi.methods&&bi.methods.length){
@@ -100,7 +106,7 @@ export function renderBasicTab(el,veg){
     const ll=document.createElement('div');ll.style.cssText='min-width:100px;color:var(--color-text-tertiary);flex-shrink:0;font-size:var(--fs-xs);padding-top:2px';ll.textContent='必要資材';
     rr.append(ll,mv);s5.appendChild(rr);
   }
-  wrap.appendChild(s5);
+  if(s5.children.length>1)wrap.appendChild(s5);
 
   // 病気・害虫
   if((bi.diseases&&bi.diseases.length)||(bi.pests&&bi.pests.length)){
@@ -111,9 +117,11 @@ export function renderBasicTab(el,veg){
       const badge=document.createElement('div');badge.style.cssText='font-size:var(--fs-xs);padding:1px 6px;border-radius:99px;'+(typeLabel==='病気'?'background:#FAECE7;color:#993C1D':'background:#FFF3E0;color:#92600B');badge.textContent=typeLabel;
       const name=document.createElement('div');name.style.cssText='font-size:var(--fs-base);font-weight:600;color:var(--color-text-primary)';name.textContent=item.name;
       top.append(badge,name);
-      const sym=document.createElement('div');sym.style.cssText='font-size:var(--fs-xs);color:var(--color-text-secondary);margin-bottom:3px';sym.textContent='症状：'+item.symptoms;
-      const treat=document.createElement('div');treat.style.cssText='font-size:var(--fs-xs);color:#2e7a28';treat.textContent='対策：'+item.treatment;
-      card.append(top,sym,treat);s6.appendChild(card);
+      card.appendChild(top);
+      // 症状・対策のどちらかが空(出典で確認できなかった)なら、その行は出さない
+      if(item.symptoms){const sym=document.createElement('div');sym.style.cssText='font-size:var(--fs-xs);color:var(--color-text-secondary);margin-bottom:3px';sym.textContent='症状：'+item.symptoms;card.appendChild(sym);}
+      if(item.treatment){const treat=document.createElement('div');treat.style.cssText='font-size:var(--fs-xs);color:#2e7a28';treat.textContent='対策：'+item.treatment;card.appendChild(treat);}
+      s6.appendChild(card);
     }
     (bi.diseases||[]).forEach(d=>diseaseCard(d,'病気'));
     (bi.pests||[]).forEach(p=>diseaseCard(p,'害虫'));
