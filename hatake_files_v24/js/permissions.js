@@ -33,6 +33,7 @@ document.getElementById('btn-admin-login').addEventListener('click',()=>{
   const pw=/** @type {HTMLInputElement} */ (document.getElementById('s-admin-pw')).value;
   if(pw===ADMIN_PASSWORD){
     permState.isAdmin=true;
+    permState.isSupervisor=true; // 起動時のlocalStorage判定と同じ状態にする（再読み込みせず監修者専用操作を有効化）
     // セッション版はlocalStorageに管理者フラグを書かない（セッション限定）
     if(_dataStrategy!=='session')localStorage.setItem('hatake_admin','1');
     permApply();
@@ -40,6 +41,7 @@ document.getElementById('btn-admin-login').addEventListener('click',()=>{
     showAlert('管理者モードになりました。');
   }else if(pw===''){
     permState.isAdmin=false;
+    permState.isSupervisor=false;
     localStorage.removeItem('hatake_admin');
     permApply();
   }else{showAlert('パスワードが違います。');}
