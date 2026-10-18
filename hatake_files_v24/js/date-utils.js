@@ -3,8 +3,10 @@
 
 /** @param {number} r @param {number} c @returns {string} グリッドセルキー("行,列") */
 export const K=(r,c)=>`${r},${c}`;
+/** @param {Date} d @returns {string} ローカル日付をYYYY-MM-DD形式で返す（toISOStringはUTC基準で日本の0〜9時台に前日になるため使わない） */
+export const toLocalISO=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 /** @returns {string} 今日の日付をYYYY-MM-DD形式で返す */
-export const todayISO=()=>new Date().toISOString().slice(0,10);
+export const todayISO=()=>toLocalISO(new Date());
 
 /** @param {string} yId @param {string} mId @param {string} dId @param {string} [isoVal] */
 export function initDateSelects(yId,mId,dId,isoVal){

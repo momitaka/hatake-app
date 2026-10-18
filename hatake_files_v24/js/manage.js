@@ -306,7 +306,7 @@ export function renderLogTab(el,seg){
   const allTaskDates=[];const _seg2=segData.segs[navState.seg];if(_seg2){const _veg2=getVeg(_seg2.crop);if(_veg2&&_veg2.phases){_veg2.phases.forEach(ph=>{ph.tasks.forEach(t=>{(getTaskState(navState.seg,t.id).doneDates||[]).forEach(d=>{const iso=dispToISO(d.date);if(iso)allTaskDates.push(iso);});});});}}
   allTaskDates.sort();
   let workPeriodVal='—',workPeriodSub='';
-  if(seg.plantDate){const today=new Date().toISOString().slice(0,10);const elapsed=daysBetween(seg.plantDate,today);workPeriodVal=`${isoShort(seg.plantDate)}〜 （${elapsed}日経過）`;}
+  if(seg.plantDate){const today=todayISO();const elapsed=daysBetween(seg.plantDate,today);workPeriodVal=`${isoShort(seg.plantDate)}〜 （${elapsed}日経過）`;}
   const growMethod=veg?veg.growMethod||'seedling':'seedling';
   const isSeed=growMethod==='seed_pot'||growMethod==='seed_ground';
   const sowingDate=getMilestoneDate(navState.seg,seg.crop,'sowing');

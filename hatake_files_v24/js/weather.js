@@ -2,6 +2,7 @@
 // ===== 天気表示（畑の位置の過去7日実績・今後7日予報） =====
 // データ元: Open-Meteo（無料・APIキー不要）
 import { farmMeta } from './state.js';
+import { todayISO } from './date-utils.js';
 import { saveLS } from './storage.js';
 import { openSettings } from './settings-dialog.js';
 import { permCanEditFarm } from './add-veg.js';
@@ -85,7 +86,7 @@ export async function renderWeatherBar(){
   if(!result||!result.daily||!result.daily.time){widget.style.display='none';return null;}
   const data=result.daily;
   widget.style.display='block';
-  const todayStr=new Date().toISOString().slice(0,10);
+  const todayStr=todayISO();
   let todayIdx=data.time.indexOf(todayStr);
   if(todayIdx<0)todayIdx=0;
   const pastTotal=data.precipitation_sum.slice(0,todayIdx).reduce((a,b)=>a+b,0);
