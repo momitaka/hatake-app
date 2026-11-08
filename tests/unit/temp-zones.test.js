@@ -1,6 +1,6 @@
 // @ts-check
 import { describe, it, expect } from 'vitest';
-import { judgeTemp, judgeStage, formatStageZones, EGGPLANT_TEMP_ZONES_SAMPLE as Z, CARROT_TEMP_ZONES_SAMPLE as C } from '../../hatake_files_v24/js/temp-zones.js';
+import { judgeTemp, judgeStage, formatStageZones, pickTaskStage, summarizeWeek, formatShortRange, EGGPLANT_TEMP_ZONES_SAMPLE as Z, CARROT_TEMP_ZONES_SAMPLE as C } from '../../hatake_files_v24/js/temp-zones.js';
 
 describe('judgeTemp', () => {
   const zone = { optMin: 20, optMax: 30 };
@@ -80,5 +80,44 @@ describe('formatStageZones（ニンジン）', () => {
   });
   it('生育：適温だけ', () => {
     expect(formatStageZones(C.growth)).toBe('日平均15〜25℃が適温');
+  });
+});
+
+describe('pickTaskStage', () => {
+  it('基準日より前（土づくり等）はステージ無し', () => {
+    expect(pickTaskStage(-5, 10, true)).toBeNull();
+    expect(pickTaskStage(-5, 10, false)).toBeNull();
+  });
+  it('種から育てる：基準日から発芽の目印の前日までは発芽、目印以降は生育', () => {
+    expect(pickTaskStage(0, 10, true)).toBe('germination');
+    expect(pickTaskStage(9, 10, true)).toBe('germination');
+    expect(pickTaskStage(10, 10, true)).toBe('growth');
+  });
+  it('苗を定植する：発芽の目印（活着確認への流用など）があっても、定植後はすべて生育', () => {
+    expect(pickTaskStage(0, 7, false)).toBe('growth');
+    expect(pickTaskStage(3, 7, false)).toBe('growth');
+  });
+  it('発芽の目印が無いレシピは生育のみ', () => {
+    expect(pickTaskStage(0, null, true)).toBe('growth');
+    expect(pickTaskStage(30, undefined, true)).toBe('growth');
+  });
+});
+
+describe('summarizeWeek / formatShortRange', () => {
+  it('期間の日平均の平均で判定し、障害域の日数は別に数える（ナス生育）', () => {
+    const w = summarizeWeek(Z.growth, [{ max: 17, min: 6 }, { max: 20, min: 12 }, { max: 24, min: 15 }]);
+    expect(w?.level).toBe('low'); // 日平均 11.5, 16, 19.5 → 平均約15.7℃
+    expect(w?.dangerLow).toBe(1); // 夜6℃の日だけ
+    expect(w?.dangerHigh).toBe(0);
+    expect(w?.minNight).toBe(6);
+    expect(w?.days).toBe(3);
+  });
+  it('範囲が無い・予報が空ならnull', () => {
+    expect(summarizeWeek(undefined, [{ max: 20, min: 10 }])).toBeNull();
+    expect(summarizeWeek(Z.growth, [])).toBeNull();
+  });
+  it('短い適温表示', () => {
+    expect(formatShortRange(Z.growth)).toBe('適温の目安 20〜30℃');
+    expect(formatShortRange(undefined)).toBe('');
   });
 });

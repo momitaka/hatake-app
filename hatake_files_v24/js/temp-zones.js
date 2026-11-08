@@ -43,6 +43,38 @@ export function formatStageZones(stage){
   return `日平均${stage.mean.optMin}〜${stage.mean.optMax}℃が適温`+(limits.length?`（${limits.join('・')}は障害域）`:'');
 }
 
+/** フェーズ（作業）のステージは「レシピ上の位置（経過日数ベース）」で決める。表示する日付がレシピの経過日数から出た日なので、ステージも同じ基準でそろえる
+ * （進捗ベースだと、発芽を記録する前は2週間先まで発芽ステージになってしまう）。
+ * 基準日（種まき、無ければ定植）より前は土づくり等なのでステージ無し。種から育てるレシピ(種まきが基準)は、基準日から発芽の目印の作業の前日まで＝発芽、それ以降＝生育。
+ * 苗を定植するレシピ(定植が基準)は、発芽の目印が活着確認などに流用されていることがあるため目印を使わず、定植後はすべて生育。発芽の目印が無いレシピも生育のみ
+ * @param {number} relDay 基準日からの相対日 @param {number|null|undefined} germinationRelDay 発芽の目印(milestone==='germination')の相対日。無ければnull
+ * @param {boolean} fromSeed 種まき(milestone==='sowing')が基準のレシピか @returns {'germination'|'growth'|null} */
+export function pickTaskStage(relDay,germinationRelDay,fromSeed){
+  if(relDay<0)return null;
+  if(fromSeed&&germinationRelDay!=null&&relDay<germinationRelDay)return 'germination';
+  return 'growth';
+}
+
+/** @type {Record<TempLevel,string>} 初心者にも分かる言葉。障害域は断定を避けて「注意」 */
+export const TEMP_LEVEL_LABELS={'danger-low':'低すぎ注意','low':'低め','optimal':'適温','high':'高め','danger-high':'高すぎ注意'};
+
+/** @typedef {{level:TempLevel,avgMean:number,minNight:number,days:number,dangerLow:number,dangerHigh:number}} WeekSummary */
+/** フェーズ見出しに出す「今後7日の予報」の要約。判定は期間の日平均の平均で行い（level。障害域の値は混ぜない）、障害域に当たる日数は別に数える。範囲の無いステージ・予報が空ならnull
+ * @param {StageTempZones|null|undefined} stage @param {DailyTemp[]} temps @returns {WeekSummary|null} */
+export function summarizeWeek(stage,temps){
+  if(!stage||!stage.mean||!temps.length)return null;
+  const avgMean=temps.reduce((a,t)=>a+(t.max+t.min)/2,0)/temps.length;
+  const minNight=Math.min(...temps.map(t=>t.min));
+  let dangerLow=0,dangerHigh=0;
+  temps.forEach(t=>{const l=judgeStage(stage,t)?.level;if(l==='danger-low')dangerLow++;else if(l==='danger-high')dangerHigh++;});
+  return {level:judgeTemp(avgMean,stage.mean),avgMean,minNight,days:temps.length,dangerLow,dangerHigh};
+}
+
+/** @param {StageTempZones|null|undefined} stage @returns {string} 見出し用の短い適温表示「適温の目安 20〜30℃」。範囲が無ければ空文字 */
+export function formatShortRange(stage){
+  return stage&&stage.mean?`適温の目安 ${stage.mean.optMin}〜${stage.mean.optMax}℃`:'';
+}
+
 /** ナスの試作データ。適温は東北交配種苗「まき時早見表」(果菜類)、障害域の境界は長野県「野菜栽培指標」の限界温度。
  * 長野県は昼の最高限界30〜40℃・夜の最低温度10〜13℃と幅で示すため、赤(障害域)は幅の外側寄り(昼は中央の35℃、夜は低い側の10℃)に置き、幅の中は黄色(低め/高め)に倒す
  * @type {TempZones} */

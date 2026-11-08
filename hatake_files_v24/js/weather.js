@@ -58,6 +58,25 @@ async function getWeather(lat,lng){
   return data;
 }
 
+/** @returns {Promise<DailyWeather|null>} 畑の位置の日別の天気（過去7日＋今後7日）。位置が未設定・取得失敗ならnull。天気バーとキャッシュを共有する */
+export async function getDailyWeather(){
+  if(farmMeta.lat==null||farmMeta.lng==null)return null;
+  const result=await getWeather(farmMeta.lat,farmMeta.lng);
+  return result&&result.daily&&result.daily.time?result.daily:null;
+}
+
+/** @param {DailyWeather} data @param {number} i @param {boolean} isToday @returns {HTMLElement} 天気バーと、工程表のフェーズ見出しの気温カレンダーで共通の、1日分のセル */
+export function buildWeatherDayCell(data,i,isToday){
+  const d=new Date(data.time[i]+'T00:00:00');
+  const cell=document.createElement('div');
+  cell.className='weather-day'+(isToday?' weather-day-today':'');
+  cell.innerHTML=`<div class="weather-day-label">${WEEKDAYS[d.getDay()]}<br>${d.getMonth()+1}/${d.getDate()}</div>`+
+    `<div class="weather-day-emoji">${weatherEmoji(data.weathercode[i])}</div>`+
+    `<div class="weather-day-precip">${fmtPrecip(data.precipitation_sum[i])}</div>`+
+    `<div class="weather-day-temp">${Math.round(data.temperature_2m_max[i])}°/${Math.round(data.temperature_2m_min[i])}°</div>`;
+  return cell;
+}
+
 /** @param {string} emoji @param {string} text @returns {string} */
 function buildSummaryHtml(emoji,text){
   return `<span>${emoji}</span><span class="weather-summary-text">${text}</span><i class="ti ${expanded?'ti-chevron-up':'ti-chevron-down'}" id="weather-toggle-icon"></i>`;
@@ -95,17 +114,7 @@ export async function renderWeatherBar(){
   summaryRow.innerHTML=buildSummaryHtml(weatherEmoji(data.weathercode[todayIdx]),summaryText);
 
   detail.innerHTML='';
-  data.time.forEach((iso,i)=>{
-    const d=new Date(iso+'T00:00:00');
-    const isToday=i===todayIdx;
-    const cell=document.createElement('div');
-    cell.className='weather-day'+(isToday?' weather-day-today':'');
-    cell.innerHTML=`<div class="weather-day-label">${WEEKDAYS[d.getDay()]}<br>${d.getMonth()+1}/${d.getDate()}</div>`+
-      `<div class="weather-day-emoji">${weatherEmoji(data.weathercode[i])}</div>`+
-      `<div class="weather-day-precip">${fmtPrecip(data.precipitation_sum[i])}</div>`+
-      `<div class="weather-day-temp">${Math.round(data.temperature_2m_max[i])}°/${Math.round(data.temperature_2m_min[i])}°</div>`;
-    detail.appendChild(cell);
-  });
+  data.time.forEach((iso,i)=>detail.appendChild(buildWeatherDayCell(data,i,i===todayIdx)));
   detail.style.display=expanded?'flex':'none';
   if(expanded){
     requestAnimationFrame(()=>{

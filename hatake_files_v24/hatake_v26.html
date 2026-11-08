@@ -187,6 +187,17 @@ body.admin-mode #screen-manage .toolbar,body.admin-mode #screen-master .toolbar,
 .task-skip-btn{font-size:var(--fs-xs);padding:4px 10px;border-radius:6px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer}
 .task-name.done-text{text-decoration:line-through;color:var(--color-text-tertiary)}
 .task-desc{font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-top:2px}
+.phase-temp{margin:-2px 0 8px;padding:4px 8px;border-radius:var(--border-radius-md);background:#EAF3DE;color:#27500A;font-size:var(--fs-xs)}
+.phase-temp.expandable{cursor:pointer}
+.phase-temp-line{display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px}
+.phase-temp-range{font-weight:600}
+.phase-temp-now{flex:1 1 auto}
+.phase-temp-low,.phase-temp-high{color:#854F0B}
+.phase-temp-more{margin-left:auto;font-size:12px;opacity:.6}
+.phase-temp-cal{display:none;gap:6px;overflow-x:auto;margin-top:6px;padding:4px;border-radius:var(--border-radius-md);background:var(--color-background-primary);-webkit-overflow-scrolling:touch}
+.phase-temp.open .phase-temp-cal{display:flex}
+.weather-day-mark-low,.weather-day-mark-high{background:#FAEEDA;color:#854F0B}
+.weather-day-mark-danger-low,.weather-day-mark-danger-high{background:#FCEBEB;color:#A32D2D}
 .task-dates{display:flex;align-items:center;gap:5px;margin-top:6px;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .task-date-chip{height:34px;box-sizing:border-box;display:inline-flex;align-items:center;gap:5px;font-size:var(--fs-xs);padding:0 10px;border-radius:6px;background:#d4f0b8;color:#2e7a28;border:0.5px solid #a0d870;white-space:nowrap;flex-shrink:0}
 .task-date-chip-memo-dot{width:6px;height:6px;border-radius:50%;background:#2e7a28;flex-shrink:0}

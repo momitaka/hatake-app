@@ -1,7 +1,7 @@
 // @ts-check
 // ===== 管理画面（工程表・ログ・収穫） =====
 import { navState, permState, gridState, segData } from './state.js';
-import { vegIconHtml, UNITS, SIZE_LABELS, PHASE_COLORS, stripPhaseSuffix } from './helpers.js';
+import { getVegKey, vegIconHtml, UNITS, SIZE_LABELS, PHASE_COLORS, stripPhaseSuffix } from './helpers.js';
 import { buildSegs, getVeg, calcMajorStatus, calcProgress, getTaskState, setTaskState, getMilestoneDate, getPhaseTimeline, getMergedLogsByDate, getHarvestSummary, harvestTotalStr, getHarvestLogs, addHarvestLog, removeHarvestLog, getSummaryMemo, setSummaryMemo, getLinkedSids, linkSegs, unlinkOne, detachSegFromGroup, hasAnyRecord, recordKey, setHarvestLogPhoto, setHarvestLogMemo, getWeeklyYieldComparisonData } from './segments.js';
 import { dispToISO, showTaskDateDialog, showMilestoneDialog, showConfirm, showAlert, showHarvestMemoDialog } from './dialogs.js';
 import { saveLS, getLastTab, setLastTab } from './storage.js';
@@ -10,6 +10,9 @@ import { permCanEditFarm } from './add-veg.js';
 import { openCompleteConfirm } from './complete.js';
 import { renderGrid } from './grid.js';
 import { renderBasicTab } from './basic-tab.js';
+import { getVegMaster } from './veg-master.js';
+import { getDailyWeather, buildWeatherDayCell } from './weather.js';
+import { judgeStage, pickTaskStage, summarizeWeek, formatShortRange, TEMP_LEVEL_LABELS } from './temp-zones.js';
 import { uploadHarvestPhoto, uploadTaskPhoto, deleteHarvestPhoto, deleteHarvestPhotosForSeg, getHarvestPhotoUrl } from './photo-utils.js';
 
 // 収穫ログ・工程実施ログ共通の写真表示用署名URLキャッシュ（1時間有効。再描画のたびに毎回サインさせないための簡易キャッシュ）
@@ -257,6 +260,43 @@ function renderPhaseTimeline(el,data,phaseIdx){
   el.appendChild(legend);
 }
 
+/** @typedef {{slot:HTMLElement,stage:'germination'|'growth',zones:any,withForecast:boolean}} PhaseTempSlot */
+/** @param {PhaseTempSlot[]} slots フェーズ見出しの下に「そのフェーズの適温の目安」と「今後7日の予報」を出す。適温は数値だけなので同期で描く。
+ * 今後7日の予報の要約（今日から7日間）と、タップで開く天気カレンダー（天気バーと同じ前後7日。適温の範囲外の日に色）は、現在のフェーズと7日以内に始まる次のフェーズだけ。
+ * 取得は非同期で、その間に再描画されて欄が外れていたら何もしない。位置未設定・取得失敗なら適温だけが残り、開く操作も出さない */
+async function fillPhaseTemps(slots){
+  slots.forEach(({slot,stage,zones})=>{
+    slot.className='phase-temp';
+    slot.innerHTML=`<div class="phase-temp-line"><i class="ti ti-temperature"></i><span class="phase-temp-range">${formatShortRange(zones[stage])}</span><span class="phase-temp-now"></span></div>`;
+  });
+  if(!slots.some(s=>s.withForecast))return;
+  const daily=await getDailyWeather();
+  if(!daily)return;
+  const today=todayISO();
+  const week=/** @type {{max:number,min:number}[]} */([]);
+  daily.time.forEach((iso,i)=>{if(iso>=today&&week.length<7)week.push({max:daily.temperature_2m_max[i],min:daily.temperature_2m_min[i]});});
+  slots.forEach(({slot,stage,zones,withForecast})=>{
+    if(!withForecast||!slot.isConnected)return;
+    const w=summarizeWeek(zones[stage],week);if(!w)return;
+    const now=/** @type {HTMLElement} */(slot.querySelector('.phase-temp-now'));
+    now.className='phase-temp-now phase-temp-'+w.level;
+    now.innerHTML=`今後7日の予報：<b>${TEMP_LEVEL_LABELS[w.level]}</b>（日平均${Math.round(w.avgMean)}℃前後・夜は最低${Math.round(w.minNight)}℃）`;
+    const cal=document.createElement('div');cal.className='phase-temp-cal';
+    let todayCell=/** @type {HTMLElement|null} */(null);
+    daily.time.forEach((iso,i)=>{
+      const cell=buildWeatherDayCell(daily,i,iso===today);
+      const j=judgeStage(zones[stage],{max:daily.temperature_2m_max[i],min:daily.temperature_2m_min[i]});
+      if(j&&j.level!=='optimal')cell.classList.add('weather-day-mark','weather-day-mark-'+j.level);
+      if(iso===today)todayCell=cell;
+      cal.appendChild(cell);
+    });
+    slot.appendChild(cal);
+    slot.classList.add('expandable');
+    slot.querySelector('.phase-temp-line')?.insertAdjacentHTML('beforeend','<i class="ti ti-chevron-down phase-temp-more"></i>');
+    slot.addEventListener('click',()=>{slot.classList.toggle('open');if(slot.classList.contains('open')&&todayCell)todayCell.scrollIntoView({inline:'center',block:'nearest'});});
+  });
+}
+
 export function renderRoadmapTab(el,seg,veg){
   if(!veg||!veg.phases||!veg.phases.length){const b=document.createElement('div');b.className='ai-banner';b.innerHTML='<div class="ai-banner-text">工程表がありません。栽培レシピで生成してください。</div>';el.appendChild(b);return;}
   const{pct,phaseIdx}=calcProgress(navState.seg,seg.crop);
@@ -264,12 +304,32 @@ export function renderRoadmapTab(el,seg,veg){
   const timeline=getPhaseTimeline(navState.seg,seg.crop);
   renderPhaseTimeline(el,timeline,phaseIdx);
   const _baseDate=timeline?timeline.baseDate:null;
+  // フェーズ見出しの下に適温と今後7日の予報：基礎知識マスタに適温の数値(tempZones)がある野菜だけ。ステージはフェーズのレシピ上の位置で決める
+  const _tempZones=getVegMaster(getVegKey(veg))?.basicInfo?.tempZones||null;
+  const _fromSeed=veg.phases.some(p=>p.tasks.some(t=>t.milestone==='sowing'));
+  const _germTask=veg.phases.flatMap(p=>p.tasks).find(t=>t.milestone==='germination');
+  const _germRelDay=_germTask&&timeline&&timeline.taskRelDay[_germTask.id]!=null?timeline.taskRelDay[_germTask.id]:null;
+  /** @type {PhaseTempSlot[]} */
+  const _tempSlots=[];
+  let _lastTempStage=null;
   // 次の一手＝全工程のうち最初の「未チェックかつスキップでない」タスク（前出しで先に済ませたタスクは飛ばして判定）
   const _nextTask=veg.phases.flatMap(p=>p.tasks).find(t=>{const s=getTaskState(navState.seg,t.id);return !s.done&&!s.skip;});
   veg.phases.forEach((phase,pi)=>{
     const isCurrent=pi===phaseIdx,isDone=pi<phaseIdx;
     const block=document.createElement('div');block.className='phase-block';block.style.borderLeftColor=PHASE_COLORS[pi%PHASE_COLORS.length];
     block.innerHTML=`<div class="phase-heading"><div class="phase-radio ${isDone?'done':isCurrent?'active':''}"></div><span class="phase-name" style="color:${isCurrent?'#1a1915':'#5f5e5a'}">${stripPhaseSuffix(phase.name)}</span>${phase.period?'<span class="phase-period">（'+phase.period+'）</span>':''}</div>`;
+    if(_tempZones&&_baseDate&&timeline&&!isDone&&phase.tasks.length){
+      const firstRel=Math.min(...phase.tasks.map(t=>timeline.taskRelDay[t.id]??0));
+      const today=todayISO();
+      const soon=pi===phaseIdx+1&&addDaysISO(_baseDate,firstRel)<=addDaysISO(today,6);
+      const stage=pickTaskStage(isCurrent?daysBetween(_baseDate,today):firstRel,_germRelDay,_fromSeed);
+      // 予報を出さないフェーズは、直前に出したフェーズと同じステージなら適温の行も省く（同じ行の繰り返しを避ける）
+      if(stage&&_tempZones[stage]&&(isCurrent||soon||stage!==_lastTempStage)){
+        const slot=document.createElement('div');block.appendChild(slot);
+        _tempSlots.push({slot,stage,zones:_tempZones,withForecast:isCurrent||soon});
+        _lastTempStage=stage;
+      }
+    }
     phase.tasks.forEach(task=>{
       const state=getTaskState(navState.seg,task.id);const isPest=task.type==='pest';const card=document.createElement('div');card.className='task-card'+(isPest?' pest':'')+(_nextTask&&_nextTask.id===task.id?' next':'')+(state.skip?' skipped':'');
       const _relDay=timeline&&timeline.taskRelDay[task.id]!=null?timeline.taskRelDay[task.id]:0;
@@ -283,6 +343,7 @@ export function renderRoadmapTab(el,seg,veg){
     });
     el.appendChild(block);
   });
+  fillPhaseTemps(_tempSlots);
   if(pendingNextScroll){pendingNextScroll=false;requestAnimationFrame(()=>scrollToNextTask(el));}
 }
 
