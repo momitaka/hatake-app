@@ -1,8 +1,33 @@
 // @ts-check
 // ===== 基礎知識タブ =====
-import { vegIconHtml } from './helpers.js';
+import { vegIconHtml, getVegKey } from './helpers.js';
 import { renderRegionalSchedule } from './regional-schedule.js';
 import { farmMeta } from './state.js';
+import { getVegMaster } from './veg-master.js';
+
+/** 基礎知識マスタ(published)に行がある野菜はマスタを優先し、マスタに無い項目と、レシピ側の「対策」は手元の basicInfo から補う(TSK-82)。
+ * マスタに行が無い・取得に失敗した場合は従来どおり手元の basicInfo だけを使う
+ * @param {any} veg @returns {{bi:any, veg:any}} bi=表示に使う基礎知識、veg=栽培カレンダー用(マスタの regional_schedule があれば差し替え) */
+function resolveBasicInfo(veg){
+  const own=(veg&&veg.basicInfo)||null;
+  const master=getVegMaster(getVegKey(veg));
+  const mb=master&&master.basicInfo;
+  if(!mb)return {bi:own,veg};
+  const bi={...(own||{}),...mb};
+  // 病気・害虫は名前と症状がマスタ、対策はレシピ側。同じ名前のものにレシピ側の対策を引き継ぐ
+  ['pests','diseases'].forEach(k=>{
+    if(!Array.isArray(mb[k]))return;
+    const ownList=own&&Array.isArray(own[k])?own[k]:[];
+    bi[k]=mb[k].map(/** @param {any} it */it=>{
+      const o=ownList.find(/** @param {any} x */x=>x.name===it.name);
+      return o&&o.treatment&&!it.treatment?{...it,treatment:o.treatment}:it;
+    });
+  });
+  // 栽培カレンダーは、マスタのものがあればそれ、無くてマスタに時期(seasons)があれば手元の古いカレンダーを使わず時期の文章を出す(マスタ優先)
+  if(master.regionalSchedule)return {bi,veg:{...veg,regionalSchedule:master.regionalSchedule}};
+  if(mb.seasons)return {bi,veg:{...veg,regionalSchedule:null}};
+  return {bi,veg};
+}
 export function youtubeVideoId(url){
   if(!url)return null;
   const m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{11})/);
@@ -17,13 +42,17 @@ export function renderBasicTab(el,veg){
     frame.innerHTML=`<iframe src="https://www.youtube.com/embed/${ytId}" style="width:100%;height:100%;border:none" allowfullscreen loading="lazy"></iframe>`;
     wrap.appendChild(frame);
   }
-  const bi=veg&&veg.basicInfo;
+  const resolved=resolveBasicInfo(veg);
+  const bi=resolved.bi;
+  veg=resolved.veg; // 以降の栽培カレンダー表示はマスタの regional_schedule を優先
   if(!bi){
     const empty=document.createElement('div');
     empty.style.cssText='text-align:center;padding:40px 20px;color:var(--color-text-tertiary);font-size:var(--fs-base)';
     empty.innerHTML='<i class="ti ti-plant" style="font-size:32px;display:block;margin-bottom:8px"></i>栽培レシピでAI生成すると<br>基礎知識が表示されます';
     wrap.appendChild(empty);el.appendChild(wrap);return;
   }
+
+  const note=document.createElement('div');note.style.cssText='font-size:var(--fs-xs);color:var(--color-text-tertiary);margin-bottom:12px';note.textContent='目安です。地域・年・品種によって変わります。';wrap.appendChild(note);
 
   function section(title,icon){
     const s=document.createElement('div');s.style.cssText='margin-bottom:16px';
