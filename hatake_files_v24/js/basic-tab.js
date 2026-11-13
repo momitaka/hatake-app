@@ -5,28 +5,20 @@ import { renderRegionalSchedule } from './regional-schedule.js';
 import { farmMeta } from './state.js';
 import { getVegMaster } from './veg-master.js';
 
-/** 基礎知識マスタ(published)に行がある野菜はマスタを優先し、マスタに無い項目と、レシピ側の「対策」は手元の basicInfo から補う(TSK-82)。
+/** 基礎知識マスタ(published)に行がある野菜はマスタの項目だけを表示する(TSK-82)。
  * マスタに行が無い・取得に失敗した場合は従来どおり手元の basicInfo だけを使う
- * @param {any} veg @returns {{bi:any, veg:any}} bi=表示に使う基礎知識、veg=栽培カレンダー用(マスタの regional_schedule があれば差し替え) */
+ * @param {any} veg @returns {{bi:any, veg:any, fromMaster:boolean}} bi=表示に使う基礎知識、fromMaster=マスタの行を使ったか、veg=栽培カレンダー用(マスタの regional_schedule があれば差し替え) */
 function resolveBasicInfo(veg){
   const own=(veg&&veg.basicInfo)||null;
   const master=getVegMaster(getVegKey(veg));
   const mb=master&&master.basicInfo;
-  if(!mb)return {bi:own,veg};
-  const bi={...(own||{}),...mb};
-  // 病気・害虫は名前と症状がマスタ、対策はレシピ側。同じ名前のものにレシピ側の対策を引き継ぐ
-  ['pests','diseases'].forEach(k=>{
-    if(!Array.isArray(mb[k]))return;
-    const ownList=own&&Array.isArray(own[k])?own[k]:[];
-    bi[k]=mb[k].map(/** @param {any} it */it=>{
-      const o=ownList.find(/** @param {any} x */x=>x.name===it.name);
-      return o&&o.treatment&&!it.treatment?{...it,treatment:o.treatment}:it;
-    });
-  });
+  if(!mb)return {bi:own,veg,fromMaster:false};
+  // マスタの項目だけを表示する。手元(古いAI生成)の項目は混ぜない(サイズ・耐性・育成方法・必要資材・育成断面・対策など。レシピ側の対策は農薬名を含むため引き継がない)
+  const bi={...mb};
   // 栽培カレンダーは、マスタのものがあればそれ、無くてマスタに時期(seasons)があれば手元の古いカレンダーを使わず時期の文章を出す(マスタ優先)
-  if(master.regionalSchedule)return {bi,veg:{...veg,regionalSchedule:master.regionalSchedule}};
-  if(mb.seasons)return {bi,veg:{...veg,regionalSchedule:null}};
-  return {bi,veg};
+  if(master.regionalSchedule)return {bi,veg:{...veg,regionalSchedule:master.regionalSchedule},fromMaster:true};
+  if(mb.seasons)return {bi,veg:{...veg,regionalSchedule:null},fromMaster:true};
+  return {bi,veg,fromMaster:true};
 }
 export function youtubeVideoId(url){
   if(!url)return null;
@@ -44,6 +36,7 @@ export function renderBasicTab(el,veg){
   }
   const resolved=resolveBasicInfo(veg);
   const bi=resolved.bi;
+  const vegName=(veg&&veg.name)||'';
   veg=resolved.veg; // 以降の栽培カレンダー表示はマスタの regional_schedule を優先
   if(!bi){
     const empty=document.createElement('div');
@@ -144,23 +137,31 @@ export function renderBasicTab(el,veg){
   }
   if(s5.children.length>1)wrap.appendChild(s5);
 
-  // 病気・害虫
-  if((bi.diseases&&bi.diseases.length)||(bi.pests&&bi.pests.length)){
-    const s6=section('病気・害虫と対策','ti-bug');
+  // 病気・害虫。名前は「野菜名＋病気名」のWeb検索リンクにする(スマホで文字選択→検索が面倒なため、ワンタップで調べられるようにする)。
+  // マスタの行がある野菜で病気・害虫が空なら、セクションを消さず「整備中」の案内を出す
+  const hasPD=(bi.diseases&&bi.diseases.length)||(bi.pests&&bi.pests.length);
+  if(hasPD||resolved.fromMaster){
+    const s6=section(resolved.fromMaster?'病気・害虫':'病気・害虫と対策','ti-bug');
     function diseaseCard(item,typeLabel){
       const card=document.createElement('div');card.style.cssText='border:1px solid var(--color-border-secondary);border-radius:8px;padding:8px 10px;margin-bottom:8px;background:var(--color-background-primary)';
       const top=document.createElement('div');top.style.cssText='display:flex;align-items:center;gap:6px;margin-bottom:4px';
       const badge=document.createElement('div');badge.style.cssText='font-size:var(--fs-xs);padding:1px 6px;border-radius:99px;'+(typeLabel==='病気'?'background:#FAECE7;color:#993C1D':'background:#FFF3E0;color:#92600B');badge.textContent=typeLabel;
-      const name=document.createElement('div');name.style.cssText='font-size:var(--fs-base);font-weight:600;color:var(--color-text-primary)';name.textContent=item.name;
-      top.append(badge,name);
+      const name=document.createElement('a');name.href='https://www.google.com/search?q='+encodeURIComponent((vegName+' '+item.name).trim());name.target='_blank';name.rel='noopener';
+      name.style.cssText='font-size:var(--fs-base);font-weight:600;color:#185FA5;text-decoration:underline';name.textContent=item.name;
+      const hint=document.createElement('i');hint.className='ti ti-search';hint.style.cssText='font-size:var(--fs-sm);color:#185FA5';
+      top.append(badge,name,hint);
       card.appendChild(top);
       // 症状・対策のどちらかが空(出典で確認できなかった)なら、その行は出さない
       if(item.symptoms){const sym=document.createElement('div');sym.style.cssText='font-size:var(--fs-xs);color:var(--color-text-secondary);margin-bottom:3px';sym.textContent='症状：'+item.symptoms;card.appendChild(sym);}
       if(item.treatment){const treat=document.createElement('div');treat.style.cssText='font-size:var(--fs-xs);color:#2e7a28';treat.textContent='対策：'+item.treatment;card.appendChild(treat);}
       s6.appendChild(card);
     }
-    (bi.diseases||[]).forEach(d=>diseaseCard(d,'病気'));
-    (bi.pests||[]).forEach(p=>diseaseCard(p,'害虫'));
+    if(hasPD){
+      (bi.diseases||[]).forEach(d=>diseaseCard(d,'病気'));
+      (bi.pests||[]).forEach(p=>diseaseCard(p,'害虫'));
+    }else{
+      const pending=document.createElement('div');pending.style.cssText='font-size:var(--fs-sm);color:var(--color-text-tertiary);padding:4px 0';pending.textContent='病気・害虫は整備中です。';s6.appendChild(pending);
+    }
     wrap.appendChild(s6);
   }
 
